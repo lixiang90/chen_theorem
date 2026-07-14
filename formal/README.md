@@ -7,7 +7,7 @@ This is a Lake project giving a **formal skeleton** — precise Lean statements 
 > prime and the product of at most two primes*, Sci. Sinica **16** (1973), 111–128.
 
 (A LaTeX transcription of the paper, in Chinese and English, lives in the parent
-directory: `../main.tex`, `../main_en.tex`.)
+directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 
 - **Lean**: `leanprover/lean4:v4.31.0`
 - **Mathlib**: release tag `v4.31.0`
@@ -44,7 +44,7 @@ lake build
 | Lemma 1 | `chenPhi_eq_zero`, `chenPhi_monotoneOn`, `chenPhi_nonneg`, `chenPhi_le_one`, `chenPhi_ge` (**all five proved**) |
 | Lemma 2, eqs. (2)–(3) | `large_sieve`, `large_sieve_dyadic` |
 | Lemma 3 | `lFunction_fourth_moment` |
-| Lemma 4 | `primitive_char_sum_bound` |
+| Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, open); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemmas 5–6 | `sieveOmega_le_mOne` (combined; `M₂` and its contour integral are not reproduced — only the resulting bound) |
 | Lemma 7 | `mOne_le` |
 | Lemma 8 | `sieveOmega_le` |
@@ -93,6 +93,23 @@ lake build
     `√(2πn) ≥ 1` factor. The final numeric inequality has enormous slack
     (`log x ≥ 10⁴` against a requirement of roughly `log x ≥ 5`), so a loose
     bound `log 2 < 0.7` (`Real.log_two_lt_d9`) suffices throughout.
+* **Lemma 4, prime case, proved.** For a prime modulus `p`, every nontrivial
+  character is automatically primitive: its conductor divides `p`
+  (`DirichletCharacter.conductor_dvd_level`), hence is `1` or `p`, and conductor
+  `1` forces the character trivial (`DirichletCharacter.eq_one_iff_conductor_eq_one`).
+  So `∑*_{χ mod p} χ(m) = (∑_{all χ} χ(m)) - χ₀(m)`, and both terms are computed
+  in closed form: the first via Mathlib's orthogonality relation
+  `DirichletCharacter.sum_characters_eq` (`= φ(p)` if `m ≡ 1 mod p`, else `0`),
+  the second via `MulChar.one_apply`/`MulChar.map_nonunit` (`= 1` if `(m,p)=1`,
+  else `0`). A three-way case split on `(m mod p = 1)` and `(m,p) = 1` then
+  matches the bound `≤ (m-1,p)` exactly (with equality in the "generic" case
+  `p ∤ m(m-1)`). This is a genuinely different — and shorter — route than the
+  paper's own proof (which builds primitive characters explicitly from a
+  primitive root mod `p`); it does not generalize past the prime case, since for
+  composite squarefree `k` not every nontrivial character mod `k` is primitive
+  (that direction needs the CRT decomposition into characters mod each prime
+  factor, which `primitive_char_sum_bound` for general `k` still requires and
+  does not yet have).
 * **`M₂` omitted.** The quantity `M₂` (a contour integral of `L'/L` against the
   sieve weights) is not defined; Lemmas 5 and 6 are stated in combined form
   `Ω ≤ M₁/(1-ε) + O(x (log x)^{-2.01})`, which is exactly how the pair is used.
@@ -127,14 +144,20 @@ lake build
 ## Status
 
 Builds cleanly with `lake build` (Lean `v4.31.0`, Mathlib `v4.31.0`): all
-definitions and all 20 theorem statements elaborate with zero errors.
+definitions and all 21 theorem statements elaborate with zero errors.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
 seven supporting private lemmas (Gamma-integral/factorial identities, the
 concavity tangent-line bound, the Stirling-derived factorial bound, and the
-rescaling/tail estimates). Lemmas 2–4 (the large sieve, the `L`-function fourth
-moment, primitive character sums) and everything in `MainEstimates.lean`/
-`Main.lean` remain `sorry`-placeholders. This is still a *skeleton* overall, but
-Lemma 1 — the paper's core analytic tool, used throughout the rest of the
-argument — is now a complete, machine-checked proof.
+rescaling/tail estimates).
+
+**Lemma 4's prime case is proved** (`primitive_char_sum_bound_prime`), via
+Dirichlet-character orthogonality rather than the paper's primitive-root
+construction — see the design note above.
+
+The large sieve, the `L`-function fourth moment, the general (squarefree)
+case of Lemma 4, and everything in `MainEstimates.lean`/`Main.lean` remain
+`sorry`-placeholders. This is still a *skeleton* overall, but two of the
+paper's foundational tools — Lemma 1 in full, and the base case of Lemma 4 —
+are now complete, machine-checked proofs.

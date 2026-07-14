@@ -444,4 +444,73 @@ theorem primitive_char_sum_bound (k : ℕ) (hk : Squarefree k) (hodd : Odd k)
       (Nat.gcd (m - 1) k : ℝ) := by
   sorry
 
+/-- **Lemma 4, prime case**: for an odd prime `p` and `m ≠ 1`,
+`|∑*_{χ mod p} χ(m)| ≤ (m - 1, p)`.
+
+This is the base case (`k = p`) of `primitive_char_sum_bound`: for a *prime* modulus every
+nontrivial character is automatically primitive — its conductor divides `p`, hence is `1`
+or `p`, and conductor `1` forces the character trivial — so the primitive sum collapses to
+`(∑_{all χ} χ(m)) - χ₀(m)`, both terms computable in closed form via Mathlib's Dirichlet
+character orthogonality relation (`DirichletCharacter.sum_characters_eq`) and the value of
+the principal character. (The general squarefree case additionally needs the CRT
+decomposition of characters mod a squarefree `k` into characters mod each prime factor,
+which is not reproduced here.) -/
+theorem primitive_char_sum_bound_prime {p : ℕ} (hp : p.Prime) (hodd : Odd p)
+    (m : ℕ) (hm : m ≠ 1) :
+    ‖∑' χ : DirichletCharacter ℂ p, if χ.IsPrimitive then χ m else 0‖ ≤
+      (Nat.gcd (m - 1) p : ℝ) := by
+  haveI : NeZero p := ⟨hp.pos.ne'⟩
+  haveI : Fact p.Prime := ⟨hp⟩
+  have hiff : ∀ χ : DirichletCharacter ℂ p, χ.IsPrimitive ↔ χ ≠ 1 := by
+    intro χ
+    unfold DirichletCharacter.IsPrimitive
+    constructor
+    · intro h heq
+      rw [heq, DirichletCharacter.conductor_one] at h
+      exact hp.ne_one h.symm
+    · intro hne
+      rcases hp.eq_one_or_self_of_dvd _ χ.conductor_dvd_level with h1 | hpp
+      · exact absurd (DirichletCharacter.eq_one_iff_conductor_eq_one.mpr h1) hne
+      · exact hpp
+  have hfun_eq : (fun χ : DirichletCharacter ℂ p => if χ.IsPrimitive then (χ m : ℂ) else 0)
+      = fun χ => if χ ≠ 1 then (χ m : ℂ) else 0 := by
+    funext χ; simp only [hiff]
+  rw [hfun_eq, tsum_fintype]
+  have hsplit : ∀ χ : DirichletCharacter ℂ p, (if χ ≠ 1 then (χ m : ℂ) else 0)
+      = (χ m : ℂ) - (if χ = 1 then (χ m : ℂ) else 0) := by
+    intro χ; by_cases h : χ = 1 <;> simp [h]
+  simp_rw [hsplit]
+  rw [Finset.sum_sub_distrib,
+    Fintype.sum_ite_eq' (1 : DirichletCharacter ℂ p) (fun χ => (χ m : ℂ)),
+    DirichletCharacter.sum_characters_eq ℂ (m : ZMod p)]
+  have hp2 : p ≠ 2 := by rintro rfl; exact (by decide : ¬ Odd 2) hodd
+  have hp3 : 3 ≤ p := by have := hp.two_le; omega
+  by_cases hcase1 : (m : ZMod p) = 1
+  · rw [if_pos hcase1]
+    have hm1 : 1 ≤ m := by
+      rcases Nat.eq_zero_or_pos m with rfl | h
+      · exact absurd hcase1 (by simp)
+      · exact h
+    have hpdvd : p ∣ (m - 1) :=
+      (Nat.modEq_iff_dvd' hm1).mp ((ZMod.natCast_eq_natCast_iff 1 m p).mp (by simpa using hcase1.symm))
+    have hgcd : Nat.gcd (m - 1) p = p := Nat.gcd_eq_right hpdvd
+    have hunit : IsUnit (m : ZMod p) := hcase1 ▸ isUnit_one
+    rw [MulChar.one_apply hunit, Nat.totient_prime hp, hgcd]
+    have h1p : (1 : ℕ) ≤ p := hp.one_lt.le
+    have heq : ((p - 1 : ℕ) : ℂ) - 1 = (p : ℂ) - 2 := by
+      push_cast [Nat.cast_sub h1p]; ring
+    rw [heq]
+    have : (p : ℂ) - 2 = ((p - 2 : ℝ) : ℂ) := by push_cast; ring
+    rw [this, Complex.norm_real, Real.norm_eq_abs]
+    have hp3' : (3:ℝ) ≤ (p:ℝ) := by exact_mod_cast hp3
+    rw [abs_of_nonneg (by linarith [hp3'] : (0:ℝ) ≤ (p:ℝ) - 2)]
+    linarith [hp3']
+  · rw [if_neg hcase1, zero_sub, norm_neg]
+    by_cases hunit : IsUnit (m : ZMod p)
+    · rw [MulChar.one_apply hunit, norm_one]
+      have hgcdpos : 1 ≤ Nat.gcd (m - 1) p := Nat.gcd_pos_of_pos_right _ hp.pos
+      exact_mod_cast hgcdpos
+    · rw [MulChar.map_nonunit _ hunit]
+      simp
+
 end Chen
