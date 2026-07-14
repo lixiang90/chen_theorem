@@ -1,0 +1,412 @@
+\title{大偶数表为一个素数及一个不超过二个素数的乘积之和}
+\author{陈景润\thanks{（中国科学院数学研究所）}\thanks{本文1973年3月13日收到。}}
+\date{}
+\maketitle
+
+\begin{abstract}
+本文的目的在于用筛法证明了：每一充分大的偶数是一个素数及一个不超过两个素数乘积之和。
+
+关于孪生素数问题亦得到类似的结果。
+\end{abstract}
+
+\section{引言}
+
+把命题“每一个充分大的偶数都能表示为一个素数及一个不超过 $a$ 个素数的乘积之和”简记为 $(1,a)$。
+
+不少数学工作者改进了筛法及素数分布的某些结果，并用以改善 $(1,a)$。现在我们将 $(1,a)$ 发展历史简述如下：
+
+\begin{itemize}[leftmargin=2em]
+\item $(1,c)$——Renyi$^{[1]}$，
+\item $(1,5)$——潘承洞$^{[2]}$、{\cyrfont Барбан}$^{[3]}$，
+\item $(1,4)$——王元$^{[4]}$、潘承洞$^{[5]}$、{\cyrfont Барбан}$^{[6]}$，
+\item $(1,3)$——{\cyrfont Бухштаб}$^{[7]}$、{\cyrfont Виноградов}$^{[8]}$、Bombieri$^{[9]}$，
+\end{itemize}
+在文献 $[10]$ 中我们给出了 $(1,2)$ 的证明提要。
+
+命 $P_x(1,2)$ 为适合下列条件的素数 $p$ 的个数：
+\[
+x-p=p_1 \quad \text{或} \quad x-p=p_2p_3,
+\]
+其中 $p_1,p_2,p_3$ 都是素数。
+
+用 $x$ 表一充分大的偶数。命
+\[
+C_x=\prod_{\substack{p\mid x\\ p>2}}\frac{p-1}{p-2}\prod_{p>2}\left(1-\frac{1}{(p-1)^2}\right).
+\]
+
+对于任意给定的偶数 $h$ 及充分大的 $x$，用 $x_h(1,2)$ 表示满足下面条件的素数 $p$ 的个数：
+\[
+p\leqslant x,\quad p+h=p_1 \quad \text{或} \quad p+h=p_2p_3,
+\]
+其中 $p_1,p_2,p_3$ 都是素数。
+
+本文目的在于证明并改进作者在文献 $[10]$ 内所提及的全部结果，现在详述如下。
+
+\begin{theorem}
+$(1,2)$ 及 $\displaystyle P_x(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}$。
+\end{theorem}
+
+\begin{theorem}
+对于任意偶数 $h$，都存在无限多个素数 $p$，使得 $p+h$ 的素因子的个数不超过 $2$ 个及
+\[
+x_h(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}.
+\]
+\end{theorem}
+
+在证明定理1时，主要用到了本文中的引理8和引理9。在证明引理8时，我们使用较为简单的数字计算方法；而证明引理9时，我们使用了 Bombieri 定理$^{[9]}$及 Richert$^{[11]}$ 中的一个结果。
+
+\section{几个引理}
+
+\begin{lemma}
+假设 $y\geqslant0$，而 $[\log x]$ 表示 $\log x$ 的整数部分，$x>1$，
+\[
+\Phi(y)=\frac{1}{2\pi i}\int_{2-i\infty}^{2+i\infty}\frac{y^\omega d\omega}{\omega\left(1+\dfrac{\omega}{(\log x)^{1.1}}\right)^{[\log x]+1}}.
+\]
+显见，当 $0\leqslant y\leqslant1$ 时，有 $\Phi(y)=0$。对于所有 $y\geqslant0$，则 $\Phi(y)$ 是一个非减函数。当 $\log x\geqslant10^4$ 及 $y\geqslant e^{2(\log x)^{-0.1}}$ 时，则有
+\[
+1-x^{-0.1}\leqslant\Phi(y)\leqslant1.
+\]
+\end{lemma}
+
+\begin{proof}
+我们先来证明
+\begin{equation}\label{eq:chen1}
+\frac{\partial^r}{\partial\omega^r}\left(\frac{y^\omega}{\omega}\right)
+=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^r+
+\sum_{i=1}^{r}\frac{(-1)^i r\cdots(r-i+1)(\log y)^{r-i}}{\omega^i}\right\}
+\end{equation}
+成立。显见，(1)式当 $r=1$ 和 $r=2$ 时都成立。现假定 (1)式对于 $r=2,\cdots,S$ 时都成立，而证明对于 $S+1$ 也成立。由于
+\begin{align*}
+\frac{\partial^{S+1}}{\partial\omega^{S+1}}\left(\frac{y^\omega}{\omega}\right)
+&=\frac{\partial}{\partial\omega}\left\{y^\omega\left(\frac{(\log y)^S}{\omega}
++\sum_{i=1}^{S}\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S-i}}{\omega^{i+1}}\right)\right\}\\
+&=y^\omega\left\{\frac{(\log y)^{S+1}}{\omega}
++\sum_{i=1}^{S}\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S+1-i}}{\omega^{i+1}}
+-\frac{(\log y)^S}{\omega^2}\right.\\
+&\qquad\left.+\sum_{i=1}^{S}\frac{(-1)^{i+1}S\cdots(S-i+1)(i+1)(\log y)^{S-i}}{\omega^{i+2}}\right\}\\
+&=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^{S+1}
+-\frac{(S+1)(\log y)^S}{\omega}
++\frac{(-1)^{S+1}(S+1)!}{\omega^{S+1}}\right.\\
+&\qquad\left.+\sum_{i=2}^{S}\left(
+\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S+1-i}}{\omega^i}
++\frac{(-1)^i S\cdots(S+2-i)i(\log y)^{S+1-i}}{\omega^i}
+\right)\right\}\\
+&=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^{S+1}
++\sum_{i=1}^{S+1}\frac{(-1)^i(S+1)\cdots(S+1-i+1)(\log y)^{S+1-i}}{\omega^i}\right\}.
+\end{align*}
+故 (1)式得证。
+
+又当 $y\geqslant1$ 时，我们有
+\[
+\Phi(y)=1+\left\{\frac{(\log x)^{1.1+1.1[\log x]}}{[\log x]!}\right\}
+\left\{\frac{\partial^{[\log x]}}{\partial\omega^{[\log x]}}
+\left(\frac{y^\omega}{\omega}\right)\right\}_{\omega=-(\log x)^{1.1}}
+\]
+\begin{align*}
+&=1-e^{-(\log x)^{1.1}(\log y)}\sum_{\nu=0}^{[\log x]}
+\frac{\left\{(\log x)^{1.1}(\log y)\right\}^\nu}{\nu!}\\
+&=\left\{\frac{1}{[\log x]!}\right\}
+\int_{0}^{(\log x)^{1.1}(\log y)}e^{-\lambda}\lambda^{[\log x]}d\lambda.
+\end{align*}
+因为 $0\leqslant y\leqslant1$ 时，$\Phi(y)=0$。故由上式得到：当 $y\geqslant0$ 时，则 $\Phi(y)$ 是一个非减函数。又当 $y\geqslant e^{2(\log x)^{-0.1}}$ 时，有
+\begin{align*}
+0<1-\Phi(y)
+&=\left\{\frac{1}{[\log x]!}\right\}
+\int_{(\log x)^{1.1}(\log y)}^{\infty}e^{-\lambda}\lambda^{[\log x]}d\lambda\\
+&\leqslant\left\{\frac{1}{[\log x]!}\right\}
+\int_{2[\log x]}^{\infty}e^{-\lambda}\lambda^{[\log x]}d\lambda
+=\left\{\frac{\left\{[\log x]\right\}^{1+[\log x]}}{[\log x]!}\right\}\\
+&\quad\cdot\int_{2}^{\infty}e^{-\lambda[\log x]}\lambda^{[\log x]}d\lambda
+=\left\{\frac{e^{-[\log x]}\left\{[\log x]\right\}^{1+[\log x]}}{[\log x]!}\right\}\\
+&\quad\cdot\int_{1}^{\infty}e^{-\lambda[\log x]}(1+\lambda)^{[\log x]}d\lambda
+\leqslant x^{-0.1}.
+\end{align*}
+其中用到 $\log x\geqslant10^4$ 及当 $\lambda\geqslant1$ 时，有 $e^{\log(1+\lambda)}\leqslant e^{\lambda\log2}$。
+\end{proof}
+
+\begin{lemma}
+令 $e(\alpha)=e^{2\pi i\alpha}$，$S(\alpha)=\sum_{n=M+1}^{M+N}a_n e(n\alpha)$，$Z=\sum_{n=M+1}^{M+N}|a_n|^2$，其中 $a_n$ 是任意的实数。我们用 $\sideset{}{^*}\sum_{\chi_q}$ 来表示和式之中经过且只经过模 $q$ 的所有原特征，则有
+\begin{equation}\label{eq:chen2}
+\sum_{q\leqslant X}\frac{q}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+\leqslant\left(X^2+\pi N\right)\sum_{n=M+1}^{M+N}|a_n|^2;
+\end{equation}
+\begin{equation}\label{eq:chen3}
+\sum_{D<q\leqslant Q}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+\ll\left(Q+\frac{N}{D}\right)\sum_{n=M+1}^{M+N}|a_n|^2.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+令 $F$ 是一个周期为 $1$ 的复数值可微函数，则有
+\[
+\left|F\left(\frac{a}{q}\right)\right|
+=\left|F(\alpha)-\int_{\frac{a}{q}}^{\alpha}dF(\beta)\right|
+\leqslant|F(\alpha)|+\int_{\frac{a}{q}}^{\alpha}|F'(\beta)||d\beta|,
+\]
+我们用 $I(a,q)$ 来表示以 $\frac{a}{q}$ 为中心，而长度 $\frac{1}{Q^2}$ 的区间。显见，当 $1\leqslant a<q$，$(a,q)=1$，$q\leqslant Q$ 时，所有的区间 $I(a,q)$ 都没有共同部分，故得
+\begin{align*}
+\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|F\left(\frac{a}{q}\right)\right|
+&\leqslant\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left\{Q^2\int_{I(a,q)}|F(\alpha)|d\alpha
++\frac{1}{2}\int_{I(a,q)}|F'(\beta)|d\beta\right\}\\
+&\leqslant Q^2\int_{0}^{1}|F(\alpha)|d\alpha
++\frac{1}{2}\int_{0}^{1}|F'(\beta)|d\beta.
+\end{align*}
+
+我们取 $F(\alpha)=\{S(\alpha)\}^2$，则得
+\[
+\int_{0}^{1}|F(\alpha)|d\alpha=Z
+\]
+及
+\begin{align*}
+\frac{1}{2}\int_{0}^{1}|F'(\beta)|d\beta
+&=\int_{0}^{1}|S(\alpha)||S'(\alpha)|d\alpha\\
+&\leqslant\left\{\left(\int_{0}^{1}|S(\alpha)|^2d\alpha\right)
+\left(\int_{0}^{1}|S'(\alpha)|^2d\alpha\right)\right\}^{\frac12}
+=Z^{\frac12}\left(\int_{0}^{1}|S'(\alpha)|^2d\alpha\right)^{\frac12}.
+\end{align*}
+故有
+\begin{align*}
+\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|S\left(\frac{a}{q}\right)\right|^2
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left\{\left|S\left(\frac{a}{q}\right)\right|
+\,e\left(-\frac{a\left(M+\left[\frac{N}{2}\right]\right)}{q}\right)\right\}^2\\
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{n=M+1}^{M+N}a_n e\left(\left\{n-\left(M+\left[\frac{N}{2}\right]\right)\right\}\frac{a}{q}\right)\right|^2\\
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{-\left[\frac{N}{2}\right]+1\leqslant n\leqslant N-\left[\frac{N}{2}\right]}
+a_{n+M+\left[\frac{N}{2}\right]}e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant ZQ^2+Z^{\frac12}
+\left\{\sum_{n=-\left[\frac{N}{2}\right]+1}^{N-\left[\frac{N}{2}\right]}
+\bigl((2\pi n)a_{n+M+\left[\frac{N}{2}\right]}\bigr)^2\right\}^{\frac12}\\
+&\leqslant ZQ^2+\pi NZ^{\frac12}
+\left(\sum_{n=-\left[\frac{N}{2}\right]+1}^{N-\left[\frac{N}{2}\right]}
+\left|a_{n+M+\left[\frac{N}{2}\right]}\right|^2\right)^{\frac12}\\
+&\leqslant(Q^2+\pi N)Z.\tag{4}
+\end{align*}
+
+令 $\chi^*$ 表示原特征，
+\[
+\tau(\chi_q^*)=\sum_{1\leqslant a<q}\chi_q^*(a)e\left(\frac{a}{q}\right),
+\qquad
+\tau(\overline{\chi_q^*})\chi_q^*(n)
+=\sum_{a=1}^{q}\overline{\chi_q^*}(a)e\left(\frac{na}{q}\right).
+\]
+由于 $|\tau(\overline{\chi_q^*})|^2=q$，故得到
+\begin{align*}
+\left(\frac{1}{\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+&\leqslant\left(\frac{1}{q\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\tau(\overline{\chi_q})\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\\
+&=\left(\frac{1}{q\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{a=1}^{q}\overline{\chi_q}(a)
+\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant\left(\frac{1}{q\varphi(q)}\right)
+\sum_{\chi_q}
+\left|\sum_{a=1}^{q}\overline{\chi_q}(a)
+\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant\frac{1}{q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2.
+\end{align*}
+
+由上式及 (4)式，即得到 (2)式。我们定义 $h$ 是一个正整数，它使得 $2^hD<Q\leqslant2^{h+1}D$，则我们有
+\begin{align*}
+\sum_{D<q\leqslant Q}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+&\leqslant\sum_{i=0}^{h}\left(
+\sum_{2^iD<q\leqslant2^{i+1}D}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\right)\\
+&\leqslant\sum_{i=0}^{h}\left(\frac{1}{2^iD}\right)
+\left(\sum_{2^iD<q\leqslant2^{i+1}D}\frac{q}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\right)\\
+&\leqslant\sum_{i=0}^{h}\left(2^{i+2}D+\frac{\pi N}{2^iD}\right)
+\sum_{n=M+1}^{M+N}|a_n|^2\\
+&\ll\left(Q+\frac{N}{D}\right)\sum_{n=M+1}^{M+N}|a_n|^2.
+\end{align*}
+故引理2得证。
+\end{proof}
+
+\begin{lemma}
+当 $S=\sigma+it$ 和 $\sigma\geqslant\dfrac12$ 时，则有
+\[
+\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}|L(S,\chi_q)|^4
+\ll Q^2|S|^2(\log Q)^4.
+\]
+\end{lemma}
+
+\begin{proof}
+我们有
+\begin{align*}
+L(S,\chi)
+&=\sum_{n=1}^{\infty}\frac{\chi(n)}{n^S}
+=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++\sum_{n=N+1}^{\infty}
+\frac{\sum_{i\leqslant n}\chi(i)-\sum_{i\leqslant n-1}\chi(i)}{n^S}\\
+&=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++\sum_{n=N+1}^{\infty}
+\left(\sum_{i\leqslant n}\chi(i)\right)
+\left(\frac{1}{n^S}-\frac{1}{(n+1)^S}\right)
+-\frac{\sum_{i\leqslant N}\chi(i)}{(N+1)^S}\\
+&=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++O\left(\frac{|S|q^{\frac12}\log q}{N^\sigma}\right).
+\end{align*}
+故由引理2及 $\sigma\geqslant\dfrac12$，我们有
+\begin{align*}
+\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}|L(S,\chi_q)|^4
+&\ll\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}
+\left(\left|\sum_{n=1}^{[Q|S|]}\frac{\chi_q(n)}{n^S}\right|^4
++Q^{-2}|S|^2q^2(\log q)^4\right)\\
+&\ll|S|^2Q^2(\log Q)^4
++\left(Q^2+Q^2|S|^2\right)\sum_{n=1}^{[Q|S|]^2}\frac{d^2(n)}{n}\\
+&\ll Q^2|S|^2(\log Q)^4.
+\end{align*}
+故本引理得证。
+\end{proof}
+
+\begin{lemma}
+当 $k$ 是无平方因子的奇数，而 $m\neq1$ 时，则我们有
+\[
+\left|\sideset{}{^*}\sum_{\chi_k}\chi_k(m)\right|
+\leqslant|(m-1,k)|.
+\]
+\end{lemma}
+
+\begin{proof}
+令 $k=p_1\cdots p_l$，而 $p_1<\cdots<p_l$。令 $g_i$ 是 $\bmod p_i$ 的原根，则有 $m\equiv g_i^{\xi_i}\pmod{p_i}$，$0\leqslant\xi_i\leqslant p_i-2$，$j=1,\cdots,l$，则关于模 $k$ 的所有原特征可表示为
+\[
+\chi_k^*(m)=e^{2\pi i\left(\frac{\nu_1\xi_1}{p_1-1}+\cdots+\frac{\nu_l\xi_l}{p_l-1}\right)},
+\]
+其中 $1\leqslant\nu_i\leqslant p_i-2$，而 $i=1,\cdots,l$。
+
+令 $\displaystyle Z(m,k)=\left|\sideset{}{^*}\sum_{\chi_k}\chi_k(m)\right|$，则有
+\[
+Z(m,k)=\prod_{j=1}^{l}Z(m,p_j)
+=\prod_{j=1}^{l}\left|\sum_{\nu_j=1}^{p_j-2}
+e^{2\pi i\frac{\nu_j\xi_j}{p_j-1}}\right|
+=\prod_{\substack{j=1\\\xi_j=0}}^{l}(p_j-2)
+<\prod_{p_j\mid(m-1)}p_j
+=|(m-1,k)|.
+\]
+故本引理得证。
+\end{proof}
+
+设 $x$ 是偶数，令 $\lambda_1=1$；当 $d>x^{\frac14-\frac{\epsilon}{2}}$ 时，令 $\lambda_d=0$；而当 $1<d\leqslant x^{\frac14-\frac{\epsilon}{2}}$ 时，令
+\[
+\lambda_d=\frac{\mu(d)}{f(d)g(d)}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}^{-1}.
+\]
+其中 $\displaystyle g(k)=\frac{1}{\varphi(k)}$，$\displaystyle f(k)=\varphi(k)\prod_{p\mid k}\frac{p-2}{p-1}$。又当 $d$ 为奇数，$\mu(d)\neq0$ 时，有
+\begin{align*}
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}
+\frac{\mu^2(k)}{f(k)}
+&=\sum_{t\mid d}\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1,\,(k,d)=t}}
+\frac{\mu^2(k)}{f(k)}
+=\sum_{t\mid d}\left\{\frac{1}{\prod_{p\mid t}(p-2)}\right\}
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/t\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}\\
+&\geqslant\left\{\prod_{p\mid d}\left(1+\frac{1}{p-2}\right)\right\}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}.
+\end{align*}
+
+故对于所有正整数 $d$，都有 $|\lambda_d|\leqslant1$。设 $x$ 是偶数，$\log x>10^4$，又令
+\[
+Q=\prod_{2\leqslant p\leqslant x^{\frac14}}p,
+\]
+\[
+\Omega=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\p_3\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2p_3,Q)=1}}1,
+\]
+\[
+M=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\left(\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2n,Q)=1}}\Lambda(n)\right),
+\]
+则有 $\displaystyle \Omega\leqslant\frac{M}{1-\epsilon}+N$，其中
+\begin{align*}
+N&\ll\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{x}{p_1p_2}\right)^{1-\epsilon}
+\ll x^{1-\epsilon}\int_{x^{\frac1{10}}}^{x^{\frac13}}\frac{dS}{S^{1-\epsilon}}
+\int_{x^{\frac13}}^{(\frac{x}{S})^{\frac12}}\frac{dt}{t^{1-\epsilon}}\\
+&\ll x^{1-\frac{\epsilon}{2}}\int_{x^{\frac1{10}}}^{x^{\frac13}}\frac{dS}{S^{1-\frac{\epsilon}{2}}}
+\ll x^{1-\frac{\epsilon}{3}}.
+\end{align*}
+
+由引理1，我们有
+\begin{align*}
+M&\leqslant\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2n,Q)=1}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
++O\left(\frac{x}{(\log x)^{2.01}}\right)\\
+&\leqslant\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{n\leqslant\frac{x}{p_1p_2}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
+\left(\sum_{\substack{d\mid(x-p_1p_2n,Q)\\(d,x)=1}}\lambda_d\right)^2
++O\left(\frac{x}{(\log x)^{2.01}}\right)\\
+&=\sum_{\substack{(d_1,x)=1\\d_1\mid Q}}
+\sum_{\substack{(d_2,x)=1\\d_2\mid Q}}
+\lambda_{d_1}\lambda_{d_2}
+N_{\frac{d_1d_2}{(d_1,d_2)}}
++O\left(\frac{x}{(\log x)^{2.01}}\right).\tag{5}
+\end{align*}
+
+其中
+\begin{align*}
+N_{\frac{d_1d_2}{(d_1,d_2)}}
+&=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\x-p_1p_2n\equiv0\,\left(\bmod\frac{d_1d_2}{(d_1,d_2)}\right)}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)\\
+&=\left\{\frac{1}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(p_1p_2n,d_1d_2)=1}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)\\
+&\quad+\sum_{\substack{\chi_{\frac{d_1d_2}{(d_1,d_2)}}\neq\chi_0}}
+\overline{\chi_{\frac{d_1d_2}{(d_1,d_2)}}}(x)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}}}
+\left(\frac{\Lambda(n)}{\log\dfrac{x}{p_1p_2}}\right)
+\Phi\left(\frac{x}{p_1p_2n}\right)
+\chi_{\frac{d_1d_2}{(d_1,d_2)}}(p_1p_2n)\\
+&=\left\{\frac{1}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}
+\left\{
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(p_1p_2n,d_1d_2)=1}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
+\right\}
+-\left\{\frac{1}{2\pi i\,\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}\\
+&\quad\cdot\left\{\int_{2-i\infty}^{2+i\infty}
+\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}
+\left(\frac{x^\omega}{\omega}\right)
+\sum_{\substack{\chi_{\frac{d_1d_2}{(d_1,d_2)}}\neq\chi_0}}
+\overline{\chi_{\frac{d_1d_2}{(d_1,d_2)}}}(x)
+\frac{L'}{L}(\omega,\chi_{\frac{d_1d_2}{(d_1,d_2)}})\right.\\
+&\qquad\left.\cdot\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\chi_{\frac{d_1d_2}{(d_1,d_2)}}(p_1p_2)\cdot
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\left(\frac{d\omega}{(p_1p_2)^\omega}\right)\right\}.\tag{6}
+\end{align*}

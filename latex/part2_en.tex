@@ -1,0 +1,410 @@
+Let
+\[
+M_1=\sum_{(d_1,x)=1}\sum_{(d_2,x)=1}\frac{\lambda_{d_1}\lambda_{d_2}}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right),
+\]
+\begin{align*}
+M_2&=\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}
+\Bigl|\sum_{\chi_{d^*}\neq\chi_0}^{*}\overline{\chi_{d^*}^*}(x)
+\int_{2-i\infty}^{2+i\infty}\left(\frac{x^\omega}{\omega}\right)\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}\\
+&\qquad\cdot\frac{L'}{L}(\omega,\chi_{d^*}^*)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}
+\chi_{d^*}^*(p_1p_2)\left((p_1p_2)^\omega\log\frac{x}{p_1p_2}\right)^{-1}d\omega\Bigr|.
+\end{align*}
+Here $d^*$ is the conductor of $\chi_d$, and $\chi_{d^*}^*$ is the primitive character mod $d^*$ equivalent to $\chi_d$. $\nu(d)$ is the number of prime factors of $d$.
+
+\begin{lemma}
+Let $x$ be even; then
+\[
+\Omega\leqslant\frac{M_1+M_2}{1-\epsilon}+O\left(\frac{x}{(\log x)^{2.01}}\right).
+\]
+\end{lemma}
+
+\begin{proof}
+By (5) and (6), we have
+\begin{equation}\label{eq:chen7en}
+M\leqslant M_1+|M_3|+M_4+O\left(\frac{x}{(\log x)^{2.01}}\right),
+\end{equation}
+where
+\[
+M_3=\sum_{(d_1,x)=1}\sum_{(d_2,x)=1}\frac{\lambda_{d_1}\lambda_{d_2}}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(d_1d_2,p_1p_2n)>1}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right),
+\]
+\[
+M_4=\sum_{(d_1,x)=1}\sum_{(d_2,x)=1}\left(-\frac{\lambda_{d_1}\lambda_{d_2}}{2\pi i\,\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right)
+\int_{2-i\infty}^{2+i\infty}\left(\frac{x^\omega}{\omega}\right)\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}
+\]
+\[
+\cdot\sum_{\substack{\chi_{\frac{d_1d_2}{(d_1,d_2)}}\neq\chi_0}}\overline{\chi_{\frac{d_1d_2}{(d_1,d_2)}}}(x)\frac{L'}{L}\left(\omega,\chi_{\frac{d_1d_2}{(d_1,d_2)}}\right)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\frac{\chi_{\frac{d_1d_2}{(d_1,d_2)}}(p_1p_2)}{(p_1p_2)^\omega\log\dfrac{x}{p_1p_2}}\,d\omega.
+\]
+
+We first estimate $M_3$:
+\begin{align*}
+M_3&\ll x^\epsilon\sum_{d\leqslant x^{\frac12-\epsilon}}\frac1d
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(d,p_1p_2n)>1}}\Lambda(n)
+\ll\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{x^{1+\epsilon}}{p_1p_2}\right)\left(\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\p_1\mid d}}\frac1d\right.\\
+&\quad\left.+\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\p_2\mid d}}\frac1d\right)
++\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}\sum_{p\leqslant\frac{x}{p_1p_2}}(\log p)
+\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\p\mid d}}\frac{x^\epsilon}{d}+x^{1-\epsilon}\ll x^{1-\epsilon}.\tag{8}
+\end{align*}
+
+We next estimate $M_4$. Let $\mu(d)\neq0$, $d=p_1\cdots p_k$; then the necessary and sufficient condition for positive integers $d_1$, $d_2$ to satisfy $\dfrac{d_1d_2}{(d_1,d_2)}=d$ is $d_1=p_1^{\alpha_1}\cdots p_k^{\alpha_k}$, $d_2=p_1^{\beta_1}\cdots p_k^{\beta_k}$, where $0\leqslant\alpha_i\leqslant1$, $0\leqslant\beta_i\leqslant1$, $\alpha_i+\beta_i\geqslant1$ ($1\leqslant i\leqslant k$). Hence, when $d>0$ and $\mu(d)\neq0$, the number of pairs $d_1,d_2$ satisfying $\dfrac{d_1d_2}{(d_1,d_2)}=d$ is $3^{\nu(d)}$. Since $|\lambda_d|\leqslant1$, we have
+\[
+M_4\leqslant\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{3^{\nu(d)}|\mu(d)|}{\varphi(d)}
+\Bigl|\sum_{\chi_d\neq\chi_0}^{*}\int_{2-i\infty}^{2+i\infty}\left(\frac{x^\omega}{\omega}\right)\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}
+\]
+\[
+\cdot\overline{\chi_d}(x)\frac{L'}{L}(\omega,\chi_d)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}
+\chi_d(p_1p_2)\left(\frac{d\omega}{(p_1p_2)^\omega\log\dfrac{x}{p_1p_2}}\right)\Bigr|.
+\]
+
+Since $\dfrac{L'}{L}(\omega,\chi_d)=\dfrac{L'}{L}(\omega,\chi_{d^*}^*)+\displaystyle\sum_{p\mid\frac{d}{d^*}}\frac{\chi_{d^*}^*(p)\log p}{p^\omega-\chi_{d^*}^*(p)}$, we have
+\begin{equation}\label{eq:chen9en}
+M_4\leqslant M_2+M_5,
+\end{equation}
+where
+\[
+M_5=\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}
+\Bigl|\sum_{\chi_d\neq\chi_0}^{*}\overline{\chi_{d^*}^*}(x)
+\left(\sum_{p\mid\frac{d}{d^*}}\frac{\chi_{d^*}^*(p)\log p}{p^\omega-\chi_{d^*}^*(p)}\right)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}
+\frac{\chi_{d^*}^*(p_1p_2)}{(p_1p_2)^\omega\log\dfrac{x}{p_1p_2}}\,d\omega\Bigr|.
+\]
+
+Also, when $\operatorname{Re}\omega=2$, we have $\dfrac{\chi_{d^*}^*(p)}{p^\omega-\chi_{d^*}^*(p)}=\displaystyle\sum_{\lambda=1}^{\infty}\left(\frac{\chi_{d^*}^*(p)}{p^\omega}\right)^\lambda$. And when $\lambda\geqslant1$, $\mu(d^*)\neq0$, $(d^*,xp_1p_2p^\lambda)=1$, applying Lemma 4 gives
+\begin{equation}\label{eq:chen10en}
+\left|\sum_{\chi_{d^*}}^{*}\overline{\chi_{d^*}}(x)\chi_{d^*}(p_1p_2p^\lambda)\right|
+=\left|\sum_{\chi_{d^*}}^{*}\chi_{d^*}(p_1p_2p^\lambda y)\right|
+\leqslant|(p_1p_2p^\lambda y-1,d^*)|=|(x-p_1p_2p^\lambda,d^*)|,
+\end{equation}
+where $y$ satisfies $xy\equiv1\pmod{d^*}$. From (10) and Lemma 1 we obtain
+\begin{align*}
+M_5&\ll\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}
+\Bigl|\sum_{\substack{d^*\mid d\\d^*>1}}\sum_{p\mid\frac{d}{d^*}}(\log p)\sum_{\lambda=1}^{\infty}
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}\Bigr.\\
+&\quad\left.\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2p^\lambda}\right)\right|
+\ll\sum_{\substack{d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}
+\sum_{\substack{d^*\mid d\\d^*>1}}\sum_{p\mid\frac{d}{d^*}}\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}\\
+&\quad\cdot\sum_{1\leqslant\lambda\leqslant\left(\log\frac{x}{p_1p_2}\right)(\log p)^{-1}}
+\left(\frac{\log p}{\log\dfrac{x}{p_1p_2}}\right)(x-p_1p_2p^\lambda,d^*)
+\ll\sum_{\substack{k_1,k_2\leqslant x^{\frac12-\epsilon}\\(k_1k_2,x)=1}}\frac{|\mu(k_1)||\mu(k_2)|x^{\frac{\epsilon}{4}}}{\varphi(k_1)\varphi(k_2)}\\
+&\quad\cdot\sum_{p,k_2}\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\sum_{1\leqslant\lambda\leqslant\left(\log\frac{x}{p_1p_2}\right)(\log p)^{-1}}(x-p_1p_2p^\lambda,k_1)
+\ll x^{\frac{\epsilon}{3}}\sum_{\substack{k_1\leqslant x^{\frac12-\epsilon}\\(k_1,x)=1}}\frac1{k_1}\\
+&\quad\cdot\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\p^\lambda\leqslant\frac{x}{p_1p_2}}}
+(x-p_1p_2p^\lambda,k_1)\sum_{\substack{k_2\leqslant x^{\frac12-\epsilon}\\k_2\equiv0\,(\bmod p)}}\frac1{k_2}
+\ll x^{\frac{\epsilon}2}\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\p^\lambda\leqslant\frac{x}{p_1p_2}}}\\
+&\quad\cdot\frac1p\sum_{d\mid(x-p_1p_2p^\lambda)}d\sum_{\substack{k_1\leqslant x^{\frac12-\epsilon}\\d\mid k_1}}\frac1{k_1}\ll x^{1-\epsilon}.\tag{11}
+\end{align*}
+By (7), (8), (9), and (11), the lemma is proved.
+\end{proof}
+
+\begin{lemma}
+We have
+\[
+M_2\ll\frac{x}{(\log x)^{2.01}}.
+\]
+\end{lemma}
+
+\begin{proof}
+Let
+\[
+\Phi(y,\chi)=\int_{2-i\infty}^{2+i\infty}\left(\frac{y^\omega}{\omega}\right)\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}\frac{L'}{L}(\omega,\chi)\,d\omega
+=\int_{1+\frac1{\log x}-i\infty}^{1+\frac1{\log x}+i\infty}\left(\frac{y^\omega}{\omega}\right)\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}\frac{L'}{L}(\omega,\chi)\,d\omega.
+\]
+Then
+\begin{align*}
+M_2&\leqslant\sum_{\substack{1<l\leqslant x^{\frac12-\epsilon}\\(l,x)=1}}\left\{\sum_{\substack{1<d\leqslant x^{\frac12-\epsilon}\\l\mid d,\,(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}\right\}
+\Bigl|\sum_{\chi_l}^{*}\overline{\chi_l}(x)\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\\
+&\quad\cdot\Phi\left(\frac{x}{p_1p_2},\chi_l\right)\chi_l(p_1p_2)\Bigr|
+\leqslant\sum_{\substack{1<d\leqslant x^{\frac12-\epsilon}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{\varphi(d)}\\
+&\quad\cdot\left\{\sum_{\substack{1<l\leqslant x^{\frac12-\epsilon}\\(l,xd)=1}}\frac{|\mu(l)|3^{\nu(l)}}{\varphi(l)}\Bigl|\sum_{\chi_l}^{*}\overline{\chi_l}(x)\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,d)=1}}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2},\chi_l\right)\chi_l(p_1p_2)\Bigr|\right\}.
+\end{align*}
+Let $\tau(l)=\displaystyle\sum_{d\mid l}1$; then
+\[
+\sum_{\substack{1<d\leqslant x^{\frac12-\epsilon}}}\frac{3^{\nu(d)}|\mu(d)|}{\varphi(d)}\ll(\log x)\sum_{d\leqslant x^{\frac12-\epsilon}}\frac{(\tau(d))^2}{d}\ll(\log x)^5.
+\]
+Hence
+\begin{equation}\label{eq:chen12en}
+M_2\ll(\log x)^6\,\underset{1<m\leqslant x^{\frac12}}{\max}N_m.
+\end{equation}
+where
+\[
+N_m=\sum_{\substack{1<l\leqslant x^{\frac12-\epsilon}\\(l,x)=1}}\frac{|\mu(l)|3^{\nu(l)}}{l}
+\Bigl|\sum_{\chi_l}^{*}\overline{\chi_l}(x)\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\(p_1p_2,m)=1}}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2},\chi_l\right)\chi_l(p_1p_2)\Bigr|.
+\]
+We write $\displaystyle\sum_{(k,m)}$ for a sum in which $p_1$ and $p_2$ range over exactly $x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant\left(\dfrac{x}{p_1}\right)^{\frac12}$, $x^{\frac{13}{30}}2^k<p_1p_2\leqslant x^{\frac{13}{30}}2^{k+1}$, $(p_1p_2,m)=1$. Let $I_1$ be a positive integer satisfying $2^{I_1-1}(\log x)^{100}<x^{\frac12-\epsilon}<2^{I_1}(\log x)^{100}$, $I_2=\left[\dfrac{7\log x}{30\log2}\right]$; then
+\begin{equation}\label{eq:chen13en}
+N_m\leqslant\sum_{l=0}^{I_1}\sum_{k=0}^{I_2}N_m^{(l,k)}.
+\end{equation}
+where
+\[
+N_m^{(0,k)}=\sum_{\substack{1<d\leqslant(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{d}
+\Bigl|\sum_{\chi_d}^{*}\overline{\chi_d}(x)\sum_{(k,m)}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2},\chi_d\right)\chi_d(p_1p_2)\Bigr|.
+\]
+and when $l\geqslant1$,
+\[
+N_m^{(l,k)}=\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{d}
+\Bigl|\sum_{\chi_d}^{*}\overline{\chi_d}(x)\sum_{(k,m)}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2},\chi_d\right)\chi_d(p_1p_2)\Bigr|.
+\]
+
+Let $S(H,\omega,\chi_d)=\displaystyle\sum_{n=1}^{H}\frac{\mu(n)\chi_d(n)}{n^\omega}$, where $H\ll x$. We know that when $\operatorname{Re}\omega\geqslant1$,
+\[
+S(H,\omega,\chi_d)\ll\log x;\qquad L(\omega,\chi_d)=\sum_{n=1}^{H}\frac{\chi_d(n)}{n^\omega}+O\left(\frac{|\omega|d^{\frac12}\log d}{H}\right).
+\]
+Hence, when $\operatorname{Re}\omega\geqslant1$,
+\[
+1-L(\omega,\chi_d)S(H,\omega,\chi_d)=\sum_{n=1}^{\infty}\frac{C_H(n)\chi_d(n)}{n^\omega}+O\left(\frac{|\omega|d^{\frac12}(\log x)^2}{H}\right),
+\]
+where $C_H(1)=0$; when $n>H^2$, $C_H(n)=0$; and when $n>1$, $C_H(n)=-\displaystyle\sum_{d}\mu(d)$, where $d$ ranges over the divisors of $n$ such that $1\leqslant d\leqslant H$ and $\dfrac{n}{d}\leqslant H$; when $1\leqslant n\leqslant H$, $C_H(n)=0$; and when $n>H$, $C_H(n)\leqslant\tau(n)$. Hence, for $H\ll x$, by the Schwarz inequality we obtain
+\[
+\left|\sum_{n=1}^{\infty}\frac{C_H(n)\chi_d(n)}{n^\omega}\right|^2\ll(\log x)\sum_{l=0}^{3I_1}\left|\sum_{n=2^lH+1}^{2^{l+1}H}\frac{C_H(n)\chi_d(n)}{n^\omega}\right|^2.
+\]
+Let $\alpha=1+\dfrac1{\log x}$. From the above, $\displaystyle\sum_{n\leqslant x}\tau^2(n)\ll x(\log x)^3$, and (3), we obtain: when $Q\ll x$,
+\[
+\sum_{D<d\leqslant Q}\frac1{\varphi(d)}\sum_{\chi_d}^{*}\left|\sum_{n=2^lH+1}^{2^{l+1}H}\frac{C_H(n)\chi_d(n)}{n^{\alpha+i\nu}}\right|^2
+\ll\left(Q+\frac{2^lH}{D}\right)\sum_{n=2^lH+1}^{2^{l+1}H}\frac{(\tau(n))^2}{n^2}\ll\left(\frac{Q}{2^lH}+\frac1D\right)(\log x)^3,
+\]
+and
+\[
+\sum_{D<d\leqslant Q}\frac1{\varphi(d)}\sum_{\chi_d}^{*}|1-L(\alpha+i\nu,\chi_d)S(H,\alpha+i\nu,\chi_d)|^2
+\ll\sum_{D<d\leqslant Q}\frac1{\varphi(d)}\sum_{\chi_d}^{*}\left|\sum_{n=1}^{\infty}\frac{C_H(n)\chi_d(n)}{n^{\alpha+i\nu}}\right|^2+\frac{|\alpha+i\nu|^2Q^2(\log x)^4}{H^2}
+\]
+\begin{equation}\label{eq:chen14en}
+\ll\left(\frac{Q}{H}+\frac1D+\frac{|\alpha+i\nu|^2Q^2}{H^2}\right)(\log x)^5.
+\end{equation}
+
+Let $\beta=\dfrac12+\dfrac1{\log x}$. Since $\{S(H,\beta+i\nu,\chi_d)\}^2=\displaystyle\sum_{n=1}^{H^2}\frac{j(n)\chi_d(n)}{n^{\beta+i\nu}}$, where $|j(n)|\leqslant\tau(n)$, it follows from (3) that, when $l\geqslant1$, $H\ll x$,
+\begin{equation}\label{eq:chen15en}
+\sum_{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}}\frac1{\varphi(d)}\sum_{\chi_d}^{*}|S(H,\beta+i\nu,\chi_d)|^4
+\ll\left(2^l(\log x)^{100}+\frac{H^2}{2^l(\log x)^{100}}\right)\sum_{n=1}^{H^2}\frac{(\tau(n))^2}{n}
+\ll2^l(\log x)^{104}+\frac{H^2}{2^l(\log x)^{96}}.
+\end{equation}
+Since $L'(\omega,\chi_d)=\dfrac1{2\pi i}\displaystyle\int_r\frac{L(\xi,\chi_d)}{(\xi-\omega)^2}\,d\xi$, where $r$ is the circle of radius $(\log x)^{-1}$ centered at $\omega$, we have
+\[
+|L'(\omega,\chi_d)|\ll(\log x)^2\int_r|L(\xi,\chi_d)|\,d\xi.
+\]
+By Hölder's inequality,
+\[
+|L'(\omega,\chi_d)|^4\ll(\log x)^5\int_r|L(\xi,\chi_d)|^4\,|d\xi|.
+\]
+And by Lemma 3, we have
+\[
+\sum_{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}}\left(\frac1{\varphi(d)}\right)\sum_{\chi_d}^{*}|L'(\beta+i\nu,\chi_d)|^4
+\ll2^l(\log x)^{109}(|\beta+i\nu|)^2.
+\]
+When $\operatorname{Re}\omega\geqslant\alpha=1+\dfrac1{\log x}$, we obtain
+\begin{equation}\label{eq:chen16en}
+\frac{L'}{L}(\omega,\chi_d)=\left\{\frac{L'}{L}(\omega,\chi_d)\right\}\{1-L(\omega,\chi_d)S(H,\omega,\chi_d)\}+L'(\omega,\chi_d)S(H,\omega,\chi_d).
+\end{equation}
+Let
+\[
+A(l,k,\omega,m,H)=\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{d}
+\sum_{\chi_d}^{*}\left|\sum_{(k,m)}\frac{\chi_d(p_1p_2)}{(p_1p_2)^\omega\log\dfrac{x}{p_1p_2}}\right||1-L(\omega,\chi_d)S(H,\omega,\chi_d)|,
+\]
+\[
+B(l,k,\omega,m,H)=\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|3^{\nu(d)}}{d}
+\sum_{\chi_d}^{*}\left|\sum_{(k,m)}\frac{\chi_d(p_1p_2)}{(p_1p_2)^\omega\log\dfrac{x}{p_1p_2}}\right||L'(\omega,\chi_d)S(H,\omega,\chi_d)|.
+\]
+For $l\geqslant1$, (16) gives
+\begin{equation}\label{eq:chen17en}
+N_m^{(l,k)}\ll x(\log x)^2\int_0^{\infty}\frac{A(l,k,\alpha+i\nu,m,H)}{|\alpha+i\nu|\left(1+\dfrac{|\alpha+i\nu|}{(\log x)^{1.1}}\right)^{[\log x]+1}}\,d\nu
++x^{\frac32}\int_0^{\infty}\frac{B(l,k,\beta+i\nu,m,H)}{|\beta+i\nu|\left(1+\dfrac{|\beta+i\nu|}{(\log x)^{1.1}}\right)^{[\log x]+1}}\,d\nu.
+\end{equation}
+
+It is clear that, when $|\mu(d)|\neq0$ and $d$ is large,
+\begin{equation}\label{eq:chen18en}
+3^{\nu(d)}\leqslant e^{\frac{3\log d}{\log\log d}}.
+\end{equation}
+
+We first estimate $N_m^{(l,k)}$ for $l\geqslant1$ in the two cases $2^kx^{\frac{13}{30}}>x^{\frac12-\epsilon}$ and $x^{\frac12-\epsilon}\geqslant2^kx^{\frac{13}{30}}>2^l(\log x)^{100}$; here we take $H=2^l(\log x)^{200}I_{l,x}$, where $I_{l,x}=e^{\frac{6\log\{2^l(\log x)^{100}\}}{\log\log\{2^l(\log x)^{100}\}}}$. Then, by (14)--(18),
+\begin{align*}
+N_m^{(l,k)}&\ll x(\log x)^4\int_0^{\infty}\Biggl[\left\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}\left|\sum_{(k,m)}\frac{\chi_d(p_1p_2)}{(p_1p_2)^{\alpha+i\nu}\log\dfrac{x}{p_1p_2}}\right|^2\right\}\\
+&\quad\cdot\left\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}\left|1-L(\alpha+i\nu,\chi_d)S(H,\alpha+i\nu,\chi_d)\right|^2I_{l,x}\right\}^{\frac12}\Biggr]\left(\frac{d\nu}{1+\nu^{2.1}}\right)\\
+&\quad+x^{\frac32}(\log x)^4\int_0^{\infty}\Biggl\{(I_{l,x})\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}\left|\sum_{(k,m)}\frac{\chi_d(p_1p_2)}{(p_1p_2)^{\beta+i\nu}\log\dfrac{x}{p_1p_2}}\right|^2\Biggr\}^{\frac12}\\
+&\quad\cdot\left\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}|S(H,\beta+i\nu,\chi_d)|^4\right\}^{\frac14}
+\left(\frac{d\nu}{1+\nu^4}\right)\left\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}|L'(\beta+i\nu,\chi_d)|^4\right\}^{\frac14}\\
+&\ll x(\log x)^8\int_0^{\infty}\Biggl\{\left(2^l(\log x)^{100}+\frac{2^kx^{\frac{13}{30}}}{2^l(\log x)^{100}}\right)\left(\sum_{2^kx^{\frac{13}{30}}<n\leqslant2^{k+1}x^{\frac{13}{30}}}\frac1{n^2}\right)\left(\frac{2^l(\log x)^{100}}H\right.\\
+&\quad\left.+\frac1{2^l(\log x)^{100}}+\frac{(1+\nu^2)2^{2l}(\log x)^{200}}{H^2}\right)(I_{l,x})\Biggr\}^{\frac12}\left(\frac{d\nu}{1+\nu^{2.1}}\right)+x^{\frac32}(\log x)^8\int_0^{\infty}\Biggl\{\left(2^l(\log x)^{100}\right.\\
+&\quad\left.+\frac{2^kx^{\frac{13}{30}}}{2^l(\log x)^{100}}\right)(I_{l,x})\Biggr\}^{\frac12}\left\{2^{2l}(\log x)^{213}+H^2(\log x)^{13}\right\}^{\frac14}(1+\nu^2)^{\frac14}\left(\frac{d\nu}{1+\nu^4}\right)\ll\frac{x}{(\log x)^{20}}.\tag{19}
+\end{align*}
+
+We now estimate $N_m^{(l,k)}$ for $2^kx^{\frac{13}{30}}\leqslant2^l(\log x)^{100}\leqslant2x^{\frac12-\epsilon}$; here we take
+\[
+H=\max\left(2^{2l-k}x^{-\frac{13}{30}}(\log x)^{400}I_{l,x},\;x^{\frac12-\epsilon}\right),
+\]
+then
+\begin{align*}
+N_m^{(l,k)}&\ll x(\log x)^8\int_0^{\infty}\Biggl\{\left(2^l(\log x)^{100}+\frac{2^kx^{\frac{13}{30}}}{2^l(\log x)^{100}}\right)\left(\sum_{2^kx^{\frac{13}{30}}<n\leqslant2^{k+1}x^{\frac{13}{30}}}\frac1{n^2}\right)\\
+&\quad\cdot\left(\frac{2^l(\log x)^{100}}H+\frac1{2^l(\log x)^{100}}+\frac{(1+\nu^2)2^{2l}(\log x)^{200}}{H^2}\right)(I_{l,x})\Biggr\}^{\frac12}\left(\frac{d\nu}{1+\nu^{2.1}}\right)\\
+&\quad+x^{\frac12}(\log x)^4\int_0^{\infty}\Biggl\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}|S(H,\beta+i\nu,\chi_d)|^2\Biggr\}^{\frac12}(I_{l,x})^{\frac12}\\
+&\quad\cdot\left\{\sum_{\substack{2^{l-1}(\log x)^{100}<d\leqslant2^l(\log x)^{100}\\(d,x)=1}}\frac{|\mu(d)|}{d}\sum_{\chi_d}^{*}\left|\left(\sum_{(k,m)}\frac{\chi_d(p_1p_2)}{(p_1p_2)^{\beta+i\nu}\log\dfrac{x}{p_1p_2}}\right)^2\right|^2\right\}^{\frac14}\left(\frac{d\nu}{1+\nu^4}\right)\\
+&\ll\frac{x}{(\log x)^{20}}+x^{\frac12}(\log x)^{20}\left\{2^l(\log x)^{100}+\frac{H}{2^l(\log x)^{100}}\right\}^{\frac12}(I_{l,x})^{\frac32}\bigl(2^l(\log x)^{100}\bigr)^{\frac14}\\
+&\quad\cdot\left(2^l(\log x)^{100}+\frac{2^{2k}x^{\frac{13}{15}}}{2^l(\log x)^{100}}\right)^{\frac14}\int_0^{\infty}\frac{(1+\nu^2)^{\frac14}}{1+\nu^4}\,d\nu\ll\frac{x}{(\log x)^{20}}.\tag{20}
+\end{align*}
+
+We now estimate $N_m^{(0,k)}$, for $0\leqslant k\leqslant I_2$. When $\chi_d$ is a primitive character and $\operatorname{Re}S\geqslant1-\dfrac{c}{d^{\frac1{300}}}$, we have $L(S,\chi_d)\neq0$, where $c$ is a constant. Hence
+\begin{align*}
+N_m^{(0,k)}&\ll\sum_{\substack{1<d\leqslant(\log x)^{100}}}\frac{3^{\nu(d)}|\mu(d)|}{d}\sum_{\chi_d}^{*}\Bigl|\int_{1-\frac1{(\log x)^{1/2}}-i\infty}^{1-\frac1{(\log x)^{1/2}}+i\infty}\sum_{(k,m)}\left(\frac1{\log\dfrac{x}{p_1p_2}}\right)\\
+&\quad\cdot\chi_d(p_1p_2)\left(\frac{x}{p_1p_2}\right)^\omega\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}\frac{L'}{L}(\omega,\chi_d)\,d\omega\Bigr|\\
+&\ll(\log x)^{200}\sum_{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}\left(\frac{x}{p_1p_2}\right)^{1-\frac1{(\log x)^{1/2}}}\ll\frac{x}{(\log x)^{20}}.\tag{21}
+\end{align*}
+By (12), (13), and (19)--(21), the lemma is proved.
+\end{proof}
+
+\begin{lemma}
+For large even $x$, we have
+\[
+M_1\leqslant\left\{\frac{(8+24\epsilon)xC_x}{\log x}\right\}\left\{\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}\frac1{p_1p_2\log\dfrac{x}{p_1p_2}}\right\},
+\]
+where $C_x=\displaystyle\prod_{\substack{p\mid x\\p>2}}\frac{p-1}{p-2}\prod_{p>2}\left(1-\frac1{(p-1)^2}\right)$.
+\end{lemma}
+
+\begin{proof}
+Let $S=\displaystyle\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}\frac{\mu^2(k)}{f(k)}$; then
+\[
+\lambda_dg(d)=\left(\frac1S\right)\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}\frac{\mu(kd)\mu(k)}{f(kd)}.
+\]
+When $(m,x)=1$, we have
+\[
+\sum_{\substack{d\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(d,x)=1,\,m\mid d}}\lambda_dg(d)
+=\left(\frac1S\right)\left(\sum_{\substack{d\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(d,x)=1,\,m\mid d}}\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}\frac{\mu(kd)\mu(k)}{f(kd)}\right)
+=\left(\frac1S\right)\sum_{\substack{1\leqslant r\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(r,x)=1}}\frac{\mu(r)}{f(r)}\sum_{m\mid d\mid r}\mu\left(\frac{r}{d}\right)=\frac{\mu(m)}{Sf(m)}.
+\]
+Since $\dfrac1{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}=g(d_1)g(d_2)\displaystyle\sum_{d\mid(d_1,d_2)}f(d)$, we have
+\begin{align*}
+\sum_{\substack{d_1\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(d_1d_2,x)=1}}\sum_{\substack{d_2\leqslant(x^{\frac12-\epsilon})^{\frac12}}}\frac{\lambda_{d_1}\lambda_{d_2}}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}
+&=\sum_{\substack{d_1\leqslant(x^{\frac12-\epsilon})^{\frac12}}}\sum_{\substack{d_2\leqslant(x^{\frac12-\epsilon})^{\frac12}}}\lambda_{d_1}\lambda_{d_2}g(d_1)g(d_2)\sum_{k\mid(d_1,d_2)}f(k)\\
+&=\sum_{\substack{k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}f(k)\left(\sum_{\substack{d\leqslant(x^{\frac12-\epsilon})^{\frac12}\\k\mid d,\,(d,x)=1}}\lambda_dg(d)\right)^2=\frac1S.\tag{22}
+\end{align*}
+Let $V_k(x)=\displaystyle\sum_{\substack{1\leqslant n\leqslant x\\(n,k)=1}}\frac{\mu^2(n)}{\varphi(n)}$; then
+\[
+\log x\leqslant\sum_{n=1}^{x}\frac1n\leqslant\sum_{1\leqslant n\leqslant x}\frac{\mu^2(n)}{n}\prod_{p\mid n}\left(\sum_{l=0}^{\infty}\frac1{p^l}\right)=\sum_{1\leqslant n\leqslant x}\frac{\mu^2(n)}{n}\prod_{p\mid n}\left(1-\frac1p\right)^{-1}
+=V_1(x)=\sum_{d\mid k}\sum_{\substack{1\leqslant n\leqslant x\\(n,k)=d}}\frac{\mu^2(n)}{\varphi(n)}
+\]
+\[
+=\sum_{d\mid k}\frac{\mu^2(d)}{\varphi(d)}\sum_{\substack{1\leqslant m\leqslant x/d\\(m,k)=1}}\frac{\mu^2(m)}{\varphi(m)}\leqslant\sum_{d\mid k}\frac{\mu^2(d)}{\varphi(d)}V_k(x)=\frac{kV_k(x)}{\varphi(k)},
+\]
+hence $V_k(x)\geqslant\dfrac{\varphi(k)\log x}{k}$. Let $\phi(1)=1$, and for $q>2$ let $\phi(q)=\displaystyle\prod_{p\mid q}(p-2)$; then
+\begin{align*}
+S&=\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}\frac{\mu^2(k)}{\varphi(k)}\prod_{p\mid k}\left(1+\frac1{p-2}\right)
+=\sum_{\substack{q\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(q,x)=1}}\frac{\mu^2(q)}{\phi(q)\varphi(q)}\sum_{\substack{1\leqslant r\leqslant(x^{\frac12-\epsilon})^{\frac12}/q\\(r,qx)=1}}\frac{\mu^2(r)}{\varphi(r)}\\
+&\geqslant\sum_{\substack{q\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(q,x)=1}}\frac{\mu^2(q)}{\phi(q)\varphi(q)}\left\{\frac{\varphi(qx)}{qx}\log\frac{x^{\frac14-\frac{\epsilon}2}}{q}\right\}
+=\left(\frac{\varphi(x)}{x}\right)\left(\log x^{\frac14-\frac{\epsilon}2}\right)\prod_{p\nmid x}\left(1+\frac1{p(p-2)}\right)+O(1)
+=\frac{\left(\dfrac18-\dfrac{\epsilon}4\right)(\log x)}{C_x}+O(1).
+\end{align*}
+From (22) and the above, for large $x$,
+\[
+M_1\leqslant(8+24\epsilon)C_x(\log x)^{-1}\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}}}\left(\frac{\Lambda(n)}{\log\dfrac{x}{p_1p_2}}\right)\Phi\left(\frac{x}{p_1p_2n}\right).
+\]
+By Lemma 1, the lemma is proved.
+\end{proof}
+
+\begin{lemma}
+For large even $x$, we have
+\[
+\Omega\leqslant\frac{3.9404xC_x}{(\log x)^2}.
+\]
+\end{lemma}
+
+\begin{proof}
+For large $x$, by Lemmas 5 through 7, we have
+\begin{equation}\label{eq:chen23en}
+\Omega\leqslant\left\{\frac{8(1+5\epsilon)xC_x}{\log x}\right\}\left\{\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}\frac1{p_1p_2\log\dfrac{x}{p_1p_2}}\right\},
+\end{equation}
+and also
+\[
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}\frac1{p_1p_2\log\dfrac{x}{p_1p_2}}
+\leqslant(1+\epsilon)\sum_{x^{\frac1{10}}<p_1\leqslant x^{\frac13}}\int_{x^{\frac13}}^{(\frac{x}{p_1})^{\frac12}}\frac{dt}{p_1t(\log t)\log\dfrac{x}{p_1t}}
+\]
+\[
+\leqslant(1+2\epsilon)\int_{x^{\frac1{10}}}^{x^{\frac13}}\frac{dS}{S\log S}\int_{S^{\frac13}}^{(\frac{x}{S})^{\frac12}}\frac{dt}{t(\log t)\left(\log\dfrac{x}{St}\right)}
+=(1+2\epsilon)\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha}\int_{\frac13}^{\frac{1-\alpha}2}\frac{d\beta}{\beta(1-\alpha-\beta)\log x},
+\]
+and
+\[
+\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha}\int_{\frac13}^{\frac{1-\alpha}2}\left(\frac1{1-\alpha}\right)\left(\frac1{\beta}+\frac1{1-\alpha-\beta}\right)d\beta
+=\int_{\frac1{10}}^{\frac13}\frac{\log\dfrac{1-\alpha}2-\log\dfrac13-\log\dfrac{1-\alpha}2+\log\left(\dfrac23-\alpha\right)}{\alpha(1-\alpha)}\,d\alpha
+\]
+\[
+=\int_{\frac1{10}}^{\frac13}\frac{\log(2-3\alpha)}{\alpha(1-\alpha)}\,d\alpha
+=\sum_{i=0}^{6}\int_{\frac1{10}+\frac{i}{30}}^{\frac1{10}+\frac{i+1}{30}}\frac{\log\left(1.6-\dfrac{i}{10}\right)}{\alpha(1-\alpha)}\,d\alpha
++\sum_{i=0}^{6}\int_{\frac1{10}+\frac{i}{30}}^{\frac1{10}+\frac{i+1}{30}}\frac{\log\dfrac{2-3\alpha}{1.6-0.i}}{\alpha(1-\alpha)}\,d\alpha
+\]
+\[
+\leqslant\sum_{i=0}^{6}\left\{\log\left(1.6-\frac{i}{10}\right)\right\}\left\{\log\frac{\dfrac9{10}-\dfrac{i}{30}}{\dfrac1{10}+\dfrac{i}{30}}-\log\frac{\dfrac9{10}-\dfrac1{30}-\dfrac{i}{30}}{\dfrac1{10}+\dfrac{i+1}{30}}\right\}
+\]
+\[
++\sum_{i=0}^{6}\int_{\frac1{10}+\frac{i}{30}}^{\frac1{10}+\frac{i+1}{30}}\frac{(0.4+0.i-3\alpha)}{(1.6-0.i)\alpha(1-\alpha)}\,d\alpha
+\leqslant\sum_{i=0}^{6}\left\{\log(1.6-0.i)+\frac{4+i}{16-i}\right\}\left\{\log\frac{27-i}{3+i}\right.
+\]
+\[
+\left.-\log\frac{26-i}{4+i}\right\}-3\sum_{i=0}^{6}\int_{\frac1{10}+\frac{i}{30}}^{\frac1{10}+\frac{i+1}{30}}\frac{d\alpha}{(1.6-0.i)(1-\alpha)}
+=\sum_{i=0}^{6}\left\{\log(1.6-0.i)+\frac{4+i}{16-i}\right\}
+\]
+\[
+\cdot\left\{\log\frac{108+23i-i^2}{78+23i-i^2}\right\}-3\sum_{i=0}^{6}\left(\frac1{1.6-0.i}\right)\left(\log\frac{27-i}{26-i}\right)
+\]
+\[
+\leqslant(0.47+0.25)(0.32542)+(0.40547+0.33334)(0.26236)+(0.33647+0.42858)(0.22315)+(0.26236+0.53847)(0.19671)
+\]
+\[
++(0.18232+0.66667)(0.17799)+(0.09531+0.81819)(0.16431)+0.15415-3\left(\frac{0.03774}{1.6}+\frac{0.03922}{1.5}+\frac{0.04082}{1.4}+\frac{0.04256}{1.3}\right.
+\]
+\[
+\left.+\frac{0.04445}{1.2}+\frac{0.04652}{1.1}+0.04879\right)\leqslant0.234303+0.193837+0.17073+0.15754+0.151115+0.1501+0.15415
+\]
+\begin{equation}\label{eq:chen24en}
+-3(0.023587+0.026146+0.029157+0.032738+0.037041+0.04229+0.04879)\leqslant1.21178-0.71924=0.49254.
+\end{equation}
+By (23) and (24), Lemma 8 is proved.
+\end{proof}
+
+Let $x$ be a large even integer, and let $P_x(x,x^{\frac1{10}})$ denote the number of primes $p$ satisfying: $p\leqslant x$, $p\not\equiv x\pmod{p_i}$ ($1\leqslant i\leqslant j$), where $3=p_1<p_2<\cdots<p_j\leqslant x^{\frac1{10}}$. For a prime $p'$, let $P_x(x,p',x^{\frac1{10}})$ denote the number of primes $p$ satisfying: $p\leqslant x$, $p\equiv x\pmod{p'}$, $p\not\equiv x\pmod{p_i}$ ($1\leqslant i\leqslant j$), where $3=p_1<p_2<\cdots<p_j\leqslant x^{\frac1{10}}$.
+
+\begin{lemma}
+Let $x$ be a large even integer; then
+\[
+P_x(x,x^{\frac1{10}})-\left(\frac12\right)\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})\geqslant\frac{2.6408xC_x}{(\log x)^2},
+\]
+where $C_x=\displaystyle\prod_{\substack{p\mid x\\p>2}}\frac{p-1}{p-2}\prod_{p>2}\left(1-\frac1{(p-1)^2}\right)$.
+\end{lemma}
+
+\begin{proof}
+In reference [11] take $r(p)=\dfrac{p}{p-1}$, $K=x$, $Z=x^{\frac1{10}}$; then clearly conditions $(A_1)$ and $(A_2)$ of reference [11] are satisfied, and by formula (2.11) of reference [11], we have
+\[
+\Gamma_x(x^{\frac1{10}})=\frac{x}{\varphi(x)}\prod_{p\nmid x}\frac{1-\dfrac1{p-1}}{1-\dfrac1p}\cdot\frac{e^{-r}}{\log x^{\frac1{10}}}\left\{1+O\left(\frac1{\log x}\right)\right\}
+\]
+\[
+=\frac{x}{\varphi(x)}\prod_{\substack{p\mid x\\p>2}}\frac{(p-1)^2}{p(p-2)}\prod_{p>2}\left(1-\frac1{(p-1)^2}\right)\frac{e^{-r}}{\log x^{\frac1{10}}}\left\{1+O\left(\frac1{\log x}\right)\right\}
+=\frac{20e^{-r}C_x}{\log x}\left\{1+O\left(\frac1{\log x}\right)\right\}.\tag{25}
+\]
+Here $r$ is Euler's constant. When $0<u\leqslant2$, let $F(u)=\dfrac{2e^r}{u}$, $f(u)=0$. When $u\geqslant2$, let $(uF(u))'=f(u-1)$, $(uf(u))'=F(u-1)$; when $2<u\leqslant3$, $uF(u)=2F(2)$, $F(u)=\dfrac{2e^r}{u}$. When $2<u\leqslant4$,
+\[
+uf(u)=\int_2^{u}F(t-1)\,dt=2e^r\log(u-1),\qquad f(u)=\frac{2e^r\log(u-1)}{u}.
+\]
+When $3\leqslant u\leqslant4$, we have
+\[
+uF(u)=2e^r+\int_3^{u}f(t-1)\,dt=2e^r\left(1+\int_2^{u-1}\frac{\log(t-1)}{t}\,dt\right),
+\]
+and also
+\[
+5f(5)=2e^r\log3+\int_4^{5}F(u-1)\,du=2e^r\left(\log4+\int_3^{4}\frac{du}{u}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt\right).
+\]
+In Theorem A of reference [11], take $\xi^2=x^{\frac12-\epsilon}$, $q=1$, $z=x^{\frac1{10}}$; then by (25) and formulas (2.19), (4.18), (3.24) of reference [11], we know that for large $x$,
+\[
+P_x(x,x^{\frac1{10}})\geqslant\frac{2(1-\sqrt{\epsilon})e^{-r}xC_xf(5)}{(\log x)\left(\log x^{\frac1{10}}\right)}\geqslant\left\{\frac{8(1-\sqrt{\epsilon})xC_x}{(\log x)^2}\right\}\left\{\log4+\int_3^{4}\frac{du}{u}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt\right\}.\tag{26}
+\]
+Again, in Theorem A of reference [11] take $\xi^2=\dfrac{x^{\frac12-\epsilon}}{p}$, $q=p$, $z=x^{\frac1{10}}$; then by (25) and formulas (2.18), (3.24), (4.18) of reference [11], we have
+\[
+\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})\leqslant\left\{\frac{20(1+\sqrt{\epsilon})e^{-r}xC_x}{(\log x)^2}\right\}\left\{\sum_{x^{\frac1{10}}<p\leqslant x^{\frac15}}\left(\frac{2e^r}{p}\right)\left(1+\int_2^{4-\frac{10\log p}{\log x}}\frac{\log(t-1)}{t}\,dt\right)\left(\log x^{\frac1{10}}\right)\right.
+\]
+\[
+\left.+\sum_{x^{\frac15}<p\leqslant x^{\frac13}}\frac{2e^r\log x^{\frac1{10}}}{p\log\dfrac{x^{\frac12}}{p}}\right\}
+\leqslant\left\{\frac{(4+5\sqrt{\epsilon})xC_x}{\log x}\right\}\left\{\int_{x^{\frac1{10}}}^{x^{\frac15}}\frac{dS}{S(\log S)\left(\log\dfrac{x^{\frac12}}{S}\right)}\int_2^{4-\frac{10\log S}{\log x}}\frac{\log(t-1)}{t}\,dt

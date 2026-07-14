@@ -1,0 +1,11 @@
+name = "ChenTheorem"
+version = "0.1.0"
+defaultTargets = ["ChenTheorem"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "ChenTheorem"

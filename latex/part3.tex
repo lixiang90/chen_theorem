@@ -1,0 +1,67 @@
++\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt\right\}
+=\left\{\frac{(8+10\sqrt{\epsilon})xC_x}{(\log x)^2}\right\}\left\{\log8+\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{2\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt\right\}.
+\]
+
+令 $4-10\alpha=u-1$，$\alpha=\dfrac{5-u}{10}$，$\dfrac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}=-\dfrac{10\,du}{u(5-u)}$，又当 $\alpha=\dfrac1{10}$ 时，有 $u=4$，而当 $\alpha=\dfrac15$ 时，$u=3$，故有
+\[
+\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt
+=\int_3^{4}\frac{10\,du}{u(5-u)}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt.
+\]
+显见，当 $1\leqslant x\leqslant2$ 时，有 $\log x\leqslant\dfrac{x-1}2+\dfrac{x-1}{1+x}$，故有
+\[
+\int_3^{4}\frac{du}{u}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt-\left(\frac14\right)\int_{\frac1{10}}^{\frac15}\frac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt
+\]
+\[
+=\int_3^{4}\left(\frac1u-\frac{2.5}{u(5-u)}\right)du\int_2^{u-1}\frac{\log(t-1)}{t}\,dt
+\geqslant\int_3^{4}\left\{\frac{2.5-u}{u(5-u)}\right\}du\int_2^{u-1}\left(\frac{t-2}2+\frac{t-2}{t}\right)\left(\frac{dt}{t}\right)
+\]
+\[
+=\int_3^{4}\left\{\frac{2.5-u}{2u(5-u)}\right\}\left(u-3+\frac4{u-1}-2\right)du
+=\int_3^{4}\left(\frac1{2}-\frac{2.25}{u}-\frac1{4(5-u)}+\frac{0.75}{u-1}\right)du
+\]
+\[
+=\frac12-2.25\log\frac43-\frac{\log2}4+0.75\log\frac32
+=\frac12+0.75\log\frac98-1.5\log\frac43-\frac{\log2}4
+\]
+\begin{equation}\label{eq:chen27}
+\geqslant0.588335-0.6048075=-0.0164725.
+\end{equation}
+由(26)和(27)式，我们有
+\[
+P_x(x,x^{\frac1{10}})-\left(\frac12\right)\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})\geqslant\left(\frac{(8-50\sqrt{\epsilon})xC_x}{(\log x)^2}\right)\left(\log4-\frac{\log8}2-0.0164725\right)\geqslant\frac{(8xC_x)(0.3301)}{(\log x)^2}.
+\]
+故引理9得证。
+\end{proof}
+
+\section{结果}
+
+显见，我们有
+\begin{equation}\label{eq:chen28}
+P_x(1,2)\geqslant P_x(x,x^{\frac1{10}})-\left(\frac12\right)\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})-\frac{\Omega}2-x^{0.91}.
+\end{equation}
+
+由(28)式、引理8和引理9，即得到定理1
+\[
+(1,2)\ \text{及}\ P_x(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}
+\]
+的证明。
+
+完全类似的方法可得到定理2的证明。
+
+致谢：作者对闵嗣鹤同志和王元同志给予的帮助，表示衷心的感谢。
+
+\section*{参考文献}
+
+\begin{enumerate}[leftmargin=2.5em,label={[\arabic*]}]
+\item Renyi, A., 1948 {\cyrfont Изв. АН СССР, серия матем.}, \textbf{2}, 57--78.
+\item 潘承洞, 1962 数学学报, \textbf{12}, 95--106.
+\item {\cyrfont Барбан, М. Б.}, 1961 {\cyrfont Доклады Академии Наук УзССР}, \textbf{8}, 9--11.
+\item 王元, 1962 中国科学, \textbf{11}, 1033--1054.
+\item 潘承洞, 1963 中国科学, \textbf{12}, 455--473.
+\item {\cyrfont Барбан, М. Б.}, 1963 {\cyrfont Матем. сб.}, \textbf{61}, 418--425.
+\item {\cyrfont Бухштаб, А. А.}, 1965 {\cyrfont Доклады АН СССР}, \textbf{162}, 739--742.
+\item {\cyrfont Виноградов, А. И.}, 1965 {\cyrfont Изв. АН СССР, серия матем.}, \textbf{29}, 903--934.
+\item Bombieri, E., 1965 \textit{Mathematika}, \textbf{12}, 201--225.
+\item 陈景润, 1966 科学通报, \textbf{17}, 385--386.
+\item Richert, H. E., 1969 \textit{Mathematika}, \textbf{16}, 1--22.
+\end{enumerate}

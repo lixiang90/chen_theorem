@@ -1,0 +1,412 @@
+\title{On the Representation of a Large Even Integer as the Sum of a Prime and the Product of At Most Two Primes}
+\author{Chen Jingrun\thanks{(Institute of Mathematics, Academia Sinica)}\thanks{Received March 13, 1973.}}
+\date{}
+\maketitle
+
+\begin{abstract}
+The purpose of this paper is to prove, by the sieve method, that every sufficiently large even integer is the sum of a prime and a number which is either a prime or the product of at most two primes.
+
+An analogous result is also obtained for the twin prime problem.
+\end{abstract}
+
+\section{Introduction}
+
+Let the proposition ``every sufficiently large even integer can be written as the sum of a prime and a number that is the product of at most $a$ primes'' be abbreviated as $(1,a)$.
+
+Many mathematicians have improved the sieve method and certain results on the distribution of primes, and used these to improve $(1,a)$. We now briefly describe the historical development of $(1,a)$ as follows:
+
+\begin{itemize}[leftmargin=2em]
+\item $(1,c)$ --- Renyi$^{[1]}$,
+\item $(1,5)$ --- Pan Chengdong$^{[2]}$, Barban$^{[3]}$,
+\item $(1,4)$ --- Wang Yuan$^{[4]}$, Pan Chengdong$^{[5]}$, Barban$^{[6]}$,
+\item $(1,3)$ --- Buchstab$^{[7]}$, Vinogradov$^{[8]}$, Bombieri$^{[9]}$,
+\end{itemize}
+In reference [10] we gave an outline of the proof of $(1,2)$.
+
+Let $P_x(1,2)$ denote the number of primes $p$ satisfying the following condition:
+\[
+x-p=p_1 \quad \text{or} \quad x-p=p_2p_3,
+\]
+where $p_1,p_2,p_3$ are all primes.
+
+Let $x$ denote a sufficiently large even integer. Let
+\[
+C_x=\prod_{\substack{p\mid x\\ p>2}}\frac{p-1}{p-2}\prod_{p>2}\left(1-\frac{1}{(p-1)^2}\right).
+\]
+
+For any given even integer $h$ and sufficiently large $x$, let $x_h(1,2)$ denote the number of primes $p$ satisfying the following condition:
+\[
+p\leqslant x,\quad p+h=p_1 \quad \text{or} \quad p+h=p_2p_3,
+\]
+where $p_1,p_2,p_3$ are all primes.
+
+The purpose of this paper is to prove and improve all the results mentioned by the author in reference [10]; these are stated in detail as follows.
+
+\begin{theorem}
+$(1,2)$ holds, and $\displaystyle P_x(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}$.
+\end{theorem}
+
+\begin{theorem}
+For any even integer $h$, there exist infinitely many primes $p$ such that $p+h$ has at most $2$ prime factors, and
+\[
+x_h(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}.
+\]
+\end{theorem}
+
+In proving Theorem 1, the main tools are Lemmas 8 and 9 of this paper. In proving Lemma 8 we use a relatively straightforward numerical computation; in proving Lemma 9 we use Bombieri's theorem$^{[9]}$ together with a result of Richert$^{[11]}$.
+
+\section{Several Lemmas}
+
+\begin{lemma}
+Suppose $y\geqslant0$, and let $[\log x]$ denote the integer part of $\log x$, $x>1$,
+\[
+\Phi(y)=\frac{1}{2\pi i}\int_{2-i\infty}^{2+i\infty}\frac{y^\omega\,d\omega}{\omega\left(1+\dfrac{\omega}{(\log x)^{1.1}}\right)^{[\log x]+1}}.
+\]
+It is clear that $\Phi(y)=0$ when $0\leqslant y\leqslant1$. For all $y\geqslant0$, $\Phi(y)$ is a non-decreasing function. When $\log x\geqslant10^4$ and $y\geqslant e^{2(\log x)^{-0.1}}$, we have
+\[
+1-x^{-0.1}\leqslant\Phi(y)\leqslant1.
+\]
+\end{lemma}
+
+\begin{proof}
+We first prove that
+\begin{equation}\label{eq:chen1en}
+\frac{\partial^r}{\partial\omega^r}\left(\frac{y^\omega}{\omega}\right)
+=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^r+
+\sum_{i=1}^{r}\frac{(-1)^i r\cdots(r-i+1)(\log y)^{r-i}}{\omega^i}\right\}
+\end{equation}
+holds. Clearly, formula \eqref{eq:chen1en} holds for $r=1$ and $r=2$. Now suppose it holds for $r=2,\cdots,S$, and we prove it for $S+1$. Since
+\begin{align*}
+\frac{\partial^{S+1}}{\partial\omega^{S+1}}\left(\frac{y^\omega}{\omega}\right)
+&=\frac{\partial}{\partial\omega}\left\{y^\omega\left(\frac{(\log y)^S}{\omega}
++\sum_{i=1}^{S}\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S-i}}{\omega^{i+1}}\right)\right\}\\
+&=y^\omega\left\{\frac{(\log y)^{S+1}}{\omega}
++\sum_{i=1}^{S}\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S+1-i}}{\omega^{i+1}}
+-\frac{(\log y)^S}{\omega^2}\right.\\
+&\qquad\left.+\sum_{i=1}^{S}\frac{(-1)^{i+1}S\cdots(S-i+1)(i+1)(\log y)^{S-i}}{\omega^{i+2}}\right\}\\
+&=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^{S+1}
+-\frac{(S+1)(\log y)^S}{\omega}
++\frac{(-1)^{S+1}(S+1)!}{\omega^{S+1}}\right.\\
+&\qquad\left.+\sum_{i=2}^{S}\left(
+\frac{(-1)^i S\cdots(S-i+1)(\log y)^{S+1-i}}{\omega^i}
++\frac{(-1)^i S\cdots(S+2-i)i(\log y)^{S+1-i}}{\omega^i}
+\right)\right\}\\
+&=\left(\frac{y^\omega}{\omega}\right)\left\{(
+\log y)^{S+1}
++\sum_{i=1}^{S+1}\frac{(-1)^i(S+1)\cdots(S+1-i+1)(\log y)^{S+1-i}}{\omega^i}\right\}.
+\end{align*}
+This proves \eqref{eq:chen1en}.
+
+Also, when $y\geqslant1$, we have
+\[
+\Phi(y)=1+\left\{\frac{(\log x)^{1.1+1.1[\log x]}}{[\log x]!}\right\}
+\left\{\frac{\partial^{[\log x]}}{\partial\omega^{[\log x]}}
+\left(\frac{y^\omega}{\omega}\right)\right\}_{\omega=-(\log x)^{1.1}}
+\]
+\begin{align*}
+&=1-e^{-(\log x)^{1.1}(\log y)}\sum_{\nu=0}^{[\log x]}
+\frac{\left\{(\log x)^{1.1}(\log y)\right\}^\nu}{\nu!}\\
+&=\left\{\frac{1}{[\log x]!}\right\}
+\int_{0}^{(\log x)^{1.1}(\log y)}e^{-\lambda}\lambda^{[\log x]}d\lambda.
+\end{align*}
+Since $\Phi(y)=0$ when $0\leqslant y\leqslant1$, it follows from the above that $\Phi(y)$ is a non-decreasing function for $y\geqslant0$. Furthermore, when $y\geqslant e^{2(\log x)^{-0.1}}$, we have
+\begin{align*}
+0<1-\Phi(y)
+&=\left\{\frac{1}{[\log x]!}\right\}
+\int_{(\log x)^{1.1}(\log y)}^{\infty}e^{-\lambda}\lambda^{[\log x]}d\lambda\\
+&\leqslant\left\{\frac{1}{[\log x]!}\right\}
+\int_{2[\log x]}^{\infty}e^{-\lambda}\lambda^{[\log x]}d\lambda
+=\left\{\frac{\left\{[\log x]\right\}^{1+[\log x]}}{[\log x]!}\right\}\\
+&\quad\cdot\int_{2}^{\infty}e^{-\lambda[\log x]}\lambda^{[\log x]}d\lambda
+=\left\{\frac{e^{-[\log x]}\left\{[\log x]\right\}^{1+[\log x]}}{[\log x]!}\right\}\\
+&\quad\cdot\int_{1}^{\infty}e^{-\lambda[\log x]}(1+\lambda)^{[\log x]}d\lambda
+\leqslant x^{-0.1}.
+\end{align*}
+Here we have used $\log x\geqslant10^4$ and, for $\lambda\geqslant1$, $e^{\log(1+\lambda)}\leqslant e^{\lambda\log2}$.
+\end{proof}
+
+\begin{lemma}
+Let $e(\alpha)=e^{2\pi i\alpha}$, $S(\alpha)=\sum_{n=M+1}^{M+N}a_n e(n\alpha)$, $Z=\sum_{n=M+1}^{M+N}|a_n|^2$, where $a_n$ are arbitrary real numbers. We write $\sideset{}{^*}\sum_{\chi_q}$ for a sum taken over all, and only, the primitive characters mod $q$. Then we have
+\begin{equation}\label{eq:chen2en}
+\sum_{q\leqslant X}\frac{q}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+\leqslant\left(X^2+\pi N\right)\sum_{n=M+1}^{M+N}|a_n|^2;
+\end{equation}
+\begin{equation}\label{eq:chen3en}
+\sum_{D<q\leqslant Q}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+\ll\left(Q+\frac{N}{D}\right)\sum_{n=M+1}^{M+N}|a_n|^2.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $F$ be a complex-valued differentiable function of period $1$. Then
+\[
+\left|F\left(\frac{a}{q}\right)\right|
+=\left|F(\alpha)-\int_{\frac{a}{q}}^{\alpha}dF(\beta)\right|
+\leqslant|F(\alpha)|+\int_{\frac{a}{q}}^{\alpha}|F'(\beta)||d\beta|,
+\]
+Let $I(a,q)$ denote the interval of length $\frac{1}{Q^2}$ centered at $\frac{a}{q}$. It is clear that when $1\leqslant a<q$, $(a,q)=1$, $q\leqslant Q$, all the intervals $I(a,q)$ are pairwise disjoint, so
+\begin{align*}
+\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|F\left(\frac{a}{q}\right)\right|
+&\leqslant\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left\{Q^2\int_{I(a,q)}|F(\alpha)|d\alpha
++\frac{1}{2}\int_{I(a,q)}|F'(\beta)|d\beta\right\}\\
+&\leqslant Q^2\int_{0}^{1}|F(\alpha)|d\alpha
++\frac{1}{2}\int_{0}^{1}|F'(\beta)|d\beta.
+\end{align*}
+
+Taking $F(\alpha)=\{S(\alpha)\}^2$, we obtain
+\[
+\int_{0}^{1}|F(\alpha)|d\alpha=Z
+\]
+and
+\begin{align*}
+\frac{1}{2}\int_{0}^{1}|F'(\beta)|d\beta
+&=\int_{0}^{1}|S(\alpha)||S'(\alpha)|d\alpha\\
+&\leqslant\left\{\left(\int_{0}^{1}|S(\alpha)|^2d\alpha\right)
+\left(\int_{0}^{1}|S'(\alpha)|^2d\alpha\right)\right\}^{\frac12}
+=Z^{\frac12}\left(\int_{0}^{1}|S'(\alpha)|^2d\alpha\right)^{\frac12}.
+\end{align*}
+Hence
+\begin{align*}
+\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|S\left(\frac{a}{q}\right)\right|^2
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left\{\left|S\left(\frac{a}{q}\right)\right|
+\,e\left(-\frac{a\left(M+\left[\frac{N}{2}\right]\right)}{q}\right)\right\}^2\\
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{n=M+1}^{M+N}a_n e\left(\left\{n-\left(M+\left[\frac{N}{2}\right]\right)\right\}\frac{a}{q}\right)\right|^2\\
+&=\sum_{q\leqslant Q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{-\left[\frac{N}{2}\right]+1\leqslant n\leqslant N-\left[\frac{N}{2}\right]}
+a_{n+M+\left[\frac{N}{2}\right]}e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant ZQ^2+Z^{\frac12}
+\left\{\sum_{n=-\left[\frac{N}{2}\right]+1}^{N-\left[\frac{N}{2}\right]}
+\bigl((2\pi n)a_{n+M+\left[\frac{N}{2}\right]}\bigr)^2\right\}^{\frac12}\\
+&\leqslant ZQ^2+\pi NZ^{\frac12}
+\left(\sum_{n=-\left[\frac{N}{2}\right]+1}^{N-\left[\frac{N}{2}\right]}
+\left|a_{n+M+\left[\frac{N}{2}\right]}\right|^2\right)^{\frac12}\\
+&\leqslant(Q^2+\pi N)Z.\tag{4}
+\end{align*}
+
+Let $\chi^*$ denote a primitive character,
+\[
+\tau(\chi_q^*)=\sum_{1\leqslant a<q}\chi_q^*(a)e\left(\frac{a}{q}\right),
+\qquad
+\tau(\overline{\chi_q^*})\chi_q^*(n)
+=\sum_{a=1}^{q}\overline{\chi_q^*}(a)e\left(\frac{na}{q}\right).
+\]
+Since $|\tau(\overline{\chi_q^*})|^2=q$, we obtain
+\begin{align*}
+\left(\frac{1}{\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+&\leqslant\left(\frac{1}{q\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\tau(\overline{\chi_q})\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\\
+&=\left(\frac{1}{q\varphi(q)}\right)
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{a=1}^{q}\overline{\chi_q}(a)
+\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant\left(\frac{1}{q\varphi(q)}\right)
+\sum_{\chi_q}
+\left|\sum_{a=1}^{q}\overline{\chi_q}(a)
+\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2\\
+&\leqslant\frac{1}{q}\sum_{\substack{a=1\\(a,q)=1}}^{q}
+\left|\sum_{n=M+1}^{M+N}a_n e\left(\frac{na}{q}\right)\right|^2.
+\end{align*}
+
+From this and (4), we obtain \eqref{eq:chen2en}. Let $h$ be the positive integer such that $2^hD<Q\leqslant2^{h+1}D$; then we have
+\begin{align*}
+\sum_{D<q\leqslant Q}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2
+&\leqslant\sum_{i=0}^{h}\left(
+\sum_{2^iD<q\leqslant2^{i+1}D}\frac{1}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\right)\\
+&\leqslant\sum_{i=0}^{h}\left(\frac{1}{2^iD}\right)
+\left(\sum_{2^iD<q\leqslant2^{i+1}D}\frac{q}{\varphi(q)}
+\sideset{}{^*}\sum_{\chi_q}
+\left|\sum_{n=M+1}^{M+N}a_n\chi_q(n)\right|^2\right)\\
+&\leqslant\sum_{i=0}^{h}\left(2^{i+2}D+\frac{\pi N}{2^iD}\right)
+\sum_{n=M+1}^{M+N}|a_n|^2\\
+&\ll\left(Q+\frac{N}{D}\right)\sum_{n=M+1}^{M+N}|a_n|^2.
+\end{align*}
+This proves Lemma 2.
+\end{proof}
+
+\begin{lemma}
+When $S=\sigma+it$ and $\sigma\geqslant\dfrac12$, we have
+\[
+\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}|L(S,\chi_q)|^4
+\ll Q^2|S|^2(\log Q)^4.
+\]
+\end{lemma}
+
+\begin{proof}
+We have
+\begin{align*}
+L(S,\chi)
+&=\sum_{n=1}^{\infty}\frac{\chi(n)}{n^S}
+=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++\sum_{n=N+1}^{\infty}
+\frac{\sum_{i\leqslant n}\chi(i)-\sum_{i\leqslant n-1}\chi(i)}{n^S}\\
+&=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++\sum_{n=N+1}^{\infty}
+\left(\sum_{i\leqslant n}\chi(i)\right)
+\left(\frac{1}{n^S}-\frac{1}{(n+1)^S}\right)
+-\frac{\sum_{i\leqslant N}\chi(i)}{(N+1)^S}\\
+&=\sum_{n=1}^{N}\frac{\chi(n)}{n^S}
++O\left(\frac{|S|q^{\frac12}\log q}{N^\sigma}\right).
+\end{align*}
+Hence, by Lemma 2 and $\sigma\geqslant\dfrac12$, we have
+\begin{align*}
+\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}|L(S,\chi_q)|^4
+&\ll\sum_{q\leqslant Q}\sideset{}{^*}\sum_{\chi_q}
+\left(\left|\sum_{n=1}^{[Q|S|]}\frac{\chi_q(n)}{n^S}\right|^4
++Q^{-2}|S|^2q^2(\log q)^4\right)\\
+&\ll|S|^2Q^2(\log Q)^4
++\left(Q^2+Q^2|S|^2\right)\sum_{n=1}^{[Q|S|]^2}\frac{d^2(n)}{n}\\
+&\ll Q^2|S|^2(\log Q)^4.
+\end{align*}
+This proves the lemma.
+\end{proof}
+
+\begin{lemma}
+When $k$ is odd and squarefree, and $m\neq1$, we have
+\[
+\left|\sideset{}{^*}\sum_{\chi_k}\chi_k(m)\right|
+\leqslant|(m-1,k)|.
+\]
+\end{lemma}
+
+\begin{proof}
+Let $k=p_1\cdots p_l$, where $p_1<\cdots<p_l$. Let $g_i$ be a primitive root mod $p_i$, so that $m\equiv g_i^{\xi_i}\pmod{p_i}$, $0\leqslant\xi_i\leqslant p_i-2$, for $j=1,\cdots,l$; then all primitive characters mod $k$ can be written as
+\[
+\chi_k^*(m)=e^{2\pi i\left(\frac{\nu_1\xi_1}{p_1-1}+\cdots+\frac{\nu_l\xi_l}{p_l-1}\right)},
+\]
+where $1\leqslant\nu_i\leqslant p_i-2$, for $i=1,\cdots,l$.
+
+Let $\displaystyle Z(m,k)=\left|\sideset{}{^*}\sum_{\chi_k}\chi_k(m)\right|$; then
+\[
+Z(m,k)=\prod_{j=1}^{l}Z(m,p_j)
+=\prod_{j=1}^{l}\left|\sum_{\nu_j=1}^{p_j-2}
+e^{2\pi i\frac{\nu_j\xi_j}{p_j-1}}\right|
+=\prod_{\substack{j=1\\\xi_j=0}}^{l}(p_j-2)
+<\prod_{p_j\mid(m-1)}p_j
+=|(m-1,k)|.
+\]
+This proves the lemma.
+\end{proof}
+
+Let $x$ be an even integer, let $\lambda_1=1$; when $d>x^{\frac14-\frac{\epsilon}{2}}$, let $\lambda_d=0$; and when $1<d\leqslant x^{\frac14-\frac{\epsilon}{2}}$, let
+\[
+\lambda_d=\frac{\mu(d)}{f(d)g(d)}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}^{-1}.
+\]
+where $\displaystyle g(k)=\frac{1}{\varphi(k)}$, $\displaystyle f(k)=\varphi(k)\prod_{p\mid k}\frac{p-2}{p-1}$. Furthermore, when $d$ is odd and $\mu(d)\neq0$, we have
+\begin{align*}
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1}}
+\frac{\mu^2(k)}{f(k)}
+&=\sum_{t\mid d}\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}\\(k,x)=1,\,(k,d)=t}}
+\frac{\mu^2(k)}{f(k)}
+=\sum_{t\mid d}\left\{\frac{1}{\prod_{p\mid t}(p-2)}\right\}
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/t\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}\\
+&\geqslant\left\{\prod_{p\mid d}\left(1+\frac{1}{p-2}\right)\right\}
+\left\{
+\sum_{\substack{1\leqslant k\leqslant(x^{\frac12-\epsilon})^{\frac12}/d\\(k,xd)=1}}
+\frac{\mu^2(k)}{f(k)}
+\right\}.
+\end{align*}
+
+Hence $|\lambda_d|\leqslant1$ for all positive integers $d$. Let $x$ be even, $\log x>10^4$, and further let
+\[
+Q=\prod_{2\leqslant p\leqslant x^{\frac14}}p,
+\]
+\[
+\Omega=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\p_3\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2p_3,Q)=1}}1,
+\]
+\[
+M=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\left(\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2n,Q)=1}}\Lambda(n)\right),
+\]
+then $\displaystyle \Omega\leqslant\frac{M}{1-\epsilon}+N$, where
+\begin{align*}
+N&\ll\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{x}{p_1p_2}\right)^{1-\epsilon}
+\ll x^{1-\epsilon}\int_{x^{\frac1{10}}}^{x^{\frac13}}\frac{dS}{S^{1-\epsilon}}
+\int_{x^{\frac13}}^{(\frac{x}{S})^{\frac12}}\frac{dt}{t^{1-\epsilon}}\\
+&\ll x^{1-\frac{\epsilon}{2}}\int_{x^{\frac1{10}}}^{x^{\frac13}}\frac{dS}{S^{1-\frac{\epsilon}{2}}}
+\ll x^{1-\frac{\epsilon}{3}}.
+\end{align*}
+
+By Lemma 1, we have
+\begin{align*}
+M&\leqslant\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\(x-p_1p_2n,Q)=1}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
++O\left(\frac{x}{(\log x)^{2.01}}\right)\\
+&\leqslant\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{n\leqslant\frac{x}{p_1p_2}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
+\left(\sum_{\substack{d\mid(x-p_1p_2n,Q)\\(d,x)=1}}\lambda_d\right)^2
++O\left(\frac{x}{(\log x)^{2.01}}\right)\\
+&=\sum_{\substack{(d_1,x)=1\\d_1\mid Q}}
+\sum_{\substack{(d_2,x)=1\\d_2\mid Q}}
+\lambda_{d_1}\lambda_{d_2}
+N_{\frac{d_1d_2}{(d_1,d_2)}}
++O\left(\frac{x}{(\log x)^{2.01}}\right).\tag{5}
+\end{align*}
+
+where
+\begin{align*}
+N_{\frac{d_1d_2}{(d_1,d_2)}}
+&=\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\sum_{\substack{n\leqslant\frac{x}{p_1p_2}\\x-p_1p_2n\equiv0\,\left(\bmod\frac{d_1d_2}{(d_1,d_2)}\right)}}
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)\\
+&=\left\{\frac{1}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(p_1p_2n,d_1d_2)=1}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)\\
+&\quad+\sum_{\substack{\chi_{\frac{d_1d_2}{(d_1,d_2)}}\neq\chi_0}}
+\overline{\chi_{\frac{d_1d_2}{(d_1,d_2)}}}(x)
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}}}
+\left(\frac{\Lambda(n)}{\log\dfrac{x}{p_1p_2}}\right)
+\Phi\left(\frac{x}{p_1p_2n}\right)
+\chi_{\frac{d_1d_2}{(d_1,d_2)}}(p_1p_2n)\\
+&=\left\{\frac{1}{\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}
+\left\{
+\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}\\n\leqslant\frac{x}{p_1p_2}\\(p_1p_2n,d_1d_2)=1}}
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\Lambda(n)\Phi\left(\frac{x}{p_1p_2n}\right)
+\right\}
+-\left\{\frac{1}{2\pi i\,\varphi\left(\dfrac{d_1d_2}{(d_1,d_2)}\right)}\right\}\\
+&\quad\cdot\left\{\int_{2-i\infty}^{2+i\infty}
+\left(1+\frac{\omega}{(\log x)^{1.1}}\right)^{-[\log x]-1}
+\left(\frac{x^\omega}{\omega}\right)
+\sum_{\substack{\chi_{\frac{d_1d_2}{(d_1,d_2)}}\neq\chi_0}}
+\overline{\chi_{\frac{d_1d_2}{(d_1,d_2)}}}(x)
+\frac{L'}{L}(\omega,\chi_{\frac{d_1d_2}{(d_1,d_2)}})\right.\\
+&\qquad\left.\cdot\sum_{\substack{x^{\frac1{10}}<p_1\leqslant x^{\frac13}<p_2\leqslant(\frac{x}{p_1})^{\frac12}}}
+\chi_{\frac{d_1d_2}{(d_1,d_2)}}(p_1p_2)\cdot
+\left(\frac{1}{\log\dfrac{x}{p_1p_2}}\right)
+\left(\frac{d\omega}{(p_1p_2)^\omega}\right)\right\}.\tag{6}
+\end{align*}

@@ -1,0 +1,33 @@
+# Lean / Lake (formal/)
+formal/.lake/
+**/.lake/
+*.olean
+*.ilean
+
+# LaTeX build artifacts
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.toc
+latex/*.fls
+latex/*.fdb_latexmk
+latex/*.synctex.gz
+latex/*.bbl
+latex/*.blg
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Agents
+.agents/
+.claude/
+.codex/

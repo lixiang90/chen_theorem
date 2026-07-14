@@ -1,0 +1,67 @@
++\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt\right\}
+=\left\{\frac{(8+10\sqrt{\epsilon})xC_x}{(\log x)^2}\right\}\left\{\log8+\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{2\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt\right\}.
+\]
+
+Let $4-10\alpha=u-1$, $\alpha=\dfrac{5-u}{10}$, so $\dfrac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}=-\dfrac{10\,du}{u(5-u)}$; when $\alpha=\dfrac1{10}$, $u=4$, and when $\alpha=\dfrac15$, $u=3$; hence
+\[
+\int_{\frac1{10}}^{\frac13}\frac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt
+=\int_3^{4}\frac{10\,du}{u(5-u)}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt.
+\]
+It is clear that, for $1\leqslant x\leqslant2$, $\log x\leqslant\dfrac{x-1}2+\dfrac{x-1}{1+x}$; hence
+\[
+\int_3^{4}\frac{du}{u}\int_2^{u-1}\frac{\log(t-1)}{t}\,dt-\left(\frac14\right)\int_{\frac1{10}}^{\frac15}\frac{d\alpha}{\alpha\left(\dfrac12-\alpha\right)}\int_2^{4-10\alpha}\frac{\log(t-1)}{t}\,dt
+\]
+\[
+=\int_3^{4}\left(\frac1u-\frac{2.5}{u(5-u)}\right)du\int_2^{u-1}\frac{\log(t-1)}{t}\,dt
+\geqslant\int_3^{4}\left\{\frac{2.5-u}{u(5-u)}\right\}du\int_2^{u-1}\left(\frac{t-2}2+\frac{t-2}{t}\right)\left(\frac{dt}{t}\right)
+\]
+\[
+=\int_3^{4}\left\{\frac{2.5-u}{2u(5-u)}\right\}\left(u-3+\frac4{u-1}-2\right)du
+=\int_3^{4}\left(\frac1{2}-\frac{2.25}{u}-\frac1{4(5-u)}+\frac{0.75}{u-1}\right)du
+\]
+\[
+=\frac12-2.25\log\frac43-\frac{\log2}4+0.75\log\frac32
+=\frac12+0.75\log\frac98-1.5\log\frac43-\frac{\log2}4
+\]
+\begin{equation}\label{eq:chen27en}
+\geqslant0.588335-0.6048075=-0.0164725.
+\end{equation}
+By (26) and (27), we have
+\[
+P_x(x,x^{\frac1{10}})-\left(\frac12\right)\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})\geqslant\left(\frac{(8-50\sqrt{\epsilon})xC_x}{(\log x)^2}\right)\left(\log4-\frac{\log8}2-0.0164725\right)\geqslant\frac{(8xC_x)(0.3301)}{(\log x)^2}.
+\]
+This proves Lemma 9.
+\end{proof}
+
+\section{Results}
+
+Clearly, we have
+\begin{equation}\label{eq:chen28en}
+P_x(1,2)\geqslant P_x(x,x^{\frac1{10}})-\left(\frac12\right)\sum_{x^{\frac1{10}}<p\leqslant x^{\frac13}}P_x(x,p,x^{\frac1{10}})-\frac{\Omega}2-x^{0.91}.
+\end{equation}
+
+From (28), Lemma 8, and Lemma 9, we obtain the proof of Theorem 1:
+\[
+(1,2)\ \text{holds, and}\ P_x(1,2)\geqslant\frac{0.67xC_x}{(\log x)^2}.
+\]
+
+An entirely analogous method gives the proof of Theorem 2.
+
+\bigskip
+\noindent\textit{Acknowledgement.} The author wishes to express his heartfelt thanks to Comrades Min Sihe and Wang Yuan for their assistance.
+
+\section*{References}
+
+\begin{enumerate}[leftmargin=2.5em,label={[\arabic*]}]
+\item Renyi, A., 1948 \textit{Izv. Akad. Nauk SSSR Ser. Mat.}, \textbf{2}, 57--78.
+\item Pan, C. D. (Pan Chengdong), 1962 \textit{Acta Math. Sinica}, \textbf{12}, 95--106.
+\item Barban, M. B., 1961 \textit{Dokl. Akad. Nauk UzSSR}, \textbf{8}, 9--11.
+\item Wang, Y. (Wang Yuan), 1962 \textit{Sci. Sinica}, \textbf{11}, 1033--1054.
+\item Pan, C. D. (Pan Chengdong), 1963 \textit{Sci. Sinica}, \textbf{12}, 455--473.
+\item Barban, M. B., 1963 \textit{Mat. Sb.}, \textbf{61}, 418--425.
+\item Buchstab, A. A., 1965 \textit{Dokl. Akad. Nauk SSSR}, \textbf{162}, 739--742.
+\item Vinogradov, A. I., 1965 \textit{Izv. Akad. Nauk SSSR Ser. Mat.}, \textbf{29}, 903--934.
+\item Bombieri, E., 1965 \textit{Mathematika}, \textbf{12}, 201--225.
+\item Chen, J. R. (Chen Jingrun), 1966 \textit{Kexue Tongbao}, \textbf{17}, 385--386.
+\item Richert, H. E., 1969 \textit{Mathematika}, \textbf{16}, 1--22.
+\end{enumerate}
