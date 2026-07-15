@@ -40,9 +40,9 @@ Each may need to be run twice to resolve cross-references.
 
 `formal/` is a Lake project targeting Lean `v4.31.0` / Mathlib `v4.31.0`. It
 states every definition, lemma, and theorem of the paper in Lean, and
-**Lemma 1 (the smoothing-function estimate) is fully proved** — all five parts,
-no `sorry`. The remaining lemmas and the main theorems are stated precisely
-but not yet proved. See [`formal/README.md`](formal/README.md) for the build
+**Lemma 1 (the smoothing-function estimate) and Lemma 4 (the primitive-character
+sum bound) are fully proved**, with no `sorry`. The remaining lemmas and the main
+theorems are stated precisely but not yet proved. See [`formal/README.md`](formal/README.md) for the build
 instructions, the full correspondence table against the paper, and design
 notes.
 

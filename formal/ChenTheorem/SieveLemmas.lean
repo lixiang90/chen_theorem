@@ -11,8 +11,7 @@ Lemma 1's four qualitative assertions (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 as a (rescaled) incomplete Gamma integral: `n! · Φ(y) = ∫_{(0,a(y)]} e^{-t}t^n dt`
 with `a(y) = (log x)^{1.1} log y`, `n = ⌊log x⌋`, compared against the convergent
 Euler integral `n! = ∫_{(0,∞)} e^{-t}t^n dt` (`Real.Gamma_eq_integral`).
-Lemma 1's quantitative tail estimate (`chenPhi_ge`) and Lemmas 2–4 remain
-`sorry`-placeholders; the statements are the formalization targets.
+Lemma 1 and Lemma 4 are proved in full. Lemmas 2–3 remain `sorry`-placeholders.
 -/
 import ChenTheorem.Defs
 
@@ -436,13 +435,178 @@ theorem lFunction_fourth_moment :
 
 /-! ### Lemma 4 : primitive character sums at a point -/
 
-/-- **Lemma 4**: for squarefree odd `k` and `m ≠ 1`,
-`|∑*_{χ mod k} χ(m)| ≤ (m - 1, k)`. -/
-theorem primitive_char_sum_bound (k : ℕ) (hk : Squarefree k) (hodd : Odd k)
-    (m : ℕ) (hm : m ≠ 1) :
-    ‖∑' χ : DirichletCharacter ℂ k, if χ.IsPrimitive then χ m else 0‖ ≤
-      (Nat.gcd (m - 1) k : ℝ) := by
-  sorry
+/- The paper factors the primitive sum over the prime divisors of a squarefree modulus.
+The next lemmas implement that factorization through the Chinese remainder theorem. -/
+
+private noncomputable def combineChars {a b : ℕ}
+    (x : DirichletCharacter ℂ a × DirichletCharacter ℂ b) :
+    DirichletCharacter ℂ (a * b) :=
+  DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) x.1 *
+    DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) x.2
+
+private theorem combineChars_injective {a b : ℕ} [NeZero a] [NeZero b]
+    (hab : a.Coprime b) : Function.Injective (combineChars (a := a) (b := b)) := by
+  rintro ⟨χ, ψ⟩ ⟨χ', ψ'⟩ h
+  haveI : NeZero (a * b) := ⟨Nat.mul_ne_zero (NeZero.ne a) (NeZero.ne b)⟩
+  dsimp only [combineChars] at h
+  have hlev :
+      DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) (χ * χ'⁻¹) =
+        DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) (ψ' * ψ⁻¹) := by
+    simp only [map_mul, map_inv]
+    calc
+      _ = (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ *
+            DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ) *
+          ((DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ)⁻¹ *
+            (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ')⁻¹) := by group
+      _ = (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ' *
+            DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ') *
+          ((DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ)⁻¹ *
+            (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ')⁻¹) := by rw [h]
+      _ = _ := by
+        rw [show
+          (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ' *
+              DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ') *
+              ((DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ)⁻¹ *
+                (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ')⁻¹) =
+            (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ' *
+                (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ')⁻¹) *
+              (DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ' *
+                (DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ)⁻¹) by ac_rfl]
+        simp
+  have hfac := DirichletCharacter.factorsThrough_gcd (χ * χ'⁻¹) (ψ' * ψ⁻¹) hlev
+  rw [hab.gcd_eq_one, DirichletCharacter.factorsThrough_one_iff] at hfac
+  have hχ : χ = χ' := by
+    have h' := congrArg (fun z : DirichletCharacter ℂ a => z * χ') hfac
+    simpa [mul_assoc] using h'
+  subst χ'
+  have hψlev :
+      DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ =
+        DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ' := by
+    exact mul_left_cancel h
+  have hψ := DirichletCharacter.changeLevel_injective
+    (R := ℂ) (Nat.dvd_mul_left b a) hψlev
+  subst ψ'
+  rfl
+
+private noncomputable def combineCharsEquiv {a b : ℕ} [NeZero a] [NeZero b]
+    (hab : a.Coprime b) :
+    (DirichletCharacter ℂ a × DirichletCharacter ℂ b) ≃
+      DirichletCharacter ℂ (a * b) := by
+  haveI : NeZero (a * b) := ⟨Nat.mul_ne_zero (NeZero.ne a) (NeZero.ne b)⟩
+  apply Equiv.ofBijective combineChars
+  rw [Fintype.bijective_iff_injective_and_card]
+  refine ⟨combineChars_injective hab, ?_⟩
+  rw [← Nat.card_eq_fintype_card
+        (α := DirichletCharacter ℂ a × DirichletCharacter ℂ b),
+    ← Nat.card_eq_fintype_card (α := DirichletCharacter ℂ (a * b)), Nat.card_prod,
+    DirichletCharacter.card_eq_totient_of_hasEnoughRootsOfUnity ℂ a,
+    DirichletCharacter.card_eq_totient_of_hasEnoughRootsOfUnity ℂ b,
+    DirichletCharacter.card_eq_totient_of_hasEnoughRootsOfUnity ℂ (a * b),
+    Nat.totient_mul hab]
+
+private theorem conductor_combineChars {a b : ℕ} [NeZero a] [NeZero b]
+    (hab : a.Coprime b) (χ : DirichletCharacter ℂ a) (ψ : DirichletCharacter ℂ b) :
+    (combineChars (χ, ψ)).conductor = χ.conductor * ψ.conductor := by
+  haveI : NeZero (a * b) := ⟨Nat.mul_ne_zero (NeZero.ne a) (NeZero.ne b)⟩
+  let χa := DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ
+  let ψb := DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ
+  have hχa : χa.conductor = χ.conductor :=
+    DirichletCharacter.conductor_changeLevel χ (Nat.dvd_mul_right a b)
+  have hψb : ψb.conductor = ψ.conductor :=
+    DirichletCharacter.conductor_changeLevel ψ (Nat.dvd_mul_left b a)
+  have hc_coprime : χ.conductor.Coprime ψ.conductor :=
+    (hab.of_dvd_left χ.conductor_dvd_level).of_dvd_right ψ.conductor_dvd_level
+  have hupper : (combineChars (χ, ψ)).conductor ∣ χ.conductor * ψ.conductor := by
+    have h := DirichletCharacter.conductor_mul_dvd_lcm_conductor χa ψb
+    rw [show χa * ψb = combineChars (χ, ψ) by rfl, hχa, hψb,
+      hc_coprime.lcm_eq_mul] at h
+    exact h
+  have hχ_dvd : χ.conductor ∣ (combineChars (χ, ψ)).conductor := by
+    have hcancel : combineChars (χ, ψ) * ψb⁻¹ = χa := by
+      dsimp only [combineChars, χa, ψb]
+      simp [mul_assoc]
+    have h := DirichletCharacter.conductor_mul_dvd_lcm_conductor
+      (combineChars (χ, ψ)) ψb⁻¹
+    rw [hcancel, DirichletCharacter.conductor_inv, hχa, hψb] at h
+    exact hc_coprime.dvd_of_dvd_mul_right (h.trans (Nat.lcm_dvd_mul _ _))
+  have hψ_dvd : ψ.conductor ∣ (combineChars (χ, ψ)).conductor := by
+    have hcancel : combineChars (χ, ψ) * χa⁻¹ = ψb := by
+      dsimp only [combineChars, χa, ψb]
+      rw [show
+        DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ *
+              DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ *
+              (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ)⁻¹ =
+            (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ *
+              (DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ)⁻¹) *
+              DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ by ac_rfl]
+      simp
+    have h := DirichletCharacter.conductor_mul_dvd_lcm_conductor
+      (combineChars (χ, ψ)) χa⁻¹
+    rw [hcancel, DirichletCharacter.conductor_inv, hψb, hχa] at h
+    exact hc_coprime.symm.dvd_of_dvd_mul_right (h.trans (Nat.lcm_dvd_mul _ _))
+  exact Nat.dvd_antisymm hupper (hc_coprime.mul_dvd_of_dvd_of_dvd hχ_dvd hψ_dvd)
+
+private theorem combineChars_isPrimitive_iff {a b : ℕ} [NeZero a] [NeZero b]
+    (hab : a.Coprime b) (χ : DirichletCharacter ℂ a) (ψ : DirichletCharacter ℂ b) :
+    (combineChars (χ, ψ)).IsPrimitive ↔ χ.IsPrimitive ∧ ψ.IsPrimitive := by
+  simp only [DirichletCharacter.isPrimitive_def, conductor_combineChars hab]
+  constructor
+  · intro hprod
+    have ha_dvd : a ∣ χ.conductor := by
+      apply (hab.of_dvd_right ψ.conductor_dvd_level).dvd_of_dvd_mul_right
+      rw [hprod]
+      exact Nat.dvd_mul_right a b
+    have hb_dvd : b ∣ ψ.conductor := by
+      apply (hab.symm.of_dvd_right χ.conductor_dvd_level).dvd_of_dvd_mul_right
+      rw [mul_comm, hprod]
+      exact Nat.dvd_mul_left b a
+    exact ⟨Nat.dvd_antisymm χ.conductor_dvd_level ha_dvd,
+      Nat.dvd_antisymm ψ.conductor_dvd_level hb_dvd⟩
+  · rintro ⟨hχ, hψ⟩
+    rw [hχ, hψ]
+
+private theorem combineChars_apply {a b m : ℕ} [NeZero a] [NeZero b]
+    (hm : m.Coprime (a * b)) (χ : DirichletCharacter ℂ a)
+    (ψ : DirichletCharacter ℂ b) :
+    combineChars (χ, ψ) m = χ m * ψ m := by
+  have hm' : IsCoprime (m : ℤ) (a * b : ℤ) := Nat.isCoprime_iff_coprime.mpr hm
+  simp only [combineChars, MulChar.mul_apply]
+  have hχ : DirichletCharacter.changeLevel (Nat.dvd_mul_right a b) χ (m : ℤ) = χ (m : ℤ) :=
+    DirichletCharacter.changeLevel_eq_cast_of_dvd' χ (Nat.dvd_mul_right a b) hm'
+  have hψ : DirichletCharacter.changeLevel (Nat.dvd_mul_left b a) ψ (m : ℤ) = ψ (m : ℤ) :=
+    DirichletCharacter.changeLevel_eq_cast_of_dvd' ψ (Nat.dvd_mul_left b a) hm'
+  simpa only [Int.cast_natCast] using congrArg₂ (· * ·) hχ hψ
+
+private theorem primitiveSum_mul {a b m : ℕ} [NeZero a] [NeZero b]
+    (hab : a.Coprime b) (hm : m.Coprime (a * b)) :
+    (∑' ξ : DirichletCharacter ℂ (a * b), if ξ.IsPrimitive then ξ m else 0) =
+      (∑' χ : DirichletCharacter ℂ a, if χ.IsPrimitive then χ m else 0) *
+        (∑' ψ : DirichletCharacter ℂ b, if ψ.IsPrimitive then ψ m else 0) := by
+  rw [tsum_fintype, tsum_fintype, tsum_fintype,
+    ← (combineCharsEquiv hab).sum_comp]
+  change (∑ x : DirichletCharacter ℂ a × DirichletCharacter ℂ b,
+    if (combineChars x).IsPrimitive then combineChars x m else 0) = _
+  rw [Fintype.sum_prod_type]
+  simp_rw [combineChars_isPrimitive_iff hab, combineChars_apply hm]
+  have hif : ∀ (χ : DirichletCharacter ℂ a) (ψ : DirichletCharacter ℂ b),
+      (if χ.IsPrimitive ∧ ψ.IsPrimitive then χ m * ψ m else 0) =
+        (if χ.IsPrimitive then χ m else 0) * (if ψ.IsPrimitive then ψ m else 0) := by
+    intro χ ψ
+    by_cases hχ : χ.IsPrimitive <;> by_cases hψ : ψ.IsPrimitive <;> simp [hχ, hψ]
+  simp_rw [hif]
+  rw [Finset.sum_mul_sum]
+
+private theorem primitiveSum_one (m : ℕ) :
+    ‖∑' χ : DirichletCharacter ℂ 1, if χ.IsPrimitive then χ m else 0‖ ≤
+      (Nat.gcd (m - 1) 1 : ℝ) := by
+  rw [tsum_fintype]
+  simp only [Subsingleton.elim (α := DirichletCharacter ℂ 1) _ 1,
+    DirichletCharacter.isPrimitive_one_level_one, if_true]
+  have hmz : (m : ZMod 1) = 1 := Subsingleton.elim _ _
+  rw [hmz, map_one, Finset.sum_const, Finset.card_univ,
+    show Fintype.card (DirichletCharacter ℂ 1) = 1 from Fintype.card_unique,
+    one_nsmul, norm_one]
+  simp
 
 /-- **Lemma 4, prime case**: for an odd prime `p` and `m ≠ 1`,
 `|∑*_{χ mod p} χ(m)| ≤ (m - 1, p)`.
@@ -452,9 +616,8 @@ nontrivial character is automatically primitive — its conductor divides `p`, h
 or `p`, and conductor `1` forces the character trivial — so the primitive sum collapses to
 `(∑_{all χ} χ(m)) - χ₀(m)`, both terms computable in closed form via Mathlib's Dirichlet
 character orthogonality relation (`DirichletCharacter.sum_characters_eq`) and the value of
-the principal character. (The general squarefree case additionally needs the CRT
-decomposition of characters mod a squarefree `k` into characters mod each prime factor,
-which is not reproduced here.) -/
+the principal character. The general squarefree case below combines this base case with a
+CRT decomposition and strong induction over the modulus. -/
 theorem primitive_char_sum_bound_prime {p : ℕ} (hp : p.Prime) (hodd : Odd p)
     (m : ℕ) (hm : m ≠ 1) :
     ‖∑' χ : DirichletCharacter ℂ p, if χ.IsPrimitive then χ m else 0‖ ≤
@@ -512,5 +675,89 @@ theorem primitive_char_sum_bound_prime {p : ℕ} (hp : p.Prime) (hodd : Odd p)
       exact_mod_cast hgcdpos
     · rw [MulChar.map_nonunit _ hunit]
       simp
+
+private theorem primitiveSum_bound_of_prime
+    (hprime : ∀ {p : ℕ}, p.Prime → Odd p → ∀ (m : ℕ), m ≠ 1 →
+      ‖∑' χ : DirichletCharacter ℂ p, if χ.IsPrimitive then χ m else 0‖ ≤
+        (Nat.gcd (m - 1) p : ℝ)) :
+    ∀ (k : ℕ), Squarefree k → Odd k → ∀ (m : ℕ), m ≠ 1 →
+      ‖∑' χ : DirichletCharacter ℂ k, if χ.IsPrimitive then χ m else 0‖ ≤
+        (Nat.gcd (m - 1) k : ℝ) := by
+  intro k
+  induction k using Nat.strong_induction_on with
+  | h k ih =>
+      intro hk hodd m hm1
+      haveI : NeZero k := ⟨hodd.pos.ne'⟩
+      by_cases hmk : m.Coprime k
+      · by_cases hk1 : k = 1
+        · subst k
+          exact primitiveSum_one m
+        · obtain ⟨p, hp, hpdvd⟩ := Nat.exists_prime_and_dvd hk1
+          let n := k / p
+          have hpn : p * n = k := by
+            dsimp only [n]
+            exact Nat.mul_div_cancel' hpdvd
+          have hsqprod : Squarefree (p * n) := by rw [hpn]; exact hk
+          have hcop : p.Coprime n := Nat.coprime_of_squarefree_mul hsqprod
+          have hsqn : Squarefree n := (Nat.squarefree_mul hcop).mp hsqprod |>.2
+          have hndvd : n ∣ k := ⟨p, by simpa [mul_comm] using hpn.symm⟩
+          have hoddp : Odd p := hodd.of_dvd_nat hpdvd
+          have hoddn : Odd n := hodd.of_dvd_nat hndvd
+          haveI : NeZero p := ⟨hp.ne_zero⟩
+          haveI : NeZero n := ⟨hoddn.pos.ne'⟩
+          have hnlt : n < k := by
+            dsimp only [n]
+            exact Nat.div_lt_self hodd.pos hp.one_lt
+          have hmprod : m.Coprime (p * n) := by rwa [hpn]
+          have hp_bound := hprime hp hoddp m hm1
+          have hn_bound := ih n hnlt hsqn hoddn m hm1
+          have hsum := primitiveSum_mul hcop hmprod
+          have hgprod_dvd_left :
+              Nat.gcd (m - 1) p * Nat.gcd (m - 1) n ∣ m - 1 :=
+            (hcop.gcd_both (m - 1) (m - 1)).mul_dvd_of_dvd_of_dvd
+              (Nat.gcd_dvd_left _ _) (Nat.gcd_dvd_left _ _)
+          have hgprod_dvd_right :
+              Nat.gcd (m - 1) p * Nat.gcd (m - 1) n ∣ p * n :=
+            Nat.mul_dvd_mul (Nat.gcd_dvd_right _ _) (Nat.gcd_dvd_right _ _)
+          have hgprod_dvd :
+              Nat.gcd (m - 1) p * Nat.gcd (m - 1) n ∣ Nat.gcd (m - 1) (p * n) :=
+            Nat.dvd_gcd hgprod_dvd_left hgprod_dvd_right
+          rw [← hpn, hsum, norm_mul]
+          calc
+            ‖∑' χ : DirichletCharacter ℂ p,
+                if χ.IsPrimitive then χ m else 0‖ *
+                  ‖∑' ψ : DirichletCharacter ℂ n,
+                    if ψ.IsPrimitive then ψ m else 0‖ ≤
+                (Nat.gcd (m - 1) p : ℝ) * (Nat.gcd (m - 1) n : ℝ) :=
+              mul_le_mul hp_bound hn_bound (norm_nonneg _)
+                (by positivity)
+            _ = ((Nat.gcd (m - 1) p * Nat.gcd (m - 1) n : ℕ) : ℝ) := by
+              norm_cast
+            _ ≤ (Nat.gcd (m - 1) (p * n) : ℝ) := by
+              exact_mod_cast Nat.le_of_dvd (Nat.gcd_pos_of_pos_right _ (mul_pos hp.pos hoddn.pos))
+                hgprod_dvd
+      · have hm' : ¬ IsCoprime (m : ℤ) (k : ℤ) := by
+          simpa only [Nat.isCoprime_iff_coprime] using hmk
+        have hz : ∀ χ : DirichletCharacter ℂ k, χ m = 0 := by
+          intro χ
+          have hz' : χ (m : ℤ) = 0 :=
+            (DirichletCharacter.apply_eq_zero_iff χ (m : ℤ)).mpr hm'
+          simpa only [Int.cast_natCast] using hz'
+        simp_rw [hz]
+        simp
+
+/-- **Lemma 4**: for squarefree odd `k` and `m ≠ 1`,
+`|∑*_{χ mod k} χ(m)| ≤ (m - 1, k)`.
+
+For `(m, k) ≠ 1` every character value vanishes.  Otherwise, split a nontrivial
+squarefree `k` as `p * n`; CRT makes the primitive sum a product of the two
+primitive sums, and strong induction reduces it to the prime case. -/
+theorem primitive_char_sum_bound (k : ℕ) (hk : Squarefree k) (hodd : Odd k)
+    (m : ℕ) (hm : m ≠ 1) :
+    ‖∑' χ : DirichletCharacter ℂ k, if χ.IsPrimitive then χ m else 0‖ ≤
+      (Nat.gcd (m - 1) k : ℝ) := by
+  exact primitiveSum_bound_of_prime
+    (fun hp hoddp m hm1 => primitive_char_sum_bound_prime hp hoddp m hm1)
+    k hk hodd m hm
 
 end Chen

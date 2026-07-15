@@ -44,7 +44,7 @@ lake build
 | Lemma 1 | `chenPhi_eq_zero`, `chenPhi_monotoneOn`, `chenPhi_nonneg`, `chenPhi_le_one`, `chenPhi_ge` (**all five proved**) |
 | Lemma 2, eqs. (2)–(3) | `large_sieve`, `large_sieve_dyadic` |
 | Lemma 3 | `lFunction_fourth_moment` |
-| Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, open); `primitive_char_sum_bound_prime` (prime case, **proved**) |
+| Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemmas 5–6 | `sieveOmega_le_mOne` (combined; `M₂` and its contour integral are not reproduced — only the resulting bound) |
 | Lemma 7 | `mOne_le` |
 | Lemma 8 | `sieveOmega_le` |
@@ -93,7 +93,7 @@ lake build
     `√(2πn) ≥ 1` factor. The final numeric inequality has enormous slack
     (`log x ≥ 10⁴` against a requirement of roughly `log x ≥ 5`), so a loose
     bound `log 2 < 0.7` (`Real.log_two_lt_d9`) suffices throughout.
-* **Lemma 4, prime case, proved.** For a prime modulus `p`, every nontrivial
+* **Lemma 4, proved.** For a prime modulus `p`, every nontrivial
   character is automatically primitive: its conductor divides `p`
   (`DirichletCharacter.conductor_dvd_level`), hence is `1` or `p`, and conductor
   `1` forces the character trivial (`DirichletCharacter.eq_one_iff_conductor_eq_one`).
@@ -104,12 +104,14 @@ lake build
   else `0`). A three-way case split on `(m mod p = 1)` and `(m,p) = 1` then
   matches the bound `≤ (m-1,p)` exactly (with equality in the "generic" case
   `p ∤ m(m-1)`). This is a genuinely different — and shorter — route than the
-  paper's own proof (which builds primitive characters explicitly from a
-  primitive root mod `p`); it does not generalize past the prime case, since for
-  composite squarefree `k` not every nontrivial character mod `k` is primitive
-  (that direction needs the CRT decomposition into characters mod each prime
-  factor, which `primitive_char_sum_bound` for general `k` still requires and
-  does not yet have).
+  paper's own prime-modulus proof (which builds primitive characters explicitly
+  from a primitive root mod `p`). For coprime moduli `a,b`, the formalization
+  constructs the CRT equivalence between characters mod `ab` and pairs of
+  characters mod `a,b`, proves that conductors multiply, and hence that
+  primitivity and primitive character sums factor. Strong induction over a
+  squarefree odd `k` then reduces the general bound to the prime case. The
+  omitted case `(m,k) ≠ 1` in the paper is handled explicitly: every character
+  value is zero.
 * **`M₂` omitted.** The quantity `M₂` (a contour integral of `L'/L` against the
   sieve weights) is not defined; Lemmas 5 and 6 are stated in combined form
   `Ω ≤ M₁/(1-ε) + O(x (log x)^{-2.01})`, which is exactly how the pair is used.
@@ -152,12 +154,11 @@ seven supporting private lemmas (Gamma-integral/factorial identities, the
 concavity tangent-line bound, the Stirling-derived factorial bound, and the
 rescaling/tail estimates).
 
-**Lemma 4's prime case is proved** (`primitive_char_sum_bound_prime`), via
-Dirichlet-character orthogonality rather than the paper's primitive-root
-construction — see the design note above.
+**Lemma 4 is fully proved** (`primitive_char_sum_bound`), using CRT
+multiplicativity and strong induction, with the prime case
+(`primitive_char_sum_bound_prime`) established via Dirichlet-character
+orthogonality — see the design note above.
 
-The large sieve, the `L`-function fourth moment, the general (squarefree)
-case of Lemma 4, and everything in `MainEstimates.lean`/`Main.lean` remain
-`sorry`-placeholders. This is still a *skeleton* overall, but two of the
-paper's foundational tools — Lemma 1 in full, and the base case of Lemma 4 —
-are now complete, machine-checked proofs.
+The large sieve, the `L`-function fourth moment, and everything in
+`MainEstimates.lean`/`Main.lean` remain `sorry`-placeholders. This is still a
+*skeleton* overall, but Lemmas 1 and 4 are now complete, machine-checked proofs.
