@@ -1,12 +1,12 @@
 /-
 The main estimates: Lemmas 5–9 of Chen's paper.
 
-* Lemmas 5 & 6 (combined) : `Ω ≤ M₁/(1-ε) + O(x/(log x)^{2.01})`.
-  (The paper splits this into Lemma 5, the decomposition `Ω ≤ (M₁+M₂)/(1-ε) + …`,
-  and Lemma 6, the bound `M₂ ≪ x/(log x)^{2.01}` proved with the toolbox of
-  Lemmas 1–4 — the large sieve, the `L`-function fourth moment and the
-  zero-free region.  `M₂` involves a contour integral of `L'/L` which we do not
-  reproduce here; we state the combined outcome.)
+* Lemma 5 : `Ω ≤ (M₁+M₂)/(1-ε) + O(x/(log x)^{2.01})`.
+* Lemma 6 : `M₂ ≪ x/(log x)^{2.01}`.  Its finite-sum definition is in
+  `Defs.lean`; the equivalent contour representation involving `L'/L` will be
+  introduced when Lemma 6 is proved.
+* Lemmas 5 & 6 (combined) : the retained downstream interface
+  `Ω ≤ M₁/(1-ε) + O(x/(log x)^{2.01})`.
 * Lemma 7 : the upper bound for `M₁` in terms of `x C_x / log x`.
 * Lemma 8 : the numerical bound `Ω ≤ 3.9404 x C_x / (log x)²`.
 * Lemma 9 : the lower bound
@@ -16,7 +16,7 @@ The main estimates: Lemmas 5–9 of Chen's paper.
 
 All proofs are `sorry`-placeholders; the statements are the formalization targets.
 -/
-import ChenTheorem.SieveLemmas
+import ChenTheorem.Lemma5
 
 -- This file is still an explicitly documented collection of formalization targets.
 set_option warn.sorry false
@@ -37,10 +37,34 @@ factors `≥ 1`. -/
 theorem twinConst_le_chenConst (x : ℕ) : twinConst ≤ chenConst x := by
   sorry
 
-/-! ### Lemmas 5 and 6 -/
+/-! ### Lemma 5 -/
+
+/-- **Lemma 5**: for even `x`,
+`Ω ≤ (M₁ + M₂)/(1-ε) + O(x/(log x)^{2.01})`. -/
+theorem sieveOmega_le_mOne_add_mTwo
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      (sieveOmega x : ℝ) ≤
+        (mOne x ε + mTwo x ε) / (1 - ε) +
+          C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  sorry
+
+/-! ### Lemma 6 -/
+
+/-- **Lemma 6**: the primitive-character remainder satisfies
+`M₂ ≪ x/(log x)^{2.01}`. -/
+theorem mTwo_le
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      mTwo x ε ≤ C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  sorry
+
+/-! ### Combined consequence of Lemmas 5 and 6 -/
 
 /-- **Lemmas 5 & 6 (combined)**: for even `x`,
-`Ω ≤ M₁/(1-ε) + O(x/(log x)^{2.01})`. -/
+`Ω ≤ M₁/(1-ε) + O(x/(log x)^{2.01})`.
+
+This statement is retained as the interface used by Lemmas 7 and 8. -/
 theorem sieveOmega_le_mOne (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
       (sieveOmega x : ℝ) ≤

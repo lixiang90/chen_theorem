@@ -26,6 +26,7 @@ All definitions are stated for the current Mathlib. Real-exponent conditions
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+import Mathlib.NumberTheory.DirichletCharacter.Orthogonality
 
 open Filter Real
 open scoped Classical
@@ -74,9 +75,27 @@ noncomputable def fW (k : ℕ) : ℝ :=
   (Nat.totient k : ℝ) * ∏ p ∈ k.primeFactors, ((p : ℝ) - 2) / ((p : ℝ) - 1)
 
 /-- The normalizing sum `S = ∑_{1 ≤ k ≤ x^{1/4 - ε/2}, (k,x) = 1} μ²(k)/f(k)`. -/
+noncomputable def sieveNormIndices (x : ℕ) (ε : ℝ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter
+    (fun k : ℕ => 1 ≤ k ∧
+      (k : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 4 - ε / 2) ∧ k.Coprime x)
+
+/-- Indices in the numerator of `λ_d`. -/
+noncomputable def sieveNumeratorIndices
+    (x : ℕ) (ε : ℝ) (d : ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter
+    (fun k : ℕ => 1 ≤ k ∧
+      (k : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 4 - ε / 2) / d ∧
+        k.Coprime (x * d))
+
+/-- The numerator sum occurring in `λ_d`. -/
+noncomputable def sieveNumerator (x : ℕ) (ε : ℝ) (d : ℕ) : ℝ :=
+  ∑ k ∈ sieveNumeratorIndices x ε d,
+    ((ArithmeticFunction.moebius k : ℤ) : ℝ) ^ 2 / fW k
+
+/-- The normalizing sum `S = ∑_{1 ≤ k ≤ x^{1/4 - ε/2}, (k,x) = 1} μ²(k)/f(k)`. -/
 noncomputable def sieveNorm (x : ℕ) (ε : ℝ) : ℝ :=
-  ∑ k ∈ (Finset.range (x + 1)).filter
-      (fun k : ℕ => 1 ≤ k ∧ (k : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ)/4 - ε/2) ∧ k.Coprime x),
+  ∑ k ∈ sieveNormIndices x ε,
     ((ArithmeticFunction.moebius k : ℤ) : ℝ) ^ 2 / fW k
 
 /-- Chen's sieve weights `λ_d`: `λ_1 = 1`, `λ_d = 0` for `d > x^{1/4 - ε/2}`, and
@@ -87,10 +106,7 @@ noncomputable def sieveWeight (x : ℕ) (ε : ℝ) (d : ℕ) : ℝ :=
   if d = 1 then 1
   else if (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ)/4 - ε/2) then
     ((ArithmeticFunction.moebius d : ℤ) : ℝ) * (Nat.totient d : ℝ) / fW d *
-      ((∑ k ∈ (Finset.range (x + 1)).filter
-          (fun k : ℕ => 1 ≤ k ∧ (k : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ)/4 - ε/2) / d ∧
-            k.Coprime (x * d)),
-        ((ArithmeticFunction.moebius k : ℤ) : ℝ) ^ 2 / fW k) / sieveNorm x ε)
+      (sieveNumerator x ε d / sieveNorm x ε)
   else 0
 
 /-- The set of prime pairs `(p₁, p₂)` with
@@ -102,16 +118,57 @@ noncomputable def chenPairs (x : ℕ) : Finset (ℕ × ℕ) :=
       (x : ℝ) ^ ((1 : ℝ)/10) < (q.1 : ℝ) ∧ (q.1 : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ)/3) ∧
       (x : ℝ) ^ ((1 : ℝ)/3) < (q.2 : ℝ) ∧ (q.2 : ℝ) ≤ ((x : ℝ) / q.1) ^ ((1 : ℝ)/2)
 
+/-- `chenRough x n` says that `n` has no prime divisor at most `x^(1/4)`.
+This is the condition `(n, Q) = 1` in the paper, where
+`Q = ∏_{2 ≤ p ≤ x^(1/4)} p`. -/
+def chenRough (x n : ℕ) : Prop :=
+  ∀ r : ℕ, r.Prime → (r : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 4) → ¬r ∣ n
+
+/-- The admissible third primes for a fixed pair `(p₁,p₂)` in `Ω`. -/
+noncomputable def omegaThirdPrimes (x : ℕ) (q : ℕ × ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun p₃ : ℕ =>
+    p₃.Prime ∧ (p₃ : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2) ∧
+      chenRough x (x - q.1 * q.2 * p₃)
+
+/-- The admissible von Mangoldt indices for a fixed pair `(p₁,p₂)` in `M`. -/
+noncomputable def sieveMIndices (x : ℕ) (q : ℕ × ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun n : ℕ =>
+    (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2) ∧
+      chenRough x (x - q.1 * q.2 * n)
+
+/-- The admissible third primes below the threshold
+`(x/(p₁p₂))^(1-ε)`. -/
+noncomputable def omegaSmallThirdPrimes
+    (x : ℕ) (ε : ℝ) (q : ℕ × ℕ) : Finset ℕ :=
+  (omegaThirdPrimes x q).filter fun p₃ =>
+    (p₃ : ℝ) < ((x : ℝ) / ((q.1 : ℝ) * q.2)) ^ (1 - ε)
+
 /-- The sifted count `Ω` of the paper: the number of triples `(p₁, p₂, p₃)` of primes
 with `x^{1/10} < p₁ ≤ x^{1/3} < p₂ ≤ (x/p₁)^{1/2}`, `p₃ ≤ x/(p₁p₂)`, such that
 `x - p₁p₂p₃` has no prime factor `≤ x^{1/4}` (i.e. `(x - p₁p₂p₃, Q) = 1` where
 `Q = ∏_{2 ≤ p ≤ x^{1/4}} p`). -/
 noncomputable def sieveOmega (x : ℕ) : ℕ :=
   ∑ q ∈ chenPairs x,
-    ((Finset.range (x + 1)).filter fun p₃ : ℕ =>
-      p₃.Prime ∧ (p₃ : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2) ∧
-        ∀ r : ℕ, r.Prime → (r : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ)/4) →
-          ¬ r ∣ (x - q.1 * q.2 * p₃)).card
+    (omegaThirdPrimes x q).card
+
+/-- The weighted prime-power sum `M` preceding equation (5) of the paper:
+`M = ∑_{(p₁,p₂)} log(x/(p₁p₂))⁻¹
+       ∑_{n ≤ x/(p₁p₂), (x-p₁p₂n,Q)=1} Λ(n)`.
+
+This is deliberately a finite sum.  The `n = 0` term is harmless since
+`Λ(0) = 0`. -/
+noncomputable def sieveM (x : ℕ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ∑ n ∈ sieveMIndices x q, ArithmeticFunction.vonMangoldt n
+
+/-- The small-`p₃` remainder in the elementary reduction `Ω → M`.
+It counts only triples already occurring in `Ω`, with the additional condition
+`p₃ < (x/(p₁p₂))^(1-ε)`.  A later elementary estimate bounds this by a fixed
+power saving. -/
+noncomputable def sieveMSmallTail (x : ℕ) (ε : ℝ) : ℕ :=
+  ∑ q ∈ chenPairs x,
+    (omegaSmallThirdPrimes x ε q).card
 
 /-- The main sieve sum `M₁` of the paper (introduced after Lemma 4, estimated in
 Lemma 7):
@@ -128,6 +185,48 @@ noncomputable def mOne (x : ℕ) (ε : ℝ) : ℝ :=
                 (fun n : ℕ => (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2)),
               ArithmeticFunction.vonMangoldt n *
                 chenPhi x ((x : ℝ) / ((q.1 : ℝ) * q.2 * n))
+
+/-- Number `ν(d)` of distinct prime divisors of `d`.  On the squarefree support
+of Chen's sieve weights this is the number denoted by `ν(d)` in the paper. -/
+def distinctPrimeFactors (d : ℕ) : ℕ := d.primeFactors.card
+
+/-- Finite sum of `F` over the nontrivial Dirichlet characters modulo `d`.
+The `d = 0` branch is set to zero; every occurrence below has `1 ≤ d`. -/
+noncomputable def nontrivialCharSum (d : ℕ)
+    (F : DirichletCharacter ℂ d → ℂ) : ℂ :=
+  if h : d = 0 then 0
+  else
+    have : NeZero d := ⟨h⟩
+    ∑ χ : DirichletCharacter ℂ d, if χ = 1 then 0 else F χ
+
+/-- Finite-sum form of the primitive-character error `M₂`.
+
+The paper writes this quantity as a vertical integral involving `L'/L`.  For
+Lemma 5 it is more convenient to use the equivalent finite von Mangoldt sum
+displayed below.  The contour representation will be introduced as a separate
+theorem at the start of Lemma 6.
+
+For each character modulo `d`, `χ.primitiveCharacter` is the primitive
+character of conductor `d*` inducing `χ`. -/
+noncomputable def mTwo (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ (Finset.range (x + 1)).filter
+      (fun d : ℕ =>
+        1 ≤ d ∧ d.Coprime x ∧
+          (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε)),
+    (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+      ‖nontrivialCharSum d (fun χ =>
+            starRingEnd ℂ (χ.primitiveCharacter x) *
+              ∑ q ∈ (chenPairs x).filter
+                  (fun q => Nat.Coprime (q.1 * q.2) d),
+                ((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ : ℂ) *
+                  ∑ n ∈ (Finset.range (x + 1)).filter
+                      (fun n : ℕ =>
+                        (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2)),
+                    (ArithmeticFunction.vonMangoldt n : ℂ) *
+                      (chenPhi x
+                        ((x : ℝ) / ((q.1 : ℝ) * q.2 * n)) : ℂ) *
+                      χ.primitiveCharacter (q.1 * q.2 * n))‖
 
 /-- `P_x(x, x^{1/10})` : the number of primes `p ≤ x` with `p ≢ x (mod r)` for every
 odd prime `r ≤ x^{1/10}` (for `p ≤ x` this is the condition `r ∤ x - p`). -/
