@@ -25,6 +25,9 @@ lake build
 | File | Contents |
 |---|---|
 | `ChenTheorem/Defs.lean` | All definitions: `IsP2`, counting functions `P_x(1,2)`/`x_h(1,2)`, singular series `C_x`, smoothing function `Φ`, sieve weights `λ_d`, the sums `Ω`, `M₁`, and the sifted prime counts of Lemma 9 |
+| `ChenTheorem/LargeSieve/Gallagher.lean` | Centered-interval Sobolev/Gallagher inequality |
+| `ChenTheorem/LargeSieve/Additive.lean` | Parseval, Farey spacing, and the additive large sieve |
+| `ChenTheorem/LargeSieve/Character.lean` | Gauss-sum transition, character large sieve (2), and dyadic form (3) |
 | `ChenTheorem/SieveLemmas.lean` | Lemmas 1–4: properties of `Φ`, the large sieve, the `L`-function fourth moment, primitive character sums |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main.lean` | Inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), Theorem 2 (twin analogue) |
@@ -112,6 +115,12 @@ lake build
   squarefree odd `k` then reduces the general bound to the prime case. The
   omitted case `(m,k) ≠ 1` in the paper is handled explicitly: every character
   value is zero.
+* **Lemma 2, proved.** A centered-interval Sobolev inequality is applied to a
+  trigonometric polynomial; Parseval and Farey-fraction separation give the
+  additive large sieve. A machine-checked Gauss-sum identity and finite
+  character orthogonality then give (2), including `|τ(χ)|² = q`. Covering
+  `(D,Q]` by disjoint blocks `(2ⁱD,2ⁱ⁺¹D]` gives (3), with the explicit
+  universal constant `8 + 2π`.
 * **`M₂` omitted.** The quantity `M₂` (a contour integral of `L'/L` against the
   sieve weights) is not defined; Lemmas 5 and 6 are stated in combined form
   `Ω ≤ M₁/(1-ε) + O(x (log x)^{-2.01})`, which is exactly how the pair is used.
@@ -159,6 +168,11 @@ multiplicativity and strong induction, with the prime case
 (`primitive_char_sum_bound_prime`) established via Dirichlet-character
 orthogonality — see the design note above.
 
-The large sieve, the `L`-function fourth moment, and everything in
+**Lemma 2 is fully proved** (`large_sieve`, `large_sieve_dyadic`) through the
+three modules under `ChenTheorem/LargeSieve/`; neither theorem depends on
+`sorryAx`.
+
+The `L`-function fourth moment and everything in
 `MainEstimates.lean`/`Main.lean` remain `sorry`-placeholders. This is still a
-*skeleton* overall, but Lemmas 1 and 4 are now complete, machine-checked proofs.
+*skeleton* overall, but Lemmas 1, 2, and 4 are now complete, machine-checked
+proofs.

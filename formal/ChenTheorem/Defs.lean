@@ -23,7 +23,9 @@ All definitions are stated for the current Mathlib. Real-exponent conditions
 (`p ≤ x^{1/3}` and the like) make most predicates undecidable, so definitions are
 `noncomputable` and use classical decidability.
 -/
-import Mathlib
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 
 open Filter Real
 open scoped Classical

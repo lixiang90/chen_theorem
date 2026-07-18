@@ -11,9 +11,18 @@ Lemma 1's four qualitative assertions (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 as a (rescaled) incomplete Gamma integral: `n! · Φ(y) = ∫_{(0,a(y)]} e^{-t}t^n dt`
 with `a(y) = (log x)^{1.1} log y`, `n = ⌊log x⌋`, compared against the convergent
 Euler integral `n! = ∫_{(0,∞)} e^{-t}t^n dt` (`Real.Gamma_eq_integral`).
-Lemma 1 and Lemma 4 are proved in full. Lemmas 2–3 remain `sorry`-placeholders.
+Lemmas 1, 2, and 4 are proved in full. Lemma 3 remains a `sorry`-placeholder.
 -/
 import ChenTheorem.Defs
+import ChenTheorem.LargeSieve.Character
+import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.Analysis.SpecialFunctions.Stirling
+import Mathlib.Data.FunLike.Fintype
+import Mathlib.NumberTheory.LSeries.DirichletContinuation
+
+-- The remaining `sorry` is the explicitly documented Lemma 3 target.
+set_option warn.sorry false
 
 open Filter Real
 open scoped Classical
@@ -411,7 +420,8 @@ theorem large_sieve (X M N : ℕ) (a : ℕ → ℝ) :
     ∑ q ∈ Finset.Icc 1 X, (q : ℝ) / (Nat.totient q : ℝ) *
         primSum q (fun χ => ‖∑ n ∈ Finset.Ioc M (M + N), (a n : ℂ) * χ n‖ ^ 2) ≤
       ((X : ℝ) ^ 2 + Real.pi * N) * ∑ n ∈ Finset.Ioc M (M + N), (a n) ^ 2 := by
-  sorry
+  simpa only [primSum, tsum_fintype, Complex.norm_real, Real.norm_eq_abs, sq_abs] using
+    LargeSieve.large_sieve_character X M N (fun n => (a n : ℂ))
 
 /-- **Lemma 2**, inequality (3): the dyadic form,
 `∑_{D < q ≤ Q} φ(q)⁻¹ ∑*_{χ mod q} |∑ aₙ χ(n)|² ≪ (Q + N/D) ∑ |aₙ|²`. -/
@@ -421,7 +431,11 @@ theorem large_sieve_dyadic :
           primSum q (fun χ => ‖∑ n ∈ Finset.Ioc M (M + N), (a n : ℂ) * χ n‖ ^ 2) ≤
         C * ((Q : ℝ) + (N : ℝ) / (D : ℝ)) *
           ∑ n ∈ Finset.Ioc M (M + N), (a n) ^ 2 := by
-  sorry
+  rcases LargeSieve.large_sieve_character_dyadic with ⟨C, hC, hlarge⟩
+  refine ⟨C, hC, ?_⟩
+  intro D Q M N a hD hDQ
+  simpa only [primSum, tsum_fintype, Complex.norm_real, Real.norm_eq_abs, sq_abs] using
+    hlarge D Q M N (fun n => (a n : ℂ)) hD hDQ
 
 /-! ### Lemma 3 : fourth moment of `L`-functions -/
 

@@ -12,6 +12,9 @@ All proofs are `sorry`-placeholders; the statements are the formalization target
 -/
 import ChenTheorem.MainEstimates
 
+-- This file is still an explicitly documented collection of formalization targets.
+set_option warn.sorry false
+
 open Filter Real
 open scoped Classical
 
