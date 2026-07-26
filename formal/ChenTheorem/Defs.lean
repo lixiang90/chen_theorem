@@ -136,6 +136,58 @@ noncomputable def sieveMIndices (x : ℕ) (q : ℕ × ℕ) : Finset ℕ :=
     (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2) ∧
       chenRough x (x - q.1 * q.2 * n)
 
+/-- Indices `n ≤ x/(p₁p₂)` in the smoothed sums of equations (5)–(7).
+Unlike `sieveMIndices`, this set does not impose the roughness condition; that
+condition has already been expanded using the square of the sieve weights. -/
+noncomputable def smoothedMIndices (x : ℕ) (q : ℕ × ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun n : ℕ =>
+    (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2)
+
+/-- The nonnegative smoothed summand common to `M₁`, `M₃`, and equation (6). -/
+noncomputable def smoothedMKernel
+    (x : ℕ) (q : ℕ × ℕ) (n : ℕ) : ℝ :=
+  (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+    ArithmeticFunction.vonMangoldt n *
+      chenPhi x ((x : ℝ) / ((q.1 : ℝ) * q.2 * n))
+
+/-- A flat finite index set for the smoothed `(p₁,p₂,n)` sums.  The product
+representation is convenient when applying character orthogonality once to
+the whole inner sum in equation (6). -/
+noncomputable def smoothedMTriples (x : ℕ) :
+    Finset ((ℕ × ℕ) × ℕ) :=
+  (chenPairs x ×ˢ Finset.range (x + 1)).filter fun z =>
+    z.2 ∈ smoothedMIndices x z.1
+
+/-- The integer to which the residue-class condition in equation (6) is
+applied. -/
+def smoothedMArgument (z : (ℕ × ℕ) × ℕ) : ℕ :=
+  z.1.1 * z.1.2 * z.2
+
+/-- The part of the smoothed index set on which the principal character
+modulo `d` is nonzero.  Its complement is precisely the finite `M₃`
+remainder. -/
+noncomputable def smoothedMGoodTriples (x d : ℕ) :
+    Finset ((ℕ × ℕ) × ℕ) :=
+  (smoothedMTriples x).filter fun z =>
+    (smoothedMArgument z).Coprime d
+
+/-- The complementary triples whose argument is not coprime to `d`. -/
+noncomputable def smoothedMBadTriples (x d : ℕ) :
+    Finset ((ℕ × ℕ) × ℕ) :=
+  (smoothedMTriples x).filter fun z =>
+    ¬(smoothedMArgument z).Coprime d
+
+/-- Total smoothed mass on the coprime part of equation (6). -/
+noncomputable def smoothedMGoodMass (x d : ℕ) : ℝ :=
+  ∑ z ∈ smoothedMGoodTriples x d,
+    smoothedMKernel x z.1 z.2
+
+/-- Total smoothed mass lost when the principal character is extended from
+the coprime triples to all triples. -/
+noncomputable def smoothedMBadMass (x d : ℕ) : ℝ :=
+  ∑ z ∈ smoothedMBadTriples x d,
+    smoothedMKernel x z.1 z.2
+
 /-- The admissible third primes below the threshold
 `(x/(p₁p₂))^(1-ε)`. -/
 noncomputable def omegaSmallThirdPrimes
@@ -170,6 +222,13 @@ noncomputable def sieveMSmallTail (x : ℕ) (ε : ℝ) : ℕ :=
   ∑ q ∈ chenPairs x,
     (omegaSmallThirdPrimes x ε q).card
 
+/-- Integer majorant for the small-`p₃` tail, obtained by forgetting
+primality and roughness and retaining only
+`p₃ < (x/(p₁p₂))^(1-ε)`. -/
+noncomputable def sieveMSmallMajorant (x : ℕ) (ε : ℝ) : ℕ :=
+  ∑ q ∈ chenPairs x,
+    ⌈((x : ℝ) / ((q.1 : ℝ) * q.2)) ^ (1 - ε)⌉₊
+
 /-- The main sieve sum `M₁` of the paper (introduced after Lemma 4, estimated in
 Lemma 7):
 `M₁ = ∑_{(d₁,x)=1} ∑_{(d₂,x)=1} λ_{d₁} λ_{d₂} / φ(d₁d₂/(d₁,d₂)) ·
@@ -180,11 +239,17 @@ noncomputable def mOne (x : ℕ) (ε : ℝ) : ℝ :=
       sieveWeight x ε d₁ * sieveWeight x ε d₂ /
           (Nat.totient (d₁ * d₂ / d₁.gcd d₂) : ℝ) *
         ∑ q ∈ chenPairs x,
-          (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
-            ∑ n ∈ (Finset.range (x + 1)).filter
-                (fun n : ℕ => (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2)),
-              ArithmeticFunction.vonMangoldt n *
-                chenPhi x ((x : ℝ) / ((q.1 : ℝ) * q.2 * n))
+          ∑ n ∈ smoothedMIndices x q, smoothedMKernel x q n
+
+/-- The coefficient obtained by collecting the pair of sieve weights
+`λ_{d₁} λ_{d₂}` according to
+`lcm(d₁,d₂) = d₁d₂/gcd(d₁,d₂) = d`.
+
+For squarefree `d`, Lemma 5 bounds its absolute value by `3^ν(d)`. -/
+noncomputable def sieveLcmCoeff (x : ℕ) (ε : ℝ) (d : ℕ) : ℝ :=
+  ∑ q ∈ (d.divisors ×ˢ d.divisors).filter
+      (fun q : ℕ × ℕ => q.1.lcm q.2 = d),
+    sieveWeight x ε q.1 * sieveWeight x ε q.2
 
 /-- Number `ν(d)` of distinct prime divisors of `d`.  On the squarefree support
 of Chen's sieve weights this is the number denoted by `ν(d)` in the paper. -/
@@ -199,6 +264,27 @@ noncomputable def nontrivialCharSum (d : ℕ)
     have : NeZero d := ⟨h⟩
     ∑ χ : DirichletCharacter ℂ d, if χ = 1 then 0 else F χ
 
+/-- Moduli on the square-sieve support after collecting
+`lcm(d₁,d₂)=d`. -/
+noncomputable def sieveModuli (x : ℕ) (ε : ℝ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun d : ℕ =>
+    1 ≤ d ∧ d.Coprime x ∧
+      (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε)
+
+/-- The signed bad-coprimality remainder `M₃` in equations (7)–(8), after
+collecting the two sieve weights according to their lcm. -/
+noncomputable def mThree (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    sieveLcmCoeff x ε d / (Nat.totient d : ℝ) *
+      smoothedMBadMass x d
+
+/-- Positive coefficient majorant for `|M₃|`. -/
+noncomputable def mThreeMajorant (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+      |smoothedMBadMass x d|
+
 /-- Finite-sum form of the primitive-character error `M₂`.
 
 The paper writes this quantity as a vertical integral involving `L'/L`.  For
@@ -209,24 +295,16 @@ theorem at the start of Lemma 6.
 For each character modulo `d`, `χ.primitiveCharacter` is the primitive
 character of conductor `d*` inducing `χ`. -/
 noncomputable def mTwo (x : ℕ) (ε : ℝ) : ℝ :=
-  ∑ d ∈ (Finset.range (x + 1)).filter
-      (fun d : ℕ =>
-        1 ≤ d ∧ d.Coprime x ∧
-          (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε)),
+  ∑ d ∈ sieveModuli x ε,
     (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
         (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
       ‖nontrivialCharSum d (fun χ =>
             starRingEnd ℂ (χ.primitiveCharacter x) *
               ∑ q ∈ (chenPairs x).filter
                   (fun q => Nat.Coprime (q.1 * q.2) d),
-                ((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ : ℂ) *
-                  ∑ n ∈ (Finset.range (x + 1)).filter
-                      (fun n : ℕ =>
-                        (n : ℝ) ≤ (x : ℝ) / ((q.1 : ℝ) * q.2)),
-                    (ArithmeticFunction.vonMangoldt n : ℂ) *
-                      (chenPhi x
-                        ((x : ℝ) / ((q.1 : ℝ) * q.2 * n)) : ℂ) *
-                      χ.primitiveCharacter (q.1 * q.2 * n))‖
+                ∑ n ∈ smoothedMIndices x q,
+                  (smoothedMKernel x q n : ℂ) *
+                    χ.primitiveCharacter (q.1 * q.2 * n))‖
 
 /-- `P_x(x, x^{1/10})` : the number of primes `p ≤ x` with `p ≢ x (mod r)` for every
 odd prime `r ≤ x^{1/10}` (for `p ≤ x` this is the condition `r ∤ x - p`). -/

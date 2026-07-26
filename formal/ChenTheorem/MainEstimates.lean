@@ -14,7 +14,9 @@ The main estimates: Lemmas 5–9 of Chen's paper.
      ≥ 2.6408 x C_x / (log x)²`,
   proved in the paper via Bombieri's theorem and Richert's weighted sieve [11].
 
-All proofs are `sorry`-placeholders; the statements are the formalization targets.
+The remaining analytic estimates are explicitly isolated as
+`sorry`-placeholders.  The final statement of Lemma 5 is assembled from those
+estimates by proved finite and algebraic reductions in `Lemma5.lean`.
 -/
 import ChenTheorem.Lemma5
 
@@ -39,6 +41,65 @@ theorem twinConst_le_chenConst (x : ℕ) : twinConst ≤ chenConst x := by
 
 /-! ### Lemma 5 -/
 
+/-- Elementary power-saving estimate for the small-third-prime tail.  The
+paper obtains this by summing
+`(x/(p₁p₂))^(1-ε)` over the admissible prime pairs. -/
+theorem sieveMSmallTail_power_bound
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      (sieveMSmallTail x ε : ℝ) ≤
+        C * (x : ℝ) ^ (1 - ε / 12) := by
+  exact ⟨2, by norm_num,
+    eventually_sieveMSmallTail_le_rpow hε
+      (hε'.trans (by norm_num))⟩
+
+/-- The small-third-prime tail in the elementary reduction `Ω → M` is
+negligible.  A fixed power saving absorbs `(log x)^2.01`. -/
+theorem sieveMSmallTail_le
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      (sieveMSmallTail x ε : ℝ) ≤
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  obtain ⟨C, hC, htail⟩ :=
+    sieveMSmallTail_power_bound ε hε hε'
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [htail,
+    eventually_rpow_one_sub_le_div_log_rpow
+      (δ := ε / 12) (r := (2.01 : ℝ)) (by positivity)] with x hx hpower
+  exact hx.trans (by
+    simpa [mul_div_assoc] using
+      (mul_le_mul_of_nonneg_left hpower hC.le))
+
+/-- Equations (5)–(11): after the principal-character contribution `M₁`,
+the nonprincipal contribution is bounded by `M₂`; the `M₃` and `M₅`
+remainders have a fixed power saving. -/
+theorem sieveM_le_mOne_add_mTwo_power_bound
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      sieveM x ≤ mOne x ε + mTwo x ε +
+        C * (x : ℝ) ^ (1 - ε / 3) := by
+  sorry
+
+/-- Logarithmic-error form of equations (5)–(11). -/
+theorem sieveM_le_mOne_add_mTwo
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      sieveM x ≤ mOne x ε + mTwo x ε +
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  obtain ⟨C, hC, hM⟩ :=
+    sieveM_le_mOne_add_mTwo_power_bound ε hε hε'
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [hM,
+    eventually_rpow_one_sub_le_div_log_rpow
+      (δ := ε / 3) (r := (2.01 : ℝ)) (by positivity)] with x hx hpower
+  intro hxEven
+  have hmul :
+      C * (x : ℝ) ^ (1 - ε / 3) ≤
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+    simpa [mul_div_assoc] using
+      (mul_le_mul_of_nonneg_left hpower hC.le)
+  linarith [hx hxEven]
+
 /-- **Lemma 5**: for even `x`,
 `Ω ≤ (M₁ + M₂)/(1-ε) + O(x/(log x)^{2.01})`. -/
 theorem sieveOmega_le_mOne_add_mTwo
@@ -47,7 +108,30 @@ theorem sieveOmega_le_mOne_add_mTwo
       (sieveOmega x : ℝ) ≤
         (mOne x ε + mTwo x ε) / (1 - ε) +
           C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
-  sorry
+  obtain ⟨C_M, hC_M, hM⟩ :=
+    sieveM_le_mOne_add_mTwo ε hε hε'
+  obtain ⟨C_tail, hC_tail, htail⟩ :=
+    sieveMSmallTail_le ε hε hε'
+  let C := (C_M + C_tail) / (1 - ε)
+  have hε1 : ε < 1 := hε'.trans (by norm_num)
+  have hden : 0 < 1 - ε := sub_pos.mpr hε1
+  refine ⟨C, div_pos (add_pos hC_M hC_tail) hden, ?_⟩
+  filter_upwards [hM, htail] with x hxM hxtail
+  intro hxEven
+  have h :=
+    sieveOmega_le_of_sieveM_le hε.le hε1
+      (hxM hxEven) hxtail
+  calc
+    (sieveOmega x : ℝ) ≤
+        (mOne x ε + mTwo x ε +
+            C_M * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) +
+            C_tail * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ)) /
+          (1 - ε) := h
+    _ = (mOne x ε + mTwo x ε) / (1 - ε) +
+          C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [C]
+      field_simp
+      ring
 
 /-! ### Lemma 6 -/
 
