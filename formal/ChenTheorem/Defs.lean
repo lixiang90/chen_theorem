@@ -229,18 +229,6 @@ noncomputable def sieveMSmallMajorant (x : ℕ) (ε : ℝ) : ℕ :=
   ∑ q ∈ chenPairs x,
     ⌈((x : ℝ) / ((q.1 : ℝ) * q.2)) ^ (1 - ε)⌉₊
 
-/-- The main sieve sum `M₁` of the paper (introduced after Lemma 4, estimated in
-Lemma 7):
-`M₁ = ∑_{(d₁,x)=1} ∑_{(d₂,x)=1} λ_{d₁} λ_{d₂} / φ(d₁d₂/(d₁,d₂)) ·
-  ∑_{(p₁,p₂)} (log (x/p₁p₂))⁻¹ ∑_{n ≤ x/(p₁p₂)} Λ(n) Φ(x/(p₁p₂n))`. -/
-noncomputable def mOne (x : ℕ) (ε : ℝ) : ℝ :=
-  ∑ d₁ ∈ (Finset.range (x + 1)).filter (fun d => d.Coprime x),
-    ∑ d₂ ∈ (Finset.range (x + 1)).filter (fun d => d.Coprime x),
-      sieveWeight x ε d₁ * sieveWeight x ε d₂ /
-          (Nat.totient (d₁ * d₂ / d₁.gcd d₂) : ℝ) *
-        ∑ q ∈ chenPairs x,
-          ∑ n ∈ smoothedMIndices x q, smoothedMKernel x q n
-
 /-- The coefficient obtained by collecting the pair of sieve weights
 `λ_{d₁} λ_{d₂}` according to
 `lcm(d₁,d₂) = d₁d₂/gcd(d₁,d₂) = d`.
@@ -271,6 +259,24 @@ noncomputable def sieveModuli (x : ℕ) (ε : ℝ) : Finset ℕ :=
     1 ≤ d ∧ d.Coprime x ∧
       (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε)
 
+/-- The main sieve sum `M₁`, after collecting the pair of sieve weights by
+`lcm(d₁,d₂)`.  This is the finite form used after equation (6); expanding
+`sieveLcmCoeff` recovers the double sum in the paper. -/
+noncomputable def mOne (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    sieveLcmCoeff x ε d / (Nat.totient d : ℝ) *
+      ∑ q ∈ chenPairs x,
+        ∑ n ∈ smoothedMIndices x q, smoothedMKernel x q n
+
+/-- The smoothed square-sieve expansion on the left of equation (6), already
+collected by the lcm modulus. -/
+noncomputable def smoothedSieveExpansion (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    sieveLcmCoeff x ε d *
+      ∑ z ∈ smoothedMTriples x,
+        smoothedMKernel x z.1 z.2 *
+          (if x ≡ smoothedMArgument z [MOD d] then 1 else 0)
+
 /-- The signed bad-coprimality remainder `M₃` in equations (7)–(8), after
 collecting the two sieve weights according to their lcm. -/
 noncomputable def mThree (x : ℕ) (ε : ℝ) : ℝ :=
@@ -285,6 +291,64 @@ noncomputable def mThreeMajorant (x : ℕ) (ε : ℝ) : ℝ :=
         3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
       |smoothedMBadMass x d|
 
+/-- Nonprincipal character contribution before replacing a character modulo
+`d` by its primitive associate.  This is the finite von Mangoldt form of
+`M₄`'s inner character sum. -/
+noncomputable def imprimitiveCharacterContribution (x d : ℕ) : ℂ :=
+  nontrivialCharSum d (fun χ =>
+    starRingEnd ℂ (χ (x : ZMod d)) *
+      ∑ q ∈ (chenPairs x).filter
+          (fun q => Nat.Coprime (q.1 * q.2) d),
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod d))
+
+/-- Signed real part of the nonprincipal contribution in equation (6). -/
+noncomputable def mFourSigned (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    sieveLcmCoeff x ε d / (Nat.totient d : ℝ) *
+      (imprimitiveCharacterContribution x d).re
+
+/-- The same finite contribution after every character is replaced by the
+primitive character of its conductor. -/
+noncomputable def primitiveCharacterContribution (x d : ℕ) : ℂ :=
+  nontrivialCharSum d (fun χ =>
+    starRingEnd ℂ (χ.primitiveCharacter x) *
+      ∑ q ∈ (chenPairs x).filter
+          (fun q => Nat.Coprime (q.1 * q.2) d),
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ.primitiveCharacter (q.1 * q.2 * n))
+
+/-- Primitive-character mass on the indices where the original character
+modulo `d` vanishes.  This is the finite prime-power form of the Euler-factor
+correction in `M₅`. -/
+noncomputable def primitiveBadCharacterContribution (x d : ℕ) : ℂ :=
+  nontrivialCharSum d (fun χ =>
+    starRingEnd ℂ (χ.primitiveCharacter x) *
+      ∑ q ∈ (chenPairs x).filter
+          (fun q => Nat.Coprime (q.1 * q.2) d),
+        ∑ n ∈ (smoothedMIndices x q).filter
+            (fun n => ¬n.Coprime d),
+          (smoothedMKernel x q n : ℂ) *
+            χ.primitiveCharacter (q.1 * q.2 * n))
+
+/-- Positive majorant `M₄` for the imprimitive nonprincipal contribution,
+after collecting the sieve weights by their lcm. -/
+noncomputable def mFour (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+      ‖imprimitiveCharacterContribution x d‖
+
+/-- The finite imprimitive-to-primitive discrepancy `M₅`. -/
+noncomputable def mFive (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ sieveModuli x ε,
+    (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+      ‖imprimitiveCharacterContribution x d -
+          primitiveCharacterContribution x d‖
+
 /-- Finite-sum form of the primitive-character error `M₂`.
 
 The paper writes this quantity as a vertical integral involving `L'/L`.  For
@@ -298,13 +362,7 @@ noncomputable def mTwo (x : ℕ) (ε : ℝ) : ℝ :=
   ∑ d ∈ sieveModuli x ε,
     (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
         (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
-      ‖nontrivialCharSum d (fun χ =>
-            starRingEnd ℂ (χ.primitiveCharacter x) *
-              ∑ q ∈ (chenPairs x).filter
-                  (fun q => Nat.Coprime (q.1 * q.2) d),
-                ∑ n ∈ smoothedMIndices x q,
-                  (smoothedMKernel x q n : ℂ) *
-                    χ.primitiveCharacter (q.1 * q.2 * n))‖
+      ‖primitiveCharacterContribution x d‖
 
 /-- `P_x(x, x^{1/10})` : the number of primes `p ≤ x` with `p ≢ x (mod r)` for every
 odd prime `r ≤ x^{1/10}` (for `p ≤ x` this is the condition `r ∤ x - p`). -/
