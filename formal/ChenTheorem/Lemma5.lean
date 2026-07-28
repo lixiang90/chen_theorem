@@ -1129,6 +1129,161 @@ noncomputable def primitiveTwistResidue
     (ZMod.isUnit_iff_coprime x k).2 hxk |>.unit
   ((m : ZMod k) * (↑(u⁻¹) : ZMod k)).val
 
+/-- Multiplying the twist residue by `x` recovers `m` modulo `k`. -/
+theorem primitiveTwistResidue_modEq
+    {k x m : ℕ} (hk0 : k ≠ 0) (hxk : x.Coprime k) :
+    x * primitiveTwistResidue k x m hxk ≡ m [MOD k] := by
+  letI : NeZero k := ⟨hk0⟩
+  let hxunit : IsUnit (x : ZMod k) :=
+    (ZMod.isUnit_iff_coprime x k).2 hxk
+  let u : (ZMod k)ˣ := hxunit.unit
+  have hu : (u : ZMod k) = (x : ZMod k) := hxunit.unit_spec
+  rw [← ZMod.natCast_eq_natCast_iff]
+  rw [Nat.cast_mul]
+  change (x : ZMod k) *
+      (((m : ZMod k) * (↑(u⁻¹) : ZMod k)).val : ZMod k) = m
+  rw [ZMod.natCast_zmod_val, ← hu]
+  simp [mul_left_comm]
+
+/-- A unit has a nonzero least residue as soon as the modulus is not one. -/
+theorem primitiveTwistResidue_pos
+    {k x m : ℕ} (hk0 : k ≠ 0) (hk1 : k ≠ 1)
+    (hmk : m.Coprime k) (hxk : x.Coprime k) :
+    0 < primitiveTwistResidue k x m hxk := by
+  letI : NeZero k := ⟨hk0⟩
+  let hxunit : IsUnit (x : ZMod k) :=
+    (ZMod.isUnit_iff_coprime x k).2 hxk
+  let u : (ZMod k)ˣ := hxunit.unit
+  have hmunit : IsUnit (m : ZMod k) :=
+    (ZMod.isUnit_iff_coprime m k).2 hmk
+  have hrunit :
+      IsUnit (primitiveTwistResidue k x m hxk : ZMod k) := by
+    rw [primitiveTwistResidue, ZMod.natCast_zmod_val]
+    exact hmunit.mul (Units.isUnit _)
+  have hrcop :
+      (primitiveTwistResidue k x m hxk).Coprime k :=
+    (ZMod.isUnit_iff_coprime
+      (primitiveTwistResidue k x m hxk) k).1 hrunit
+  by_contra hr
+  have hrzero : primitiveTwistResidue k x m hxk = 0 := by omega
+  rw [hrzero] at hrcop
+  simp only [Nat.coprime_zero_left] at hrcop
+  exact hk1 hrcop
+
+/-- Equation (10)'s elementary gcd identity: multiplication by the unit `x`
+turns the twisted residue difference into the ordinary integer difference
+`m - x`. -/
+theorem gcd_primitiveTwistResidue_sub_one
+    {k x m : ℕ} (hk0 : k ≠ 0) (hk1 : k ≠ 1)
+    (hmk : m.Coprime k) (hxk : x.Coprime k) :
+    Nat.gcd (primitiveTwistResidue k x m hxk - 1) k =
+      Nat.gcd (Int.natAbs ((m : ℤ) - x)) k := by
+  let r := primitiveTwistResidue k x m hxk
+  let A := Nat.gcd (r - 1) k
+  let B := Nat.gcd (Int.natAbs ((m : ℤ) - x)) k
+  have hrpos : 0 < r :=
+    primitiveTwistResidue_pos hk0 hk1 hmk hxk
+  have hmod : x * r ≡ m [MOD k] :=
+    primitiveTwistResidue_modEq hk0 hxk
+  have hkdiv : (k : ℤ) ∣ (m : ℤ) - (x * r : ℕ) :=
+    Nat.modEq_iff_dvd.mp hmod
+  apply Nat.dvd_antisymm
+  · apply Nat.dvd_gcd
+    · apply Int.natCast_dvd.mp
+      have hAk : (A : ℤ) ∣ (k : ℤ) := by
+        exact_mod_cast Nat.gcd_dvd_right (r - 1) k
+      have hAkr : (A : ℤ) ∣ (m : ℤ) - (x * r : ℕ) :=
+        dvd_trans hAk hkdiv
+      have hArsub : (A : ℤ) ∣ (r : ℤ) - 1 := by
+        have hArsubNat : A ∣ r - 1 :=
+          Nat.gcd_dvd_left (r - 1) k
+        have hArsubCast : (A : ℤ) ∣ ((r - 1 : ℕ) : ℤ) := by
+          exact_mod_cast hArsubNat
+        rw [Int.natCast_sub (by omega : 1 ≤ r)] at hArsubCast
+        exact hArsubCast
+      have hAx : (A : ℤ) ∣ (x : ℤ) * ((r : ℤ) - 1) :=
+        dvd_mul_of_dvd_right hArsub x
+      have heq :
+          (m : ℤ) - x =
+            ((m : ℤ) - (x * r : ℕ)) +
+              (x : ℤ) * ((r : ℤ) - 1) := by
+        push_cast
+        ring
+      rw [heq]
+      exact hAkr.add hAx
+    · exact Nat.gcd_dvd_right (r - 1) k
+  · apply Nat.dvd_gcd
+    · have hBk : B ∣ k := Nat.gcd_dvd_right _ _
+      have hBdiff : (B : ℤ) ∣ (m : ℤ) - x := by
+        exact Int.natCast_dvd.mpr (Nat.gcd_dvd_left _ _)
+      have hBkr : (B : ℤ) ∣ (m : ℤ) - (x * r : ℕ) := by
+        exact dvd_trans (by exact_mod_cast hBk) hkdiv
+      have hBxsub : (B : ℤ) ∣ (x : ℤ) * ((r : ℤ) - 1) := by
+        have heq :
+            (x : ℤ) * ((r : ℤ) - 1) =
+              ((m : ℤ) - x) -
+                ((m : ℤ) - (x * r : ℕ)) := by
+          push_cast
+          ring
+        rw [heq]
+        exact hBdiff.sub hBkr
+      have hBxsubNat : B ∣ x * (r - 1) := by
+        have heq :
+            ((x * (r - 1) : ℕ) : ℤ) =
+              (x : ℤ) * ((r : ℤ) - 1) := by
+          rw [Nat.cast_mul, Int.natCast_sub (by omega : 1 ≤ r)]
+          norm_num
+        rw [← heq] at hBxsub
+        exact_mod_cast hBxsub
+      have hBcop : B.Coprime x :=
+        (Nat.Coprime.of_dvd_right hBk hxk).symm
+      exact (hBcop.dvd_mul_left).mp hBxsubNat
+    · exact Nat.gcd_dvd_right _ _
+
+/-- The conductor-divisor gcd majorant produced by Lemma 4.  Making this
+definition irreducible prevents proof-irrelevant coprimality witnesses from
+being repeatedly normalized in later nested sums; its defining equation can
+still be used explicitly with `rw`. -/
+noncomputable irreducible_def primitiveAssociateMajorant
+    (d x m : ℕ) : ℝ :=
+  ∑ k : ↥d.divisors,
+    if k.1 = 1 then 0
+    else if m.Coprime k.1 then
+      (Nat.gcd (Int.natAbs ((m : ℤ) - x)) k.1 : ℝ)
+    else
+      0
+
+/-- Sum a pointwise majorant over the pair and bad-index ranges occurring in
+the imprimitive-to-primitive discrepancy. -/
+noncomputable irreducible_def primitiveBadMajorant
+    (x d : ℕ) (B : ℕ → ℝ) : ℝ :=
+  ∑ q ∈ (chenPairs x).filter
+      (fun q => Nat.Coprime (q.1 * q.2) d),
+    ∑ n ∈ (smoothedMIndices x q).filter
+        (fun n => ¬n.Coprime d),
+      ArithmeticFunction.vonMangoldt n * B (q.1 * q.2 * n)
+
+/-- `M₅` after dropping the harmless pair-coprimality restriction and
+reversing the modulus, pair, and bad-index sums. -/
+noncomputable irreducible_def mFiveArithmeticMajorant
+    (x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    ∑ n ∈ smoothedMIndices x q,
+      ∑ d ∈ sieveModuli x ε,
+        (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+            (3 : ℝ) ^ distinctPrimeFactors d /
+              (Nat.totient d : ℝ)) *
+          (if ¬n.Coprime d then
+            ArithmeticFunction.vonMangoldt n *
+              primitiveAssociateMajorant d x (q.1 * q.2 * n)
+          else 0)
+
+/-- The conductor gcd majorant is nonnegative. -/
+theorem primitiveAssociateMajorant_nonneg (d x m : ℕ) :
+    0 ≤ primitiveAssociateMajorant d x m := by
+  rw [primitiveAssociateMajorant]
+  positivity
+
 /-- Lemma 4 with the factor `conj(ψ(x))` absorbed by evaluating at the
 residue `m x⁻¹ (mod k)`. -/
 theorem primitive_twisted_sum_bound
@@ -1243,13 +1398,11 @@ theorem nontrivial_primitiveAssociateSum_norm_le
       starRingEnd ℂ (χ.primitiveCharacter x) *
         χ.primitiveCharacter m)‖ ≤
       ∑ k : ↥d.divisors,
-        let hxk : x.Coprime k.1 :=
-          Nat.Coprime.of_dvd_right
-            (Nat.dvd_of_mem_divisors k.2) hxd
         if k.1 = 1 then 0
+        else if m.Coprime k.1 then
+          (Nat.gcd (Int.natAbs ((m : ℤ) - x)) k.1 : ℝ)
         else
-          (Nat.gcd
-            (primitiveTwistResidue k.1 x m hxk - 1) k.1 : ℝ) := by
+          0 := by
   rw [nontrivial_primitiveAssociateSum_eq hd]
   calc
     ‖∑ k : ↥d.divisors,
@@ -1262,13 +1415,11 @@ theorem nontrivial_primitiveAssociateSum_norm_le
             else starRingEnd ℂ (ψ.1 x) * ψ.1 m‖ :=
       norm_sum_le _ _
     _ ≤ ∑ k : ↥d.divisors,
-        let hxk : x.Coprime k.1 :=
-          Nat.Coprime.of_dvd_right
-            (Nat.dvd_of_mem_divisors k.2) hxd
         if k.1 = 1 then 0
+        else if m.Coprime k.1 then
+          (Nat.gcd (Int.natAbs ((m : ℤ) - x)) k.1 : ℝ)
         else
-          (Nat.gcd
-            (primitiveTwistResidue k.1 x m hxk - 1) k.1 : ℝ) := by
+          0 := by
       apply Finset.sum_le_sum
       intro k hk
       let hkd : k.1 ∣ d := Nat.dvd_of_mem_divisors k.2
@@ -1277,11 +1428,47 @@ theorem nontrivial_primitiveAssociateSum_norm_le
       by_cases hkone : k.1 = 1
       · simp [hkone]
       · simp only [hkone, ↓reduceIte]
-        rw [sum_primitive_subtype_eq_tsum k
-          (fun ψ => starRingEnd ℂ (ψ x) * ψ m)]
-        exact primitive_twisted_sum_bound
-          (hdsq.squarefree_of_dvd hkd)
-          (hodd.of_dvd_nat hkd) hxk
+        by_cases hmk : m.Coprime k.1
+        · rw [if_pos hmk]
+          rw [sum_primitive_subtype_eq_tsum k
+            (fun ψ => starRingEnd ℂ (ψ x) * ψ m)]
+          calc
+            ‖∑' ψ : DirichletCharacter ℂ k.1,
+                if ψ.IsPrimitive then
+                  starRingEnd ℂ (ψ x) * ψ m
+                else 0‖ ≤
+                (Nat.gcd
+                  (primitiveTwistResidue k.1 x m hxk - 1)
+                  k.1 : ℝ) :=
+              primitive_twisted_sum_bound
+                (hdsq.squarefree_of_dvd hkd)
+                (hodd.of_dvd_nat hkd) hxk
+            _ = (Nat.gcd
+                  (Int.natAbs ((m : ℤ) - x)) k.1 : ℝ) := by
+              rw [gcd_primitiveTwistResidue_sub_one
+                (Nat.pos_of_dvd_of_pos hkd hd).ne'
+                hkone hmk hxk]
+        · rw [if_neg hmk]
+          have hmnonunit : ¬IsUnit (m : ZMod k.1) :=
+            (ZMod.isUnit_iff_coprime m k.1).not.mpr hmk
+          have hmzero :
+              ∀ ψ : DirichletCharacter ℂ k.1, ψ m = 0 := by
+            intro ψ
+            exact MulChar.apply_eq_zero_iff.mpr hmnonunit
+          simp_rw [hmzero]
+          simp
+
+/-- Compact form of `nontrivial_primitiveAssociateSum_norm_le`, used inside
+nested finite sums without unfolding the proof-dependent conductor bound. -/
+theorem nontrivial_primitiveAssociateSum_norm_le_majorant
+    {d x m : ℕ} (hd : 0 < d) (hdsq : Squarefree d)
+    (hodd : Odd d) (hxd : x.Coprime d) :
+    ‖nontrivialCharSum d (fun χ =>
+      starRingEnd ℂ (χ.primitiveCharacter x) *
+        χ.primitiveCharacter m)‖ ≤
+      primitiveAssociateMajorant d x m := by
+  rw [primitiveAssociateMajorant]
+  exact nontrivial_primitiveAssociateSum_norm_le hd hdsq hodd hxd
 
 /-- Reverse the finite character, pair, and bad-index sums in `M₅`. -/
 theorem primitiveBadCharacterContribution_eq_sum
@@ -1342,6 +1529,34 @@ theorem primitiveBadCharacterContribution_eq_sum
   apply Finset.sum_congr rfl
   intro n hn
   rw [nontrivialCharSum_const_mul hd.ne']
+
+/-- Triangle inequality for a double finite sum of products with pointwise
+real majorants. -/
+theorem norm_bisum_mul_le
+    {α β : Type*} [DecidableEq α] [DecidableEq β]
+    (S : Finset α) (T : α → Finset β)
+    (a b : α → β → ℂ) (A B : α → β → ℝ)
+    (ha : ∀ i ∈ S, ∀ j ∈ T i, ‖a i j‖ ≤ A i j)
+    (hb : ∀ i ∈ S, ∀ j ∈ T i, ‖b i j‖ ≤ B i j)
+    (hA : ∀ i ∈ S, ∀ j ∈ T i, 0 ≤ A i j) :
+    ‖∑ i ∈ S, ∑ j ∈ T i, a i j * b i j‖ ≤
+      ∑ i ∈ S, ∑ j ∈ T i, A i j * B i j := by
+  calc
+    ‖∑ i ∈ S, ∑ j ∈ T i, a i j * b i j‖ ≤
+        ∑ i ∈ S, ‖∑ j ∈ T i, a i j * b i j‖ :=
+      norm_sum_le _ _
+    _ ≤ ∑ i ∈ S, ∑ j ∈ T i, ‖a i j * b i j‖ := by
+      apply Finset.sum_le_sum
+      intro i hi
+      exact norm_sum_le _ _
+    _ ≤ ∑ i ∈ S, ∑ j ∈ T i, A i j * B i j := by
+      apply Finset.sum_le_sum
+      intro i hi
+      apply Finset.sum_le_sum
+      intro j hj
+      rw [norm_mul]
+      exact mul_le_mul (ha i hi j hj) (hb i hi j hj)
+        (norm_nonneg _) (hA i hi j hj)
 
 /-- For squarefree `d`, the pairs of divisors `(d₁,d₂)` with
 `lcm(d₁,d₂)=d` are obtained by assigning each prime divisor to the left
@@ -1617,6 +1832,203 @@ theorem sieveCoefficient_le_decay_uniform (d : ℕ) :
     norm_num
     positivity
 
+private theorem succ_le_two_pow_of_pos (e : ℕ) (he : 0 < e) :
+    e + 1 ≤ 2 ^ e := by
+  induction e with
+  | zero => omega
+  | succ e ih =>
+      by_cases he0 : e = 0
+      · subst e
+        norm_num
+      · have ihe : e + 1 ≤ 2 ^ e := ih (by omega)
+        calc
+          e + 1 + 1 ≤ 2 * (e + 1) := by omega
+          _ ≤ 2 * 2 ^ e := Nat.mul_le_mul_left 2 ihe
+          _ = 2 ^ (e + 1) := by ring
+
+/-- Local factor estimate used for the explicit divisor bound below. -/
+private theorem factorization_succ_le_rpow_twentyFour
+    {p e : ℕ} (hp : p.Prime) (he : 0 < e) :
+    ((e + 1 : ℕ) : ℝ) ≤
+      (if p < 16777216
+        then 1 + 24 / Real.log 2
+        else 1) *
+        (p : ℝ) ^ ((e : ℝ) / 24) := by
+  have hp2 : (2 : ℝ) ≤ p := by exact_mod_cast hp.two_le
+  have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  by_cases hpsmall : p < 16777216
+  · rw [if_pos hpsmall]
+    let t : ℝ := (e : ℝ) * Real.log 2 / 24
+    have ht : 0 ≤ t := by
+      dsimp [t]
+      positivity
+    have hexp : 1 + t ≤ Real.exp t := by
+      simpa [add_comm] using Real.add_one_le_exp t
+    have hlin :
+        ((e + 1 : ℕ) : ℝ) ≤
+          (1 + 24 / Real.log 2) * (1 + t) := by
+      dsimp [t]
+      rw [Nat.cast_add, Nat.cast_one]
+      have hrest :
+          0 ≤ 24 / Real.log 2 +
+            ((e : ℝ) * Real.log 2 / 24) := by positivity
+      calc
+        (e : ℝ) + 1 ≤
+            (e : ℝ) + 1 +
+              (24 / Real.log 2 +
+                (e : ℝ) * Real.log 2 / 24) := by linarith
+        _ = (1 + 24 / Real.log 2) *
+              (1 + (e : ℝ) * Real.log 2 / 24) := by
+          field_simp
+          ring
+    have hexpeq :
+        Real.exp t = (2 : ℝ) ^ ((e : ℝ) / 24) := by
+      rw [Real.rpow_def_of_pos (by norm_num)]
+      dsimp [t]
+      congr 1
+      ring
+    calc
+      ((e + 1 : ℕ) : ℝ) ≤
+          (1 + 24 / Real.log 2) * (1 + t) := hlin
+      _ ≤ (1 + 24 / Real.log 2) * Real.exp t :=
+        mul_le_mul_of_nonneg_left hexp (by positivity)
+      _ = (1 + 24 / Real.log 2) *
+          (2 : ℝ) ^ ((e : ℝ) / 24) := by rw [hexpeq]
+      _ ≤ (1 + 24 / Real.log 2) *
+          (p : ℝ) ^ ((e : ℝ) / 24) := by
+        exact mul_le_mul_of_nonneg_left
+          (Real.rpow_le_rpow (by norm_num) hp2 (by positivity))
+          (by positivity)
+  · rw [if_neg hpsmall, one_mul]
+    have hpT : (16777216 : ℝ) ≤ p := by
+      exact_mod_cast (show 16777216 ≤ p by omega)
+    have hpow :
+        ((2 ^ e : ℕ) : ℝ) ≤
+          (p : ℝ) ^ ((e : ℝ) / 24) := by
+      calc
+        ((2 ^ e : ℕ) : ℝ) =
+            (16777216 : ℝ) ^ ((e : ℝ) / 24) := by
+          rw [Nat.cast_pow, Nat.cast_ofNat]
+          rw [← Real.rpow_natCast]
+          rw [Real.rpow_def_of_pos (by norm_num),
+            Real.rpow_def_of_pos (by norm_num)]
+          rw [show (16777216 : ℝ) = (2 : ℝ) ^ (24 : ℕ) by norm_num,
+            Real.log_pow]
+          congr 1
+          ring
+        _ ≤ (p : ℝ) ^ ((e : ℝ) / 24) :=
+          Real.rpow_le_rpow (by norm_num) hpT (by positivity)
+    have hsuccR :
+        ((e + 1 : ℕ) : ℝ) ≤ ((2 ^ e : ℕ) : ℝ) := by
+      exact_mod_cast succ_le_two_pow_of_pos e he
+    exact hsuccR.trans hpow
+
+/-- Explicit subpower bound for the divisor-counting function:
+`τ(n) ≤ C n^(1/24)`. -/
+theorem card_divisors_cast_le_rpow
+    {n : ℕ} (hn : n ≠ 0) :
+    ((n.divisors.card : ℕ) : ℝ) ≤
+      (1 + 24 / Real.log 2) ^ (16777216 : ℝ) *
+        (n : ℝ) ^ ((1 : ℝ) / 24) := by
+  let C : ℝ := 1 + 24 / Real.log 2
+  let small : Finset ℕ :=
+    n.primeFactors.filter (· < 16777216)
+  have hC : 1 ≤ C := by
+    dsimp [C]
+    have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    have hdiv : 0 ≤ 24 / Real.log 2 := by positivity
+    linarith
+  have hterm :
+      ∀ p ∈ n.primeFactors,
+        (n.factorization p : ℝ) + 1 ≤
+          (if p < 16777216 then C else 1) *
+            (p : ℝ) ^ ((n.factorization p : ℝ) / 24) := by
+    intro p hp
+    have hpprime : p.Prime := Nat.prime_of_mem_primeFactors hp
+    have he : 0 < n.factorization p :=
+      hpprime.factorization_pos_of_dvd hn
+        (Nat.dvd_of_mem_primeFactors hp)
+    simpa only [C, Nat.cast_add, Nat.cast_one] using
+      factorization_succ_le_rpow_twentyFour hpprime he
+  have hprod :
+      ∏ p ∈ n.primeFactors,
+          ((n.factorization p : ℝ) + 1) ≤
+        ∏ p ∈ n.primeFactors,
+          (if p < 16777216 then C else 1) *
+            (p : ℝ) ^ ((n.factorization p : ℝ) / 24) := by
+    apply Finset.prod_le_prod
+    · intro p hp
+      positivity
+    · intro p hp
+      exact hterm p hp
+  have hsmallcard : small.card ≤ 16777216 := by
+    calc
+      small.card ≤ (Finset.range 16777216).card := by
+        apply Finset.card_le_card
+        intro p hp
+        exact Finset.mem_range.mpr (Finset.mem_filter.mp hp).2
+      _ = 16777216 := Finset.card_range _
+  have hconst :
+      ∏ p ∈ n.primeFactors,
+          (if p < 16777216 then C else 1) =
+        C ^ small.card := by
+    simp [small, Finset.prod_ite]
+  have hsmallpow :
+      C ^ small.card ≤ C ^ (16777216 : ℝ) := by
+    rw [← Real.rpow_natCast]
+    exact Real.rpow_le_rpow_of_exponent_le hC
+      (by exact_mod_cast hsmallcard)
+  have hnprod :
+      ∏ p ∈ n.primeFactors, p ^ n.factorization p = n := by
+    simpa only [Nat.prod_factorization_eq_prod_primeFactors] using
+      Nat.prod_factorization_pow_eq_self hn
+  have hbase :
+      ∏ p ∈ n.primeFactors,
+          (p : ℝ) ^ n.factorization p = (n : ℝ) := by
+    exact_mod_cast hnprod
+  have hrpow :
+      ∏ p ∈ n.primeFactors,
+          (p : ℝ) ^ ((n.factorization p : ℝ) / 24) =
+        (n : ℝ) ^ ((1 : ℝ) / 24) := by
+    calc
+      ∏ p ∈ n.primeFactors,
+          (p : ℝ) ^ ((n.factorization p : ℝ) / 24) =
+          ∏ p ∈ n.primeFactors,
+            ((p : ℝ) ^ n.factorization p) ^
+              ((1 : ℝ) / 24) := by
+        apply Finset.prod_congr rfl
+        intro p hp
+        rw [← Real.rpow_natCast]
+        rw [← Real.rpow_mul (by positivity)]
+        congr 1
+        ring
+      _ = (∏ p ∈ n.primeFactors,
+            (p : ℝ) ^ n.factorization p) ^
+              ((1 : ℝ) / 24) := by
+        apply Real.finsetProd_rpow
+        intro p hp
+        positivity
+      _ = (n : ℝ) ^ ((1 : ℝ) / 24) := by rw [hbase]
+  rw [Nat.card_divisors hn]
+  simp only [Nat.cast_prod, Nat.cast_add, Nat.cast_one]
+  calc
+    ∏ p ∈ n.primeFactors,
+        ((n.factorization p : ℝ) + 1) ≤
+      ∏ p ∈ n.primeFactors,
+        (if p < 16777216 then C else 1) *
+          (p : ℝ) ^ ((n.factorization p : ℝ) / 24) := hprod
+    _ = (∏ p ∈ n.primeFactors,
+          (if p < 16777216 then C else 1)) *
+        ∏ p ∈ n.primeFactors,
+          (p : ℝ) ^ ((n.factorization p : ℝ) / 24) := by
+      rw [Finset.prod_mul_distrib]
+    _ = C ^ small.card *
+        (n : ℝ) ^ ((1 : ℝ) / 24) := by
+      rw [hconst, hrpow]
+    _ ≤ C ^ (16777216 : ℝ) *
+        (n : ℝ) ^ ((1 : ℝ) / 24) :=
+      mul_le_mul_of_nonneg_right hsmallpow (by positivity)
+
 /-- The reciprocal sum over positive multiples of `p` up to `x`, expressed
 by scaling the harmonic sum. -/
 theorem sum_inv_multiples (x p : ℕ) (hp : 0 < p) :
@@ -1660,6 +2072,368 @@ theorem sum_inv_multiples (x p : ℕ) (hp : 0 < p) :
     rcases (Finset.mem_filter.mp hd).2 with ⟨k, rfl⟩
     rw [Nat.mul_div_cancel_left _ hp]
     rw [Nat.cast_mul, mul_inv]
+
+/-- A truncated reciprocal sum is bounded by the corresponding harmonic
+number. -/
+theorem sum_Icc_inv_le_harmonic {M N : ℕ} (hMN : M ≤ N) :
+    ∑ k ∈ Finset.Icc 1 M, (k : ℝ)⁻¹ ≤
+      (harmonic N : ℝ) := by
+  have hN :
+      ∑ k ∈ Finset.Icc 1 N, (k : ℝ)⁻¹ =
+        (harmonic N : ℝ) := by
+    rw [harmonic_eq_sum_Icc, Rat.cast_sum]
+    simp only [Rat.cast_inv, Rat.cast_natCast]
+  rw [← hN]
+  apply Finset.sum_le_sum_of_subset_of_nonneg
+  · exact Finset.Icc_subset_Icc_right hMN
+  · intro k hkN hkM
+    positivity
+
+/-- Average the elementary gcd bound over denominators.  Expanding the gcd
+through its divisors and reversing the two finite sums costs one divisor
+count and one harmonic factor. -/
+theorem gcd_div_sum_le_card_divisors_mul_harmonic
+    {a N : ℕ} (ha : a ≠ 0) :
+    ∑ k ∈ Finset.Icc 1 N,
+        (Nat.gcd a k : ℝ) / (k : ℝ) ≤
+      (a.divisors.card : ℝ) * (harmonic N : ℝ) := by
+  let K := Finset.Icc 1 N
+  have hpoint :
+      ∀ k ∈ K,
+        (Nat.gcd a k : ℝ) / (k : ℝ) ≤
+          ∑ r ∈ a.divisors.filter (· ∣ k),
+            (r : ℝ) / (k : ℝ) := by
+    intro k hk
+    have hkpos : 0 < k := (Finset.mem_Icc.mp hk).1
+    let g := Nat.gcd a k
+    have hgpos : 0 < g := Nat.gcd_pos_of_pos_left k (by omega)
+    have hgmem :
+        g ∈ a.divisors.filter (· ∣ k) := by
+      apply Finset.mem_filter.mpr
+      constructor
+      · exact Nat.mem_divisors.mpr
+          ⟨Nat.gcd_dvd_left a k, ha⟩
+      · exact Nat.gcd_dvd_right a k
+    refine Finset.single_le_sum
+      (s := a.divisors.filter (fun r : ℕ => r ∣ k))
+      (f := fun r : ℕ => (r : ℝ) / (k : ℝ)) ?_ hgmem
+    intro r hr
+    positivity
+  have hswap :
+      ∑ k ∈ K,
+          ∑ r ∈ a.divisors.filter (· ∣ k),
+            (r : ℝ) / (k : ℝ) =
+        ∑ r ∈ a.divisors,
+          ∑ k ∈ K.filter (r ∣ ·),
+            (r : ℝ) / (k : ℝ) := by
+    calc
+      ∑ k ∈ K,
+          ∑ r ∈ a.divisors.filter (· ∣ k),
+            (r : ℝ) / (k : ℝ) =
+        ∑ k ∈ K,
+          ∑ r ∈ a.divisors,
+            if r ∣ k then (r : ℝ) / (k : ℝ) else 0 := by
+          apply Finset.sum_congr rfl
+          intro k hk
+          rw [Finset.sum_filter]
+      _ = ∑ r ∈ a.divisors,
+          ∑ k ∈ K,
+            if r ∣ k then (r : ℝ) / (k : ℝ) else 0 := by
+          rw [Finset.sum_comm]
+      _ = ∑ r ∈ a.divisors,
+          ∑ k ∈ K.filter (r ∣ ·),
+            (r : ℝ) / (k : ℝ) := by
+          apply Finset.sum_congr rfl
+          intro r hr
+          rw [Finset.sum_filter]
+  have hinner :
+      ∀ r ∈ a.divisors,
+        ∑ k ∈ K.filter (r ∣ ·),
+            (r : ℝ) / (k : ℝ) ≤
+          (harmonic N : ℝ) := by
+    intro r hr
+    have hrpos : 0 < r :=
+      Nat.pos_of_dvd_of_pos (Nat.dvd_of_mem_divisors hr)
+        (Nat.pos_of_ne_zero ha)
+    calc
+      ∑ k ∈ K.filter (r ∣ ·),
+          (r : ℝ) / (k : ℝ) =
+        (r : ℝ) *
+          ∑ k ∈ K.filter (r ∣ ·), (k : ℝ)⁻¹ := by
+            rw [Finset.mul_sum]
+            apply Finset.sum_congr rfl
+            intro k hk
+            rw [div_eq_mul_inv]
+      _ = (r : ℝ) *
+          ((r : ℝ)⁻¹ *
+            ∑ j ∈ Finset.Icc 1 (N / r), (j : ℝ)⁻¹) := by
+            rw [sum_inv_multiples N r hrpos]
+      _ = ∑ j ∈ Finset.Icc 1 (N / r), (j : ℝ)⁻¹ := by
+            field_simp
+      _ ≤ (harmonic N : ℝ) :=
+        sum_Icc_inv_le_harmonic (Nat.div_le_self N r)
+  calc
+    ∑ k ∈ K, (Nat.gcd a k : ℝ) / (k : ℝ) ≤
+        ∑ k ∈ K,
+          ∑ r ∈ a.divisors.filter (· ∣ k),
+            (r : ℝ) / (k : ℝ) := by
+      apply Finset.sum_le_sum
+      intro k hk
+      exact hpoint k hk
+    _ = ∑ r ∈ a.divisors,
+          ∑ k ∈ K.filter (r ∣ ·),
+            (r : ℝ) / (k : ℝ) := hswap
+    _ ≤ ∑ _r ∈ a.divisors, (harmonic N : ℝ) := by
+      apply Finset.sum_le_sum
+      intro r hr
+      exact hinner r hr
+    _ = (a.divisors.card : ℝ) * (harmonic N : ℝ) := by
+      simp
+
+/-- Pointwise conversion of `d⁻⁵⁄⁶` to `d⁻¹` on the sieve-modulus
+support. -/
+theorem sieveModulus_decay_le_inv
+    {x d : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (hε : 0 ≤ ε)
+    (hd : d ∈ sieveModuli x ε) :
+    (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+      (x : ℝ) ^ ((1 : ℝ) / 12) * (d : ℝ)⁻¹ := by
+  have hddata := Finset.mem_filter.mp hd
+  have hdpos : 0 < d := by omega
+  have hdposR : (0 : ℝ) < d := by exact_mod_cast hdpos
+  have hx1R : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  have hdcut :
+      (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε) :=
+    hddata.2.2.2
+  have hdpow :
+      (d : ℝ) ^ ((1 : ℝ) / 6) ≤
+        (x : ℝ) ^ ((1 : ℝ) / 12) := by
+    calc
+      (d : ℝ) ^ ((1 : ℝ) / 6) ≤
+          ((x : ℝ) ^ ((1 : ℝ) / 2 - ε)) ^
+            ((1 : ℝ) / 6) :=
+        Real.rpow_le_rpow (by positivity) hdcut (by norm_num)
+      _ = (x : ℝ) ^ (((1 : ℝ) / 2 - ε) *
+            ((1 : ℝ) / 6)) := by
+        rw [← Real.rpow_mul (by positivity)]
+      _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) := by
+        apply Real.rpow_le_rpow_of_exponent_le hx1R
+        nlinarith
+  rw [show -(5 : ℝ) / 6 = (1 : ℝ) / 6 + (-1) by ring,
+    Real.rpow_add hdposR, Real.rpow_neg_one]
+  exact mul_le_mul_of_nonneg_right hdpow (by positivity)
+
+/-- Core modulus/conductor rearrangement in equation (11).  The bad prime
+`p` divides the ambient modulus but not the primitive conductor `k`; hence
+`p*k ∣ d`, and the reciprocal modulus sum supplies the factor `1/p`. -/
+theorem modulus_conductor_gcd_sum_le
+    {x p a : ℕ} {ε : ℝ} (hx1 : 1 ≤ x)
+    (hp : p.Prime) (ha : a ≠ 0) (hε : 0 ≤ ε) :
+    ∑ d ∈ (sieveModuli x ε).filter (p ∣ ·),
+        (d : ℝ) ^ (-(5 : ℝ) / 6) *
+          ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+            (Nat.gcd a k : ℝ) ≤
+      (x : ℝ) ^ ((1 : ℝ) / 12) *
+        (p : ℝ)⁻¹ * (harmonic x : ℝ) ^ 2 *
+          (a.divisors.card : ℝ) := by
+  let D := (sieveModuli x ε).filter (p ∣ ·)
+  let K := Finset.Icc 1 x
+  have hH : 0 ≤ (harmonic x : ℝ) := by
+    rw [harmonic_eq_sum_Icc, Rat.cast_sum]
+    simp only [Rat.cast_inv, Rat.cast_natCast]
+    positivity
+  have hdecay :
+      ∀ d ∈ D,
+        (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+          (x : ℝ) ^ ((1 : ℝ) / 12) * (d : ℝ)⁻¹ := by
+    intro d hd
+    exact sieveModulus_decay_le_inv hx1 hε
+      (Finset.mem_filter.mp hd).1
+  have hinnerExtend :
+      ∀ d ∈ D,
+        (d : ℝ)⁻¹ *
+            ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+              (Nat.gcd a k : ℝ) ≤
+          ∑ k ∈ K,
+            if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0 := by
+    intro d hd
+    have hdD := (Finset.mem_filter.mp hd).1
+    have hddata := Finset.mem_filter.mp hdD
+    have hdrange := Finset.mem_range.mp hddata.1
+    have hdpos : 0 < d := by omega
+    rw [Finset.mul_sum]
+    rw [← Finset.sum_filter]
+    apply Finset.sum_le_sum_of_subset_of_nonneg
+    · intro k hk
+      have hk' := Finset.mem_filter.mp hk
+      have hkd : k ∣ d := Nat.dvd_of_mem_divisors hk'.1
+      have hkpos : 0 < k :=
+        Nat.pos_of_dvd_of_pos hkd hdpos
+      apply Finset.mem_filter.mpr
+      constructor
+      · apply Finset.mem_Icc.mpr
+        exact ⟨hkpos, (Nat.le_of_dvd hdpos hkd).trans (by omega)⟩
+      · exact ⟨hkd, hk'.2⟩
+    · intro k hkK hkdiv
+      positivity
+  have hfirst :
+      ∑ d ∈ D,
+          (d : ℝ) ^ (-(5 : ℝ) / 6) *
+            ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+              (Nat.gcd a k : ℝ) ≤
+        (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ D,
+            ∑ k ∈ K,
+              if k ∣ d ∧ ¬p ∣ k then
+                (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+              else 0 := by
+    calc
+      ∑ d ∈ D,
+          (d : ℝ) ^ (-(5 : ℝ) / 6) *
+            ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+              (Nat.gcd a k : ℝ) ≤
+        ∑ d ∈ D,
+          ((x : ℝ) ^ ((1 : ℝ) / 12) * (d : ℝ)⁻¹) *
+            ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+              (Nat.gcd a k : ℝ) := by
+        apply Finset.sum_le_sum
+        intro d hd
+        exact mul_le_mul_of_nonneg_right (hdecay d hd) (by positivity)
+      _ ≤ ∑ d ∈ D,
+          (x : ℝ) ^ ((1 : ℝ) / 12) *
+            ∑ k ∈ K,
+              if k ∣ d ∧ ¬p ∣ k then
+                (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+              else 0 := by
+        apply Finset.sum_le_sum
+        intro d hd
+        rw [mul_assoc]
+        exact mul_le_mul_of_nonneg_left
+          (hinnerExtend d hd) (by positivity)
+      _ = (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ D,
+            ∑ k ∈ K,
+              if k ∣ d ∧ ¬p ∣ k then
+                (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+              else 0 := by rw [Finset.mul_sum]
+  have hmodulus :
+      ∀ k ∈ K,
+        ∑ d ∈ D,
+            (if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0) ≤
+          (p : ℝ)⁻¹ * (harmonic x : ℝ) *
+            ((Nat.gcd a k : ℝ) / (k : ℝ)) := by
+    intro k hk
+    have hkpos : 0 < k := (Finset.mem_Icc.mp hk).1
+    by_cases hpk : p ∣ k
+    · simp [hpk]
+      exact mul_nonneg
+        (mul_nonneg (by positivity) hH)
+        (div_nonneg (by positivity) (by positivity))
+    · have hcop : p.Coprime k :=
+        hp.coprime_iff_not_dvd.mpr hpk
+      let S := D.filter (k ∣ ·)
+      let T := (Finset.Icc 1 x).filter (p * k ∣ ·)
+      have hST : S ⊆ T := by
+        intro d hd
+        have hdS := Finset.mem_filter.mp hd
+        have hdD := Finset.mem_filter.mp hdS.1
+        have hpd := hdD.2
+        have hdmod := hdD.1
+        have hddata := Finset.mem_filter.mp hdmod
+        have hdrange := Finset.mem_range.mp hddata.1
+        apply Finset.mem_filter.mpr
+        constructor
+        · exact Finset.mem_Icc.mpr
+            ⟨hddata.2.1, by omega⟩
+        · exact hcop.mul_dvd_of_dvd_of_dvd hpd hdS.2
+      have hrecip :
+          ∑ d ∈ S, (d : ℝ)⁻¹ ≤
+            (p * k : ℝ)⁻¹ * (harmonic x : ℝ) := by
+        calc
+          ∑ d ∈ S, (d : ℝ)⁻¹ ≤
+              ∑ d ∈ T, (d : ℝ)⁻¹ := by
+            apply Finset.sum_le_sum_of_subset_of_nonneg hST
+            intro d hdT hdS
+            positivity
+          _ = (p * k : ℝ)⁻¹ *
+              ∑ j ∈ Finset.Icc 1 (x / (p * k)),
+                (j : ℝ)⁻¹ := by
+              dsimp [T]
+              rw [sum_inv_multiples x (p * k)
+                (mul_pos hp.pos hkpos), Nat.cast_mul]
+          _ ≤ (p * k : ℝ)⁻¹ * (harmonic x : ℝ) :=
+            mul_le_mul_of_nonneg_left
+              (sum_Icc_inv_le_harmonic
+                (Nat.div_le_self x (p * k))) (by positivity)
+      calc
+        ∑ d ∈ D,
+            (if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0) =
+          (∑ d ∈ S, (d : ℝ)⁻¹) *
+            (Nat.gcd a k : ℝ) := by
+              simp only [hpk, not_false_eq_true, and_true]
+              rw [← Finset.sum_filter]
+              change (∑ d ∈ S, (d : ℝ)⁻¹ *
+                (Nat.gcd a k : ℝ)) = _
+              rw [Finset.sum_mul]
+        _ ≤ ((p * k : ℝ)⁻¹ * (harmonic x : ℝ)) *
+            (Nat.gcd a k : ℝ) :=
+          mul_le_mul_of_nonneg_right hrecip (by positivity)
+        _ = (p : ℝ)⁻¹ * (harmonic x : ℝ) *
+            ((Nat.gcd a k : ℝ) / (k : ℝ)) := by
+          rw [mul_inv]
+          field_simp
+  have hdouble :
+      ∑ d ∈ D,
+          ∑ k ∈ K,
+            (if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0) ≤
+        (p : ℝ)⁻¹ * (harmonic x : ℝ) *
+          ((a.divisors.card : ℝ) * (harmonic x : ℝ)) := by
+    rw [Finset.sum_comm]
+    calc
+      ∑ k ∈ K,
+          ∑ d ∈ D,
+            (if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0) ≤
+        ∑ k ∈ K,
+          ((p : ℝ)⁻¹ * (harmonic x : ℝ) *
+            ((Nat.gcd a k : ℝ) / (k : ℝ))) := by
+          apply Finset.sum_le_sum
+          intro k hk
+          exact hmodulus k hk
+      _ = (p : ℝ)⁻¹ * (harmonic x : ℝ) *
+          ∑ k ∈ K, (Nat.gcd a k : ℝ) / (k : ℝ) := by
+            rw [Finset.mul_sum]
+      _ ≤ (p : ℝ)⁻¹ * (harmonic x : ℝ) *
+          ((a.divisors.card : ℝ) * (harmonic x : ℝ)) :=
+        mul_le_mul_of_nonneg_left
+          (gcd_div_sum_le_card_divisors_mul_harmonic ha)
+          (by positivity)
+  change (∑ d ∈ D,
+      (d : ℝ) ^ (-(5 : ℝ) / 6) *
+        ∑ k ∈ d.divisors.filter (fun k => ¬p ∣ k),
+          (Nat.gcd a k : ℝ)) ≤ _
+  calc
+    _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) *
+        ∑ d ∈ D,
+          ∑ k ∈ K,
+            if k ∣ d ∧ ¬p ∣ k then
+              (d : ℝ)⁻¹ * (Nat.gcd a k : ℝ)
+            else 0 := hfirst
+    _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) *
+        ((p : ℝ)⁻¹ * (harmonic x : ℝ) *
+          ((a.divisors.card : ℝ) * (harmonic x : ℝ))) :=
+      mul_le_mul_of_nonneg_left hdouble (by positivity)
+    _ = (x : ℝ) ^ ((1 : ℝ) / 12) *
+        (p : ℝ)⁻¹ * (harmonic x : ℝ) ^ 2 *
+          (a.divisors.card : ℝ) := by ring
 
 /-- Summing the coefficient decay over moduli divisible by a fixed prime
 costs only `x^(1/12)` and one harmonic factor. -/
@@ -2833,6 +3607,209 @@ theorem abs_smoothedMKernel_le_vonMangoldt
       1 * ArithmeticFunction.vonMangoldt n * 1 := by
         gcongr
     _ = ArithmeticFunction.vonMangoldt n := by ring
+
+/-- Any pointwise estimate for the primitive-associate character sum may be
+summed against the bad-index von Mangoldt mass. -/
+theorem primitiveBadCharacterContribution_norm_le_of
+    {x d : ℕ} (hd : 0 < d) (hx : Real.exp 3 ≤ (x : ℝ))
+    (B : ℕ → ℝ)
+    (hB : ∀ m : ℕ,
+      ‖nontrivialCharSum d (fun χ =>
+        starRingEnd ℂ (χ.primitiveCharacter x) *
+          χ.primitiveCharacter m)‖ ≤ B m) :
+    ‖primitiveBadCharacterContribution x d‖ ≤
+      primitiveBadMajorant x d B := by
+  rw [primitiveBadCharacterContribution_eq_sum hd,
+    primitiveBadMajorant]
+  refine norm_bisum_mul_le
+    ((chenPairs x).filter
+      (fun q => Nat.Coprime (q.1 * q.2) d))
+    (fun q =>
+      (smoothedMIndices x q).filter (fun n => ¬n.Coprime d))
+    (fun q n => (smoothedMKernel x q n : ℂ))
+    (fun q n =>
+      nontrivialCharSum d (fun χ =>
+        starRingEnd ℂ (χ.primitiveCharacter x) *
+          χ.primitiveCharacter (q.1 * q.2 * n)))
+    (fun _q n => ArithmeticFunction.vonMangoldt n)
+    (fun q n => B (q.1 * q.2 * n)) ?_ ?_ ?_
+  · intro q hq n hn
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact abs_smoothedMKernel_le_vonMangoldt hx
+      (Finset.mem_filter.mp hq).1
+  · intro q hq n hn
+    simpa only [Nat.cast_mul] using hB (q.1 * q.2 * n)
+  · intro q hq n hn
+    exact ArithmeticFunction.vonMangoldt_nonneg
+
+/-- Lemma 4, summed over the bad indices, gives the conductor-gcd majorant
+needed for equation (10) in the proof of Lemma 5. -/
+theorem primitiveBadCharacterContribution_norm_le
+    {x d : ℕ} (hd : 0 < d) (hdsq : Squarefree d)
+    (hodd : Odd d) (hxd : x.Coprime d)
+    (hx : Real.exp 3 ≤ (x : ℝ)) :
+    ‖primitiveBadCharacterContribution x d‖ ≤
+      primitiveBadMajorant x d
+        (fun m => primitiveAssociateMajorant d x m) := by
+  apply primitiveBadCharacterContribution_norm_le_of hd hx
+  intro m
+  exact nontrivial_primitiveAssociateSum_norm_le_majorant
+    hd hdsq hodd hxd
+
+/-- Insert the conductor-gcd bound into the outer modulus sum defining
+`M₅`.  Nonsquarefree moduli disappear through the Möbius factor. -/
+theorem mFive_le_primitiveBadMajorant
+    {x : ℕ} {ε : ℝ} (hxeven : Even x)
+    (hx : Real.exp 3 ≤ (x : ℝ)) :
+    mFive x ε ≤
+      ∑ d ∈ sieveModuli x ε,
+        (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+            (3 : ℝ) ^ distinctPrimeFactors d /
+              (Nat.totient d : ℝ)) *
+          primitiveBadMajorant x d
+            (fun m => primitiveAssociateMajorant d x m) := by
+  rw [mFive_eq_badContribution]
+  apply Finset.sum_le_sum
+  intro d hdmem
+  have hddata := (Finset.mem_filter.mp hdmem).2
+  have hdpos : 0 < d := by omega
+  by_cases hdsq : Squarefree d
+  · have hdodd : Odd d :=
+      (Nat.Coprime.of_dvd_right hxeven.two_dvd hddata.2.1).odd_of_right
+    have hbound :=
+      primitiveBadCharacterContribution_norm_le
+        hdpos hdsq hdodd hddata.2.1.symm hx
+    exact mul_le_mul_of_nonneg_left hbound (by positivity)
+  · rw [ArithmeticFunction.moebius_eq_zero_of_not_squarefree hdsq]
+    norm_num
+
+/-- Put the `M₅` majorant in the order used by the arithmetic estimate:
+first `(p₁,p₂,n)`, then the bad modulus `d`. -/
+theorem mFive_le_arithmeticMajorant
+    {x : ℕ} {ε : ℝ} (hxeven : Even x)
+    (hx : Real.exp 3 ≤ (x : ℝ)) :
+    mFive x ε ≤ mFiveArithmeticMajorant x ε := by
+  calc
+    mFive x ε ≤
+        ∑ d ∈ sieveModuli x ε,
+          (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+              (3 : ℝ) ^ distinctPrimeFactors d /
+                (Nat.totient d : ℝ)) *
+            primitiveBadMajorant x d
+              (fun m => primitiveAssociateMajorant d x m) :=
+      mFive_le_primitiveBadMajorant hxeven hx
+    _ = ∑ d ∈ sieveModuli x ε,
+          (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+              (3 : ℝ) ^ distinctPrimeFactors d /
+                (Nat.totient d : ℝ)) *
+            ∑ q ∈ (chenPairs x).filter
+                (fun q => Nat.Coprime (q.1 * q.2) d),
+              ∑ n ∈ (smoothedMIndices x q).filter
+                  (fun n => ¬n.Coprime d),
+                ArithmeticFunction.vonMangoldt n *
+                  primitiveAssociateMajorant d x
+                    (q.1 * q.2 * n) := by
+      apply Finset.sum_congr rfl
+      intro d hd
+      rw [primitiveBadMajorant]
+    _ ≤ ∑ d ∈ sieveModuli x ε,
+          (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+              (3 : ℝ) ^ distinctPrimeFactors d /
+                (Nat.totient d : ℝ)) *
+            ∑ q ∈ chenPairs x,
+              ∑ n ∈ smoothedMIndices x q,
+                if ¬n.Coprime d then
+                  ArithmeticFunction.vonMangoldt n *
+                    primitiveAssociateMajorant d x
+                      (q.1 * q.2 * n)
+                else 0 := by
+      apply Finset.sum_le_sum
+      intro d hd
+      apply mul_le_mul_of_nonneg_left
+      · calc
+          ∑ q ∈ (chenPairs x).filter
+              (fun q => Nat.Coprime (q.1 * q.2) d),
+            ∑ n ∈ (smoothedMIndices x q).filter
+                (fun n => ¬n.Coprime d),
+              ArithmeticFunction.vonMangoldt n *
+                primitiveAssociateMajorant d x
+                  (q.1 * q.2 * n) =
+            ∑ q ∈ (chenPairs x).filter
+                (fun q => Nat.Coprime (q.1 * q.2) d),
+              ∑ n ∈ smoothedMIndices x q,
+                if ¬n.Coprime d then
+                  ArithmeticFunction.vonMangoldt n *
+                    primitiveAssociateMajorant d x
+                      (q.1 * q.2 * n)
+                else 0 := by
+              apply Finset.sum_congr rfl
+              intro q hq
+              rw [Finset.sum_filter]
+          _ ≤ ∑ q ∈ chenPairs x,
+              ∑ n ∈ smoothedMIndices x q,
+                if ¬n.Coprime d then
+                  ArithmeticFunction.vonMangoldt n *
+                    primitiveAssociateMajorant d x
+                      (q.1 * q.2 * n)
+                else 0 := by
+              apply Finset.sum_le_sum_of_subset_of_nonneg
+                (Finset.filter_subset _ _)
+              intro q hq hq'
+              apply Finset.sum_nonneg
+              intro n hn
+              by_cases hbad : ¬n.Coprime d
+              · rw [if_pos hbad]
+                exact mul_nonneg
+                  ArithmeticFunction.vonMangoldt_nonneg
+                  (primitiveAssociateMajorant_nonneg _ _ _)
+              · rw [if_neg hbad]
+      · positivity
+    _ = mFiveArithmeticMajorant x ε := by
+      rw [mFiveArithmeticMajorant]
+      calc
+        (∑ d ∈ sieveModuli x ε,
+            (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+                (3 : ℝ) ^ distinctPrimeFactors d /
+                  (Nat.totient d : ℝ)) *
+              ∑ q ∈ chenPairs x,
+                ∑ n ∈ smoothedMIndices x q,
+                  if ¬n.Coprime d then
+                    ArithmeticFunction.vonMangoldt n *
+                      primitiveAssociateMajorant d x
+                        (q.1 * q.2 * n)
+                  else 0) =
+          ∑ d ∈ sieveModuli x ε,
+            ∑ q ∈ chenPairs x,
+              ∑ n ∈ smoothedMIndices x q,
+                (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+                    (3 : ℝ) ^ distinctPrimeFactors d /
+                      (Nat.totient d : ℝ)) *
+                  (if ¬n.Coprime d then
+                    ArithmeticFunction.vonMangoldt n *
+                      primitiveAssociateMajorant d x
+                        (q.1 * q.2 * n)
+                  else 0) := by
+            apply Finset.sum_congr rfl
+            intro d hd
+            rw [Finset.mul_sum]
+            apply Finset.sum_congr rfl
+            intro q hq
+            rw [Finset.mul_sum]
+        _ = ∑ q ∈ chenPairs x,
+            ∑ n ∈ smoothedMIndices x q,
+              ∑ d ∈ sieveModuli x ε,
+                (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+                    (3 : ℝ) ^ distinctPrimeFactors d /
+                      (Nat.totient d : ℝ)) *
+                  (if ¬n.Coprime d then
+                    ArithmeticFunction.vonMangoldt n *
+                      primitiveAssociateMajorant d x
+                        (q.1 * q.2 * n)
+                  else 0) := by
+            rw [Finset.sum_comm]
+            apply Finset.sum_congr rfl
+            intro q hq
+            rw [Finset.sum_comm]
 
 /-- The absolute bad mass is bounded by the corresponding von Mangoldt
 mass. -/
