@@ -19,6 +19,7 @@ The remaining analytic estimates are explicitly isolated as
 estimates by proved finite and algebraic reductions in `Lemma5/Core.lean`.
 -/
 import ChenTheorem.Lemma5.Boundary.Analytic
+import ChenTheorem.Main.NumericalBounds
 
 -- This file is still an explicitly documented collection of formalization targets.
 set_option warn.sorry false
@@ -255,7 +256,45 @@ theorem sieveOmega_le_mOne (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
       (sieveOmega x : ℝ) ≤
         mOne x ε / (1 - ε) + C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
-  sorry
+  obtain ⟨C₅, hC₅, hlemma5⟩ :=
+    sieveOmega_le_mOne_add_mTwo ε hε hε'
+  obtain ⟨C₆, hC₆, hlemma6⟩ :=
+    mTwo_le ε hε hε'
+  have hε1 : ε < 1 := hε'.trans (by norm_num)
+  have hden : 0 < 1 - ε := sub_pos.mpr hε1
+  let C : ℝ := C₅ + C₆ / (1 - ε)
+  have hC : 0 < C := by
+    dsimp only [C]
+    exact add_pos hC₅ (div_pos hC₆ hden)
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [hlemma5, hlemma6] with x h5 h6
+  intro hxEven
+  have h6' :
+      mTwo x ε / (1 - ε) ≤
+        (C₆ * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ)) / (1 - ε) :=
+    (div_le_div_iff_of_pos_right hden).2 (h6 hxEven)
+  calc
+    (sieveOmega x : ℝ) ≤
+        (mOne x ε + mTwo x ε) / (1 - ε) +
+          C₅ * (x : ℝ) /
+            (Real.log x) ^ (2.01 : ℝ) := h5 hxEven
+    _ = mOne x ε / (1 - ε) +
+          mTwo x ε / (1 - ε) +
+            C₅ * (x : ℝ) /
+              (Real.log x) ^ (2.01 : ℝ) := by ring
+    _ ≤ mOne x ε / (1 - ε) +
+          (C₆ * (x : ℝ) /
+            (Real.log x) ^ (2.01 : ℝ)) / (1 - ε) +
+              C₅ * (x : ℝ) /
+                (Real.log x) ^ (2.01 : ℝ) := by
+      gcongr
+    _ = mOne x ε / (1 - ε) +
+          C * (x : ℝ) /
+            (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [C]
+      field_simp
+      ring
 
 /-! ### Lemma 7 -/
 
@@ -271,16 +310,40 @@ theorem mOne_le (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
 
 /-! ### Lemma 8 -/
 
-/-- The prime-pair kernel estimate obtained from the two applications of
-partial summation in (23) and the numerical integral bound (24).  The slightly
-enlarged decimal `0.492541` leaves room for the limiting `1 + o(1)` factors. -/
+/-- The prime-pair kernel after the two applications of partial summation in
+(23).  This is the prime-distribution input to equation (24); the numerical
+integral estimate itself is proved independently in `Main.NumericalBounds`. -/
+theorem chenPairs_kernel_le_integral
+    (δ : ℝ) (hδ : 0 < δ) :
+    ∀ᶠ x : ℕ in atTop,
+      ∑ q ∈ chenPairs x,
+          ((q.1 : ℝ) * (q.2 : ℝ) *
+            Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
+        (equation24Integral + δ) / Real.log x := by
+  sorry
+
+/-- The numerical form of (23)--(24).  The extra `0.000001` absorbs the
+limiting error in the two partial-summation steps. -/
 theorem chenPairs_kernel_le :
     ∀ᶠ x : ℕ in atTop,
       ∑ q ∈ chenPairs x,
           ((q.1 : ℝ) * (q.2 : ℝ) *
             Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
         0.492541 / Real.log x := by
-  sorry
+  let δ : ℝ := 0.000001
+  filter_upwards [chenPairs_kernel_le_integral δ (by norm_num [δ]),
+      eventually_gt_atTop 1] with x hkernel hx
+  have hlogpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  calc
+    ∑ q ∈ chenPairs x,
+        ((q.1 : ℝ) * (q.2 : ℝ) *
+          Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
+      (equation24Integral + δ) / Real.log x := hkernel
+    _ ≤ 0.492541 / Real.log x := by
+      apply (div_le_div_iff_of_pos_right hlogpos).2
+      dsimp only [δ]
+      linarith [equation24_integral_bound]
 
 /-- A logarithmic error of order `x/(log x)^2.01` is eventually absorbed by
 any positive multiple of `x C_x/(log x)^2`. -/
@@ -428,18 +491,64 @@ theorem sieveOmega_le :
 
 /-! ### Lemma 9 -/
 
-/-- The output of Richert's weighted sieve (Theorem A of [11]), after the two
-applications (26), the averaged progression estimate supplied by
-Bombieri--Vinogradov, and the elementary integral comparison (27). -/
-theorem richert_weighted_sieve_final_estimate :
+/-- The analytic output of Richert's weighted sieve (Theorem A of [11]), after
+the two applications in (26) and the averaged progression estimate supplied
+by Bombieri--Vinogradov, but before the elementary comparison (27).
+
+The paper first obtains the coefficient `8 - 50 * sqrt ε`, with `ε > 0`
+arbitrarily small.  Equivalently, every fixed positive loss `δ` may be used
+for all sufficiently large `x`. -/
+theorem richert_weighted_sieve_estimate
+    (δ : ℝ) (hδ : 0 < δ) :
     ∀ᶠ x : ℕ in atTop, Even x →
-      8 * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
-          (Real.log 4 - Real.log 8 / 2 - 0.0164725) ≤
+      (8 - δ) * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
+          (Real.log 4 - Real.log 8 / 2 + equation27Integral) ≤
         (sievedPrimeCount x : ℝ) -
           (1 / 2) *
             ∑ p' ∈ midPrimes x,
               (sievedPrimeCountAt x p' : ℝ) := by
   sorry
+
+/-- Richert--Bombieri with equation (27) inserted.  Keeping `δ` explicit is
+important: the paper does not prove the stronger estimate with the limiting
+coefficient `8` itself. -/
+theorem richert_weighted_sieve_final_estimate
+    (δ : ℝ) (hδ : 0 < δ) (hδ8 : δ < 8) :
+    ∀ᶠ x : ℕ in atTop, Even x →
+      (8 - δ) * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
+          (Real.log 4 - Real.log 8 / 2 - 0.0164725) ≤
+        (sievedPrimeCount x : ℝ) -
+          (1 / 2) *
+            ∑ p' ∈ midPrimes x,
+              (sievedPrimeCountAt x p' : ℝ) := by
+  filter_upwards [richert_weighted_sieve_estimate δ hδ,
+      eventually_gt_atTop 1] with x hrichert hx
+  intro hxEven
+  have hxpos : (0 : ℝ) < x := by positivity
+  have hlogpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hconst :
+      0 < chenConst x :=
+    twinConst_pos.trans_le (twinConst_le_chenConst x)
+  have hscale :
+      0 ≤ (8 - δ) *
+        ((x : ℝ) * chenConst x / (Real.log x) ^ 2) := by
+    positivity
+  have hbracket :
+      Real.log 4 - Real.log 8 / 2 - 0.0164725 ≤
+        Real.log 4 - Real.log 8 / 2 + equation27Integral := by
+    linarith [equation27_integral_bound]
+  calc
+    (8 - δ) * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
+        (Real.log 4 - Real.log 8 / 2 - 0.0164725) ≤
+      (8 - δ) * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
+        (Real.log 4 - Real.log 8 / 2 + equation27Integral) := by
+      exact mul_le_mul_of_nonneg_left hbracket hscale
+    _ ≤ (sievedPrimeCount x : ℝ) -
+          (1 / 2) *
+            ∑ p' ∈ midPrimes x,
+              (sievedPrimeCountAt x p' : ℝ) :=
+      hrichert hxEven
 
 /-- **Lemma 9**: for large even `x`,
 `P_x(x, x^{1/10}) - (1/2) ∑_{x^{1/10} < p' ≤ x^{1/3}} P_x(x, p', x^{1/10})
@@ -452,7 +561,10 @@ theorem sieved_lower_bound :
       2.6408 * (x : ℝ) * chenConst x / (Real.log x) ^ 2 ≤
         (sievedPrimeCount x : ℝ) -
           (1 / 2) * ∑ p' ∈ midPrimes x, (sievedPrimeCountAt x p' : ℝ) := by
-  filter_upwards [richert_weighted_sieve_final_estimate,
+  let δ : ℝ := 0.000001
+  have hδ : 0 < δ := by norm_num [δ]
+  filter_upwards [richert_weighted_sieve_final_estimate δ hδ
+      (by norm_num [δ]),
       eventually_gt_atTop 1] with x hrichert hx
   intro hxEven
   have hlog4 :
@@ -463,11 +575,12 @@ theorem sieved_lower_bound :
       Real.log (8 : ℝ) = 3 * Real.log 2 := by
     rw [show (8 : ℝ) = 2 ^ 3 by norm_num, Real.log_pow]
     norm_num
-  have hbracket :
-      (0.3301 : ℝ) ≤
-        Real.log 4 - Real.log 8 / 2 - 0.0164725 := by
+  have hcoefficient :
+      (2.6408 : ℝ) ≤ (8 - δ) *
+        (Real.log 4 - Real.log 8 / 2 - 0.0164725) := by
     rw [hlog4, hlog8]
-    linarith [Real.log_two_gt_d9]
+    dsimp only [δ]
+    nlinarith [Real.log_two_gt_d9]
   have hxpos : (0 : ℝ) < x := by positivity
   have hlogpos : 0 < Real.log (x : ℝ) :=
     Real.log_pos (by exact_mod_cast hx)
@@ -480,18 +593,24 @@ theorem sieved_lower_bound :
   have hrichert' := hrichert hxEven
   calc
     2.6408 * (x : ℝ) * chenConst x /
-        (Real.log x) ^ 2 =
-      (8 * 0.3301) *
-        ((x : ℝ) * chenConst x /
-          (Real.log x) ^ 2) := by ring
-    _ ≤ 8 *
-        ((x : ℝ) * chenConst x /
-          (Real.log x) ^ 2) *
-        (Real.log 4 - Real.log 8 / 2 - 0.0164725) := by
-      nlinarith
+        (Real.log x) ^ 2 ≤
+      ((8 - δ) *
+        (Real.log 4 - Real.log 8 / 2 - 0.0164725)) *
+          ((x : ℝ) * chenConst x /
+            (Real.log x) ^ 2) := by
+      calc
+        2.6408 * (x : ℝ) * chenConst x /
+            (Real.log x) ^ 2 =
+          2.6408 * ((x : ℝ) * chenConst x /
+            (Real.log x) ^ 2) := by ring
+        _ ≤ ((8 - δ) *
+            (Real.log 4 - Real.log 8 / 2 - 0.0164725)) *
+              ((x : ℝ) * chenConst x /
+                (Real.log x) ^ 2) := by gcongr
     _ ≤ (sievedPrimeCount x : ℝ) -
           (1 / 2) *
             ∑ p' ∈ midPrimes x,
-              (sievedPrimeCountAt x p' : ℝ) := hrichert'
+              (sievedPrimeCountAt x p' : ℝ) := by
+      simpa [mul_assoc, mul_left_comm, mul_comm] using hrichert'
 
 end Chen

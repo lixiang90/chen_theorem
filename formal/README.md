@@ -33,6 +33,7 @@ lake build
 | `ChenTheorem/Lemma5/{Arithmetic,Smoothing}.lean` | Arithmetic majorants, formula (5), and the small-base transition estimate |
 | `ChenTheorem/Lemma5/{PrimeReciprocals,EulerPenalty}.lean` | Prime reciprocal estimates and the Euler-factor penalty for excluded prime divisors |
 | `ChenTheorem/Lemma5/Boundary/{Sieve,Selberg,Weights,Mass,Analytic}.lean` | The dimension-two boundary sieve, Selberg diagonalization and optimal weights, the lower bound for `G(R)`, and the final short-interval estimate |
+| `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
 | `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated quantitative input for the fixed-shift version, pending a shifted copy of the sieve infrastructure |
@@ -56,11 +57,13 @@ lake build
 | Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
 | Lemma 6 | `mTwo_le` (pending; the contour/Dirichlet-series form of `M₂` remains to be developed) |
-| Lemmas 5–6 combined | `sieveOmega_le_mOne` (pending on Lemma 6) |
+| Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
 | Lemma 7 | `mOne_le` |
-| Lemma 8 | `sieveOmega_le` (constant/error deduction proved; prime-pair kernel estimate `chenPairs_kernel_le` pending) |
+| Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
+| Lemma 8 | `sieveOmega_le` (constant/error deduction proved; only the prime-distribution/partial-summation input `chenPairs_kernel_le_integral` remains pending) |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
-| Lemma 9 | `sieved_lower_bound` (final numerical deduction proved; Richert–Bombieri input `richert_weighted_sieve_final_estimate` pending) |
+| Equation (27) | `equation27_integral_bound` (**proved**, no `sorryAx`) |
+| Lemma 9 | `sieved_lower_bound` (equation (27) and the final numerical deduction are proved; the pre-(27) Richert–Bombieri input `richert_weighted_sieve_estimate` remains pending) |
 | Inequality (28) | `key_inequality` (**proved**) |
 | Theorem 1 | `chenCount_lower` (quantitative), `chen_theorem` (qualitative), both deductions proved |
 | Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted quantitative sieve input pending) |
@@ -189,9 +192,11 @@ in particular the large-base smoothing boundary is bounded by
 weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
 
 The `L`-function fourth moment (Lemma 3), Lemma 6, the prime-distribution
-inputs behind Lemmas 8 and 9, and the shifted quantitative sieve estimate
-still contain documented `sorry` placeholders.  Inequality (28), including
-its exceptional `x^0.91` tail, is complete. `Main.lean` itself has no
+inputs behind Lemmas 7–9, and the shifted quantitative sieve estimate
+still contain documented `sorry` placeholders.  The paper-internal numerical
+integrals (24) and (27) are complete and do not depend on `sorryAx`.
+Inequality (28), including its exceptional `x^0.91` tail, is complete.
+`Main.lean` itself has no
 proof placeholders: the numerical deduction of Theorem 1, extraction of an
 actual representation, and the infinitude argument for Theorem 2 are
 machine-checked from those named interfaces.  Lemmas 1, 2, 4, and 5 are
