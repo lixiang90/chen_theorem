@@ -29,6 +29,10 @@ lake build
 | `ChenTheorem/LargeSieve/Additive.lean` | Parseval, Farey spacing, and the additive large sieve |
 | `ChenTheorem/LargeSieve/Character.lean` | Gauss-sum transition, character large sieve (2), and dyadic form (3) |
 | `ChenTheorem/SieveLemmas.lean` | Lemmas 1–4: properties of `Φ`, the large sieve, the `L`-function fourth moment, primitive character sums |
+| `ChenTheorem/Lemma5/Core.lean` | Finite-sum definitions and elementary reductions used in Lemma 5 |
+| `ChenTheorem/Lemma5/{Arithmetic,Smoothing}.lean` | Arithmetic majorants, formula (5), and the small-base transition estimate |
+| `ChenTheorem/Lemma5/{PrimeReciprocals,EulerPenalty}.lean` | Prime reciprocal estimates and the Euler-factor penalty for excluded prime divisors |
+| `ChenTheorem/Lemma5/Boundary/{Sieve,Selberg,Weights,Mass,Analytic}.lean` | The dimension-two boundary sieve, Selberg diagonalization and optimal weights, the lower bound for `G(R)`, and the final short-interval estimate |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main.lean` | Inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), Theorem 2 (twin analogue) |
 
@@ -48,7 +52,9 @@ lake build
 | Lemma 2, eqs. (2)–(3) | `large_sieve`, `large_sieve_dyadic` |
 | Lemma 3 | `lFunction_fourth_moment` |
 | Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
-| Lemmas 5–6 | `sieveOmega_le_mOne` (combined; `M₂` and its contour integral are not reproduced — only the resulting bound) |
+| Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
+| Lemma 6 | `mTwo_le` (pending; the contour/Dirichlet-series form of `M₂` remains to be developed) |
+| Lemmas 5–6 combined | `sieveOmega_le_mOne` (pending on Lemma 6) |
 | Lemma 7 | `mOne_le` |
 | Lemma 8 | `sieveOmega_le` |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
@@ -121,9 +127,11 @@ lake build
   character orthogonality then give (2), including `|τ(χ)|² = q`. Covering
   `(D,Q]` by disjoint blocks `(2ⁱD,2ⁱ⁺¹D]` gives (3), with the explicit
   universal constant `8 + 2π`.
-* **`M₂` omitted.** The quantity `M₂` (a contour integral of `L'/L` against the
-  sieve weights) is not defined; Lemmas 5 and 6 are stated in combined form
-  `Ω ≤ M₁/(1-ε) + O(x (log x)^{-2.01})`, which is exactly how the pair is used.
+* **Lemma 6 / `M₂`.** The finite character-sum form of `M₂` is defined and
+  Lemma 5 retains it explicitly:
+  `Ω ≤ (M₁+M₂)/(1-ε) + O(x (log x)^{-2.01})`.  The analytic
+  contour/Dirichlet-series representation and the estimate
+  `M₂ ≪ x (log x)^{-2.01}` belong to the still-pending proof of Lemma 6.
 * **Primitive character sums.** `Chen.primSum` sums over primitive
   `DirichletCharacter ℂ q` via a `tsum`, avoiding `Fintype` instance juggling for
   the degenerate modulus `q = 0` that never occurs in the ranges used.
@@ -154,8 +162,8 @@ lake build
 
 ## Status
 
-Builds cleanly with `lake build` (Lean `v4.31.0`, Mathlib `v4.31.0`): all
-definitions and all 21 theorem statements elaborate with zero errors.
+Builds cleanly with `lake build` (Lean `v4.31.0`, Mathlib `v4.31.0`) with zero
+errors and zero warnings.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -172,7 +180,13 @@ orthogonality — see the design note above.
 three modules under `ChenTheorem/LargeSieve/`; neither theorem depends on
 `sorryAx`.
 
-The `L`-function fourth moment and everything in
-`MainEstimates.lean`/`Main.lean` remain `sorry`-placeholders. This is still a
-*skeleton* overall, but Lemmas 1, 2, and 4 are now complete, machine-checked
-proofs.
+**Lemma 5 is fully proved** (`sieveOmega_le_mOne_add_mTwo`).  Its
+dimension-two upper-bound sieve is organized under `ChenTheorem/Lemma5/`;
+in particular the large-base smoothing boundary is bounded by
+`O(x (log x)^{-2.01})` using a short transition interval, optimal Selberg
+weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
+
+The `L`-function fourth moment (Lemma 3), Lemma 6, and the later main estimates
+still contain documented `sorry` placeholders.  The project therefore remains
+a skeleton overall, while Lemmas 1, 2, 4, and 5 are complete,
+machine-checked proofs.

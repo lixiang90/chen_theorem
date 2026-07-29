@@ -16,9 +16,9 @@ The main estimates: Lemmas 5–9 of Chen's paper.
 
 The remaining analytic estimates are explicitly isolated as
 `sorry`-placeholders.  The final statement of Lemma 5 is assembled from those
-estimates by proved finite and algebraic reductions in `Lemma5.lean`.
+estimates by proved finite and algebraic reductions in `Lemma5/Core.lean`.
 -/
-import ChenTheorem.Lemma5
+import ChenTheorem.Lemma5.Boundary.Analytic
 
 -- This file is still an explicitly documented collection of formalization targets.
 set_option warn.sorry false
@@ -70,35 +70,137 @@ theorem sieveMSmallTail_le
     simpa [mul_div_assoc] using
       (mul_le_mul_of_nonneg_left hpower hC.le))
 
-/-- Equations (5)–(11): after the principal-character contribution `M₁`,
-the nonprincipal contribution is bounded by `M₂`; the `M₃` and `M₅`
-remainders have a fixed power saving. -/
-theorem sieveM_le_mOne_add_mTwo_power_bound
-    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+/-- The sole remaining two-dimensional upper-sieve input in formula (5).
+Here the base prime of `n` is larger than `x^(1/100)`, so both `n` and
+`x-p₁p₂n` avoid all primes up to `x^(1/100)`. -/
+theorem smoothingBoundaryLargeBaseMass_le :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
-      sieveM x ≤ mOne x ε + mTwo x ε +
-        C * (x : ℝ) ^ (1 - ε / 3) := by
-  sorry
+      smoothingBoundaryLargeBaseMass x ≤
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  exact eventually_smoothingBoundaryLargeBaseMass_le
 
-/-- Logarithmic-error form of equations (5)–(11). -/
+/-- The full transition mass combines the fixed-power small-base part with
+the two-dimensional upper-sieve estimate. -/
+theorem smoothingBoundaryMass_le :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      smoothingBoundaryMass x ≤
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  obtain ⟨C_large, hC_large, hlarge⟩ :=
+    smoothingBoundaryLargeBaseMass_le
+  let C_small : ℝ := 18 * ((Real.log 2)⁻¹ + 1)
+  let C : ℝ := C_small + C_large
+  have hC_small : 0 < C_small := by
+    dsimp only [C_small]
+    have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    positivity
+  refine ⟨C, add_pos hC_small hC_large, ?_⟩
+  filter_upwards
+      [eventually_smoothingBoundarySmallBaseMass_le, hlarge] with
+      x hsmall hlarge
+  intro hxeven
+  rw [smoothingBoundaryMass_eq_small_add_large]
+  calc
+    smoothingBoundarySmallBaseMass x +
+        smoothingBoundaryLargeBaseMass x ≤
+      C_small * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) +
+        C_large * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) :=
+      add_le_add (by simpa only [C_small] using hsmall)
+        (hlarge hxeven)
+    _ = C * (x : ℝ) /
+        (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [C]
+      ring
+
+/-- The complete smoothing loss in formula (5).  Lemma 1 controls the
+interior by `x⁻⁰·¹ M`; only `smoothingBoundaryMass_le` is needed for the
+transition interval. -/
+theorem sieveMSmoothingError_le :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      sieveMSmoothingError x ≤
+        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  obtain ⟨C_boundary, hC_boundary, hboundary⟩ :=
+    smoothingBoundaryMass_le
+  let C : ℝ := 19 + C_boundary
+  refine ⟨C, add_pos (by norm_num) hC_boundary, ?_⟩
+  have hxlogReal :
+      ∀ᶠ y : ℝ in atTop, (10 : ℝ) ^ 4 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually
+      (eventually_ge_atTop ((10 : ℝ) ^ 4))
+  have hxlog :
+      ∀ᶠ x : ℕ in atTop, (10 : ℝ) ^ 4 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hxlogReal
+  filter_upwards [hboundary, eventually_smoothingInterior_le,
+    hxlog, eventually_gt_atTop 1] with
+      x hboundary hinterior hxlog hx1
+  intro hxeven
+  calc
+    sieveMSmoothingError x ≤
+        (x : ℝ) ^ (-(0.1 : ℝ)) * sieveM x +
+          smoothingBoundaryMass x :=
+      sieveMSmoothingError_le_interior_add_boundary hx1 hxlog
+    _ ≤ 19 * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) +
+        C_boundary * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) :=
+      add_le_add hinterior (hboundary hxeven)
+    _ = C * (x : ℝ) /
+        (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [C]
+      ring
+
+/-- Logarithmic-error form of equations (5)–(11).  Formula (5) contributes
+`sieveMSmoothingError`; equations (6)–(11) contribute the fixed power saving
+proved in `smoothedSieveExpansion_power_bound`. -/
 theorem sieveM_le_mOne_add_mTwo
     (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
       sieveM x ≤ mOne x ε + mTwo x ε +
         C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
-  obtain ⟨C, hC, hM⟩ :=
-    sieveM_le_mOne_add_mTwo_power_bound ε hε hε'
-  refine ⟨C, hC, ?_⟩
-  filter_upwards [hM,
+  obtain ⟨C_smooth, hC_smooth, hsmoothing⟩ :=
+    sieveMSmoothingError_le
+  obtain ⟨C_power, hC_power, hexpansion⟩ :=
+    smoothedSieveExpansion_power_bound ε hε hε'
+  let C : ℝ := C_smooth + C_power
+  refine ⟨C, add_pos hC_smooth hC_power, ?_⟩
+  filter_upwards [hsmoothing, hexpansion,
     eventually_rpow_one_sub_le_div_log_rpow
-      (δ := ε / 3) (r := (2.01 : ℝ)) (by positivity)] with x hx hpower
+      (δ := ε / 3) (r := (2.01 : ℝ)) (by positivity),
+    eventually_gt_atTop 1] with
+      x hsmoothing hexpansion hpower hx1
   intro hxEven
-  have hmul :
-      C * (x : ℝ) ^ (1 - ε / 3) ≤
-        C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  have hformula :=
+    sieveM_le_smoothedSieveExpansion_add_smoothingError
+      (ε := ε) hx1 hε.le (hε'.le.trans (by norm_num))
+  have hpower' :
+      C_power * (x : ℝ) ^ (1 - ε / 3) ≤
+        C_power * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) := by
     simpa [mul_div_assoc] using
-      (mul_le_mul_of_nonneg_left hpower hC.le)
-  linarith [hx hxEven]
+      (mul_le_mul_of_nonneg_left hpower hC_power.le)
+  calc
+    sieveM x ≤
+        smoothedSieveExpansion x ε +
+          sieveMSmoothingError x := hformula
+    _ ≤ (mOne x ε + mTwo x ε +
+          C_power * (x : ℝ) ^ (1 - ε / 3)) +
+        C_smooth * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) := by
+      gcongr
+      · exact hexpansion hxEven
+      · exact hsmoothing hxEven
+    _ ≤ (mOne x ε + mTwo x ε +
+          C_power * (x : ℝ) /
+            (Real.log x) ^ (2.01 : ℝ)) +
+        C_smooth * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) := by
+      gcongr
+    _ = mOne x ε + mTwo x ε +
+        C * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [C]
+      ring
 
 /-- **Lemma 5**: for even `x`,
 `Ω ≤ (M₁ + M₂)/(1-ε) + O(x/(log x)^{2.01})`. -/

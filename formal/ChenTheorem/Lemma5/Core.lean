@@ -1,7 +1,7 @@
 /-
 Preparatory definitions and elementary reductions for Lemma 5 of Chen's paper.
 
-This file deliberately stays on the finite-sum side of the argument.  The
+This core file deliberately stays on the finite-sum side of the argument.  The
 vertical-integral representation of `mTwo` belongs to Lemma 6.
 -/
 import ChenTheorem.SieveLemmas
