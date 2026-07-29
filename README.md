@@ -39,12 +39,13 @@ Each may need to be run twice to resolve cross-references.
 ## The Lean formalization
 
 `formal/` is a Lake project targeting Lean `v4.31.0` / Mathlib `v4.31.0`. It
-states every definition, lemma, and theorem of the paper in Lean, and
-**Lemma 1 (the smoothing-function estimate) and Lemma 4 (the primitive-character
-sum bound) are fully proved**, with no `sorry`. The remaining lemmas and the main
-theorems are stated precisely but not yet proved. See [`formal/README.md`](formal/README.md) for the build
-instructions, the full correspondence table against the paper, and design
-notes.
+states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
+4, and 5 are fully proved. The final deductions in `Main.lean`—including the
+numerical deduction and qualitative extraction for Theorem 1 and the
+infinitude argument for Theorem 2—also contain no proof placeholders; their
+remaining analytic and shifted sieve inputs are isolated as named upstream
+targets. See [`formal/README.md`](formal/README.md) for the build instructions,
+the full correspondence table against the paper, and design notes.
 
 ```
 cd formal
