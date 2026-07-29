@@ -656,7 +656,373 @@ theorem two_mul_keyRegularBadPrimes_card_le
   simpa [Fintype.card_prod, keyCorrectionWitnesses_card,
     Nat.mul_comm] using hcard
 
-set_option warn.sorry false in
+theorem sum_inv_sq_Icc_tail_le
+    {Y X : ℕ} (hY : 2 ≤ Y) :
+    ∑ q ∈ Finset.Icc Y X, ((q : ℝ) ^ 2)⁻¹ ≤
+      ((Y - 1 : ℕ) : ℝ)⁻¹ := by
+  by_cases hYX : Y ≤ X
+  · have hstrong :
+        ∑ q ∈ Finset.Icc Y X, ((q : ℝ) ^ 2)⁻¹ ≤
+          ((Y - 1 : ℕ) : ℝ)⁻¹ - (X : ℝ)⁻¹ := by
+      induction X, hYX using Nat.le_induction with
+      | base =>
+          simp only [Finset.Icc_self, Finset.sum_singleton]
+          have hYm1pos : (0 : ℝ) < ((Y - 1 : ℕ) : ℝ) := by
+            exact_mod_cast (show 0 < Y - 1 by omega)
+          have hYpos : (0 : ℝ) < Y := by positivity
+          have hcast :
+              ((Y - 1 : ℕ) : ℝ) = (Y : ℝ) - 1 := by
+            rw [Nat.cast_sub (by omega), Nat.cast_one]
+          have heq :
+              ((Y - 1 : ℕ) : ℝ)⁻¹ - (Y : ℝ)⁻¹ =
+                (((Y - 1 : ℕ) : ℝ) * (Y : ℝ))⁻¹ := by
+            field_simp [hYm1pos.ne', hYpos.ne']
+            rw [hcast]
+            ring
+          rw [heq]
+          simp only [inv_eq_one_div]
+          apply one_div_le_one_div_of_le
+            (mul_pos hYm1pos hYpos)
+          rw [hcast]
+          nlinarith
+      | succ X hYX ih =>
+          rw [Finset.sum_Icc_succ_top (by omega)]
+          have hXpos : (0 : ℝ) < X := by
+            exact_mod_cast (show 0 < X by omega)
+          have hXspos : (0 : ℝ) < X + 1 := by positivity
+          have hstep :
+              ((((X + 1 : ℕ) : ℝ) ^ 2)⁻¹) ≤
+                (X : ℝ)⁻¹ - ((X + 1 : ℕ) : ℝ)⁻¹ := by
+            field_simp
+            norm_num only [Nat.cast_add, Nat.cast_one] at *
+            nlinarith
+          linarith
+    exact hstrong.trans (sub_le_self _ (by positivity))
+  · have hempty : Finset.Icc Y X = ∅ :=
+      Finset.Icc_eq_empty (by omega)
+    rw [hempty]
+    simp only [Finset.sum_empty]
+    positivity
+
+noncomputable def keySmallExceptionalPrimes (x : ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun p =>
+    (p : ℝ) ≤ (x : ℝ) ^ (0.9 : ℝ)
+
+noncomputable def keyEndpointExceptionalPrimes (x : ℕ) : Finset ℕ :=
+  (Finset.range (x + 1)).filter fun p =>
+    p = 2 ∨ x - p ≤ 1
+
+noncomputable def keyNonsquarefreeExceptionalPrimes
+    (x : ℕ) : Finset ℕ :=
+  (keySievedPrimes x).filter fun p =>
+    p ≠ 2 ∧ 1 < x - p ∧ ¬Squarefree (x - p)
+
+noncomputable def keyRoughSquareWitnesses (x : ℕ) :
+    Finset (Σ _q : ℕ, ℕ) :=
+  (Finset.Icc
+      (⌊(x : ℝ) ^ ((1 : ℝ) / 10)⌋₊ + 1) x).sigma fun q =>
+    Finset.Icc 1 (x / (q * q))
+
+@[simp]
+theorem keyRoughSquareWitnesses_card (x : ℕ) :
+    (keyRoughSquareWitnesses x).card =
+      ∑ q ∈ Finset.Icc
+          (⌊(x : ℝ) ^ ((1 : ℝ) / 10)⌋₊ + 1) x,
+        x / (q * q) := by
+  unfold keyRoughSquareWitnesses
+  rw [Finset.card_sigma]
+  apply Finset.sum_congr rfl
+  intro q hq
+  simp
+
+noncomputable def keyRoughSquareWitness
+    (x p : ℕ) : Σ _q : ℕ, ℕ :=
+  let q := repeatedPrime (x - p)
+  ⟨q, (x - p) / (q * q)⟩
+
+theorem keyRoughSquareWitness_mem
+    {x p : ℕ} (hxEven : Even x)
+    (hp : p ∈ keyNonsquarefreeExceptionalPrimes x) :
+    keyRoughSquareWitness x p ∈
+      keyRoughSquareWitnesses x := by
+  have hpData := Finset.mem_filter.mp hp
+  have hpSieved := hpData.1
+  have hpne := hpData.2.1
+  have hnTwo := hpData.2.2.1
+  have hnNot := hpData.2.2.2
+  let q := repeatedPrime (x - p)
+  have hqPrime : q.Prime := repeatedPrime_prime hnNot
+  have hqSqDiv : q * q ∣ x - p :=
+    repeatedPrime_sq_dvd hnNot
+  have hple : p ≤ x := by
+    have hpRange :=
+      (Finset.mem_filter.mp hpSieved).1
+    have := Finset.mem_range.mp hpRange
+    omega
+  have hnpos : 0 < x - p := by omega
+  have hqSqLe : q * q ≤ x - p :=
+    Nat.le_of_dvd hnpos hqSqDiv
+  have hqLe : q ≤ x := by
+    have hqq : q ≤ q * q := by
+      nlinarith [hqPrime.two_le]
+    omega
+  have hqLowerReal :
+      (x : ℝ) ^ ((1 : ℝ) / 10) < q :=
+    keySieved_primeFactor_gt_threshold
+      hxEven hpne hpSieved hqPrime
+        ((show q ∣ q * q from ⟨q, rfl⟩).trans hqSqDiv)
+  have hqLower :
+      ⌊(x : ℝ) ^ ((1 : ℝ) / 10)⌋₊ + 1 ≤ q := by
+    have hfloor :
+        ⌊(x : ℝ) ^ ((1 : ℝ) / 10)⌋₊ < q :=
+      (Nat.floor_lt (Real.rpow_nonneg (by positivity) _)).2
+        hqLowerReal
+    omega
+  unfold keyRoughSquareWitnesses keyRoughSquareWitness
+  apply Finset.mem_sigma.mpr
+  refine ⟨Finset.mem_Icc.mpr ⟨hqLower, hqLe⟩, ?_⟩
+  apply Finset.mem_Icc.mpr
+  constructor
+  · exact Nat.div_pos hqSqLe
+      (Nat.mul_pos hqPrime.pos hqPrime.pos)
+  · exact Nat.div_le_div_right (by omega : x - p ≤ x)
+
+theorem keyRoughSquareWitness_injective
+    (x : ℕ) :
+    Set.InjOn (keyRoughSquareWitness x)
+      (keyNonsquarefreeExceptionalPrimes x) := by
+  intro p hp r hr hpr
+  have hpData := Finset.mem_filter.mp hp
+  have hrData := Finset.mem_filter.mp hr
+  have hpSieved := hpData.1
+  have hrSieved := hrData.1
+  have hpNot := hpData.2.2.2
+  have hrNot := hrData.2.2.2
+  have hpDiv := repeatedPrime_sq_dvd hpNot
+  have hrDiv := repeatedPrime_sq_dvd hrNot
+  have hpProd :
+      repeatedPrime (x - p) * repeatedPrime (x - p) *
+          ((x - p) /
+            (repeatedPrime (x - p) * repeatedPrime (x - p))) =
+        x - p := by
+    exact Nat.mul_div_cancel' hpDiv
+  have hrProd :
+      repeatedPrime (x - r) * repeatedPrime (x - r) *
+          ((x - r) /
+            (repeatedPrime (x - r) * repeatedPrime (x - r))) =
+        x - r := by
+    exact Nat.mul_div_cancel' hrDiv
+  have hnEq : x - p = x - r := by
+    have := congrArg
+      (fun z : Σ _q : ℕ, ℕ => z.1 * z.1 * z.2) hpr
+    simpa only [keyRoughSquareWitness, hpProd, hrProd] using this
+  have hple : p ≤ x := by
+    have := Finset.mem_range.mp
+      (Finset.mem_filter.mp hpSieved).1
+    omega
+  have hrle : r ≤ x := by
+    have := Finset.mem_range.mp
+      (Finset.mem_filter.mp hrSieved).1
+    omega
+  omega
+
+theorem keyNonsquarefreeExceptionalPrimes_card_le
+    (x : ℕ) (hxEven : Even x) :
+    (keyNonsquarefreeExceptionalPrimes x).card ≤
+      (keyRoughSquareWitnesses x).card := by
+  let f := fun p :
+      {p // p ∈ keyNonsquarefreeExceptionalPrimes x} =>
+    (⟨keyRoughSquareWitness x p,
+      keyRoughSquareWitness_mem hxEven p.property⟩ :
+        {w // w ∈ keyRoughSquareWitnesses x})
+  have hf : Function.Injective f := by
+    intro p r h
+    apply Subtype.ext
+    apply keyRoughSquareWitness_injective x p.property r.property
+    exact congrArg Subtype.val h
+  simpa using Fintype.card_le_of_injective f hf
+
+theorem keyExceptionalPrimes_card_le_parts (x : ℕ) :
+    (keyExceptionalPrimes x).card ≤
+      (keySmallExceptionalPrimes x).card +
+        (keyEndpointExceptionalPrimes x).card +
+          (keyNonsquarefreeExceptionalPrimes x).card := by
+  let U :=
+    keySmallExceptionalPrimes x ∪
+      keyEndpointExceptionalPrimes x ∪
+        keyNonsquarefreeExceptionalPrimes x
+  have hsub : keyExceptionalPrimes x ⊆ U := by
+    intro p hp
+    have hpData := Finset.mem_filter.mp hp
+    have hpSieved := hpData.1
+    have hpRange := (Finset.mem_filter.mp hpSieved).1
+    rcases hpData.2 with hpTwo | hpSmall | hpEnd | hpNot
+    · have hmem : p ∈ keyEndpointExceptionalPrimes x := by
+        unfold keyEndpointExceptionalPrimes
+        exact Finset.mem_filter.mpr ⟨hpRange, Or.inl hpTwo⟩
+      exact Finset.mem_union.mpr
+        (Or.inl (Finset.mem_union.mpr (Or.inr hmem)))
+    · have hmem : p ∈ keySmallExceptionalPrimes x := by
+        unfold keySmallExceptionalPrimes
+        exact Finset.mem_filter.mpr ⟨hpRange, hpSmall⟩
+      exact Finset.mem_union.mpr
+        (Or.inl (Finset.mem_union.mpr (Or.inl hmem)))
+    · have hmem : p ∈ keyEndpointExceptionalPrimes x := by
+        unfold keyEndpointExceptionalPrimes
+        exact Finset.mem_filter.mpr ⟨hpRange, Or.inr hpEnd⟩
+      exact Finset.mem_union.mpr
+        (Or.inl (Finset.mem_union.mpr (Or.inr hmem)))
+    · by_cases hpTwo : p = 2
+      · have hmem : p ∈ keyEndpointExceptionalPrimes x := by
+          unfold keyEndpointExceptionalPrimes
+          exact Finset.mem_filter.mpr ⟨hpRange, Or.inl hpTwo⟩
+        exact Finset.mem_union.mpr
+          (Or.inl (Finset.mem_union.mpr (Or.inr hmem)))
+      · by_cases hpEnd : x - p ≤ 1
+        · have hmem : p ∈ keyEndpointExceptionalPrimes x := by
+            unfold keyEndpointExceptionalPrimes
+            exact Finset.mem_filter.mpr ⟨hpRange, Or.inr hpEnd⟩
+          exact Finset.mem_union.mpr
+            (Or.inl (Finset.mem_union.mpr (Or.inr hmem)))
+        · have hmem : p ∈ keyNonsquarefreeExceptionalPrimes x := by
+            unfold keyNonsquarefreeExceptionalPrimes
+            exact Finset.mem_filter.mpr
+              ⟨hpSieved, hpTwo, lt_of_not_ge hpEnd, hpNot⟩
+          exact Finset.mem_union.mpr (Or.inr hmem)
+  calc
+    (keyExceptionalPrimes x).card ≤ U.card :=
+      Finset.card_le_card hsub
+    _ ≤ (keySmallExceptionalPrimes x).card +
+        (keyEndpointExceptionalPrimes x).card +
+          (keyNonsquarefreeExceptionalPrimes x).card := by
+      dsimp only [U]
+      exact (Finset.card_union_le _ _).trans
+        (Nat.add_le_add_right (Finset.card_union_le _ _)
+          (keyNonsquarefreeExceptionalPrimes x).card)
+
+theorem keySmallExceptionalPrimes_card_real_le (x : ℕ) :
+    ((keySmallExceptionalPrimes x).card : ℝ) ≤
+      (x : ℝ) ^ (0.9 : ℝ) + 1 := by
+  let y : ℝ := (x : ℝ) ^ (0.9 : ℝ)
+  have hy : 0 ≤ y := Real.rpow_nonneg (by positivity) _
+  have hsub :
+      keySmallExceptionalPrimes x ⊆
+        Finset.range (⌊y⌋₊ + 1) := by
+    intro p hp
+    have hpSmall :=
+      (Finset.mem_filter.mp hp).2
+    apply Finset.mem_range.mpr
+    have hpfloor : p ≤ ⌊y⌋₊ := by
+      rw [Nat.le_floor_iff hy]
+      exact hpSmall
+    omega
+  have hcard :
+      (keySmallExceptionalPrimes x).card ≤ ⌊y⌋₊ + 1 := by
+    simpa using Finset.card_le_card hsub
+  calc
+    ((keySmallExceptionalPrimes x).card : ℝ) ≤
+        (⌊y⌋₊ + 1 : ℕ) := by exact_mod_cast hcard
+    _ ≤ y + 1 := by
+      norm_num only [Nat.cast_add, Nat.cast_one]
+      simpa [add_comm] using
+        (add_le_add_right (Nat.floor_le hy) 1)
+    _ = (x : ℝ) ^ (0.9 : ℝ) + 1 := rfl
+
+theorem keyEndpointExceptionalPrimes_card_le (x : ℕ) :
+    (keyEndpointExceptionalPrimes x).card ≤ 3 := by
+  have hsub :
+      keyEndpointExceptionalPrimes x ⊆
+        ({2, x, x - 1} : Finset ℕ) := by
+    intro p hp
+    have hpData := Finset.mem_filter.mp hp
+    have hple : p ≤ x := by
+      have := Finset.mem_range.mp hpData.1
+      omega
+    rcases hpData.2 with rfl | hpEnd
+    · simp
+    · have : p = x ∨ p = x - 1 := by omega
+      rcases this with rfl | rfl <;> simp
+  exact (Finset.card_le_card hsub).trans Finset.card_le_three
+
+theorem keyRoughSquareWitnesses_card_real_le
+    (x : ℕ)
+    (hroot : 2 ≤ (x : ℝ) ^ ((1 : ℝ) / 10)) :
+    ((keyRoughSquareWitnesses x).card : ℝ) ≤
+      2 * (x : ℝ) ^ (0.9 : ℝ) := by
+  let y : ℝ := (x : ℝ) ^ ((1 : ℝ) / 10)
+  let Y : ℕ := ⌊y⌋₊ + 1
+  have hxpos : (0 : ℝ) < x := by
+    by_contra hx
+    have hxzero : x = 0 := by
+      have hxzeroReal : (x : ℝ) = 0 :=
+        le_antisymm (le_of_not_gt hx) (by positivity)
+      exact_mod_cast hxzeroReal
+    subst x
+    norm_num at hroot
+  have hypos : 0 < y := by
+    dsimp only [y]
+    positivity
+  have hyTwo : 2 ≤ y := by simpa only [y] using hroot
+  have hfloorOne : 1 ≤ ⌊y⌋₊ := by
+    by_contra h
+    have hlt : ⌊y⌋₊ < 1 := by omega
+    have := (Nat.floor_lt_one hypos.le).mp hlt
+    linarith
+  have hY : 2 ≤ Y := by
+    dsimp only [Y]
+    omega
+  have hsumCast :
+      ((∑ q ∈ Finset.Icc Y x, x / (q * q) : ℕ) : ℝ) ≤
+        ∑ q ∈ Finset.Icc Y x,
+          (x : ℝ) / ((q : ℝ) ^ 2) := by
+    push_cast
+    apply Finset.sum_le_sum
+    intro q hq
+    simpa [Nat.cast_mul, pow_two] using
+      (Nat.cast_div_le (α := ℝ) (m := x) (n := q * q))
+  have hsumFactor :
+      (∑ q ∈ Finset.Icc Y x,
+          (x : ℝ) / ((q : ℝ) ^ 2)) =
+        (x : ℝ) *
+          ∑ q ∈ Finset.Icc Y x, ((q : ℝ) ^ 2)⁻¹ := by
+    simp_rw [div_eq_mul_inv]
+    exact (Finset.mul_sum _ _ _).symm
+  have htail :
+      ∑ q ∈ Finset.Icc Y x, ((q : ℝ) ^ 2)⁻¹ ≤
+        (⌊y⌋₊ : ℝ)⁻¹ := by
+    simpa only [Y, Nat.add_sub_cancel] using
+      (sum_inv_sq_Icc_tail_le (X := x) hY)
+  have hfloorHalf : y / 2 ≤ (⌊y⌋₊ : ℝ) := by
+    exact (Nat.div_two_lt_floor
+      (show (1 : ℝ) ≤ y by linarith)).le
+  have hfloorPos : (0 : ℝ) < ⌊y⌋₊ := by
+    exact_mod_cast (show 0 < ⌊y⌋₊ by omega)
+  have hpow :
+      (x : ℝ) ^ (0.9 : ℝ) * y = x := by
+    dsimp only [y]
+    rw [← Real.rpow_add hxpos]
+    norm_num
+  have hxDiv :
+      (x : ℝ) * (⌊y⌋₊ : ℝ)⁻¹ ≤
+        2 * (x : ℝ) ^ (0.9 : ℝ) := by
+    rw [← div_eq_mul_inv]
+    apply (div_le_iff₀ hfloorPos).2
+    calc
+      (x : ℝ) = (x : ℝ) ^ (0.9 : ℝ) * y := hpow.symm
+      _ = 2 * (x : ℝ) ^ (0.9 : ℝ) * (y / 2) := by ring
+      _ ≤ 2 * (x : ℝ) ^ (0.9 : ℝ) * (⌊y⌋₊ : ℝ) := by
+        gcongr
+  calc
+    ((keyRoughSquareWitnesses x).card : ℝ) =
+        ((∑ q ∈ Finset.Icc Y x, x / (q * q) : ℕ) : ℝ) := by
+      rw [keyRoughSquareWitnesses_card]
+    _ ≤ ∑ q ∈ Finset.Icc Y x,
+          (x : ℝ) / ((q : ℝ) ^ 2) := hsumCast
+    _ = (x : ℝ) *
+          ∑ q ∈ Finset.Icc Y x, ((q : ℝ) ^ 2)⁻¹ := hsumFactor
+    _ ≤ (x : ℝ) * (⌊y⌋₊ : ℝ)⁻¹ := by gcongr
+    _ ≤ 2 * (x : ℝ) ^ (0.9 : ℝ) := hxDiv
+
 /-- The exceptional part of (28).  Its proof is the remaining elementary
 tail estimate: a nonsquarefree survivor has a repeated prime divisor
 `q > x^(1/10)`, and summing `x / q²` gives `O(x^0.9)`.  Together with the
@@ -664,13 +1030,79 @@ primes `p ≤ x^0.9` and the finitely many endpoint cases this is eventually
 at most `x^0.91`. -/
 theorem eventually_keyExceptionalPrimes_card_le :
     ∀ᶠ x : ℕ in atTop,
+      Even x →
+        ((keyExceptionalPrimes x).card : ℝ) ≤
+          (x : ℝ) ^ (0.91 : ℝ) := by
+  have hrootReal :
+      ∀ᶠ y : ℝ in atTop,
+        2 ≤ y ^ ((1 : ℝ) / 10) :=
+    (tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 10)).eventually
+      (eventually_ge_atTop 2)
+  have hroot :=
+    tendsto_natCast_atTop_atTop.eventually hrootReal
+  have hbonusReal :
+      ∀ᶠ y : ℝ in atTop,
+        7 ≤ y ^ (0.01 : ℝ) :=
+    (tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 0.01)).eventually
+      (eventually_ge_atTop 7)
+  have hbonus :=
+    tendsto_natCast_atTop_atTop.eventually hbonusReal
+  filter_upwards [hroot, hbonus, eventually_ge_atTop 1] with
+      x hroot hbonus hx
+  intro hxEven
+  have hparts := keyExceptionalPrimes_card_le_parts x
+  have hpartsReal :
       ((keyExceptionalPrimes x).card : ℝ) ≤
+        (keySmallExceptionalPrimes x).card +
+          (keyEndpointExceptionalPrimes x).card +
+            (keyNonsquarefreeExceptionalPrimes x).card := by
+    exact_mod_cast hparts
+  have hsmall :=
+    keySmallExceptionalPrimes_card_real_le x
+  have hend :
+      ((keyEndpointExceptionalPrimes x).card : ℝ) ≤ 3 := by
+    exact_mod_cast keyEndpointExceptionalPrimes_card_le x
+  have hnonsquare :
+      ((keyNonsquarefreeExceptionalPrimes x).card : ℝ) ≤
+        2 * (x : ℝ) ^ (0.9 : ℝ) := by
+    have hcard :=
+      keyNonsquarefreeExceptionalPrimes_card_le x
+        hxEven
+    have hcardReal :
+        ((keyNonsquarefreeExceptionalPrimes x).card : ℝ) ≤
+          (keyRoughSquareWitnesses x).card := by
+      exact_mod_cast hcard
+    exact hcardReal.trans
+      (keyRoughSquareWitnesses_card_real_le x (by simpa using hroot))
+  have hxBase : (1 : ℝ) ≤ x := by exact_mod_cast hx
+  have hpowNineOne :
+      (1 : ℝ) ≤ (x : ℝ) ^ (0.9 : ℝ) :=
+    Real.one_le_rpow hxBase (by norm_num)
+  have hxpos : (0 : ℝ) < x :=
+    zero_lt_one.trans_le hxBase
+  have hpow :
+      (x : ℝ) ^ (0.01 : ℝ) *
+          (x : ℝ) ^ (0.9 : ℝ) =
         (x : ℝ) ^ (0.91 : ℝ) := by
-  sorry
+    rw [← Real.rpow_add hxpos]
+    norm_num
+  calc
+    ((keyExceptionalPrimes x).card : ℝ) ≤
+        (keySmallExceptionalPrimes x).card +
+          (keyEndpointExceptionalPrimes x).card +
+            (keyNonsquarefreeExceptionalPrimes x).card :=
+      hpartsReal
+    _ ≤ ((x : ℝ) ^ (0.9 : ℝ) + 1) + 3 +
+          2 * (x : ℝ) ^ (0.9 : ℝ) := by gcongr
+    _ ≤ 7 * (x : ℝ) ^ (0.9 : ℝ) := by
+      nlinarith
+    _ ≤ (x : ℝ) ^ (0.01 : ℝ) *
+          (x : ℝ) ^ (0.9 : ℝ) := by gcongr
+    _ = (x : ℝ) ^ (0.91 : ℝ) := hpow
 
-/-- The combinatorial form of Chen's key inequality (28).  Apart from the
-exceptional tail estimate above, this follows from the explicit two-witness
-injection for every regular non-`P₂` survivor. -/
+/-- The combinatorial form of Chen's key inequality (28), obtained from the
+explicit two-witness injection for every regular non-`P₂` survivor and the
+exceptional tail estimate above. -/
 theorem key_inequality_of_witness_count :
     ∀ᶠ x : ℕ in atTop, Even x →
       (sievedPrimeCount x : ℝ) -
@@ -699,6 +1131,7 @@ theorem key_inequality_of_witness_count :
   rw [keySievedPrimes_card, keyChenPrimes_card] at hPartitionReal
   rw [keyMidWitnesses_card, keyOmegaWitnesses_card] at hWitnessReal
   push_cast at hPartitionReal hWitnessReal
+  have hExceptional' := hExceptional hxEven
   nlinarith
 
 end Chen

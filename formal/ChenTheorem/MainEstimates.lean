@@ -271,15 +271,175 @@ theorem mOne_le (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
 
 /-! ### Lemma 8 -/
 
+/-- The prime-pair kernel estimate obtained from the two applications of
+partial summation in (23) and the numerical integral bound (24).  The slightly
+enlarged decimal `0.492541` leaves room for the limiting `1 + o(1)` factors. -/
+theorem chenPairs_kernel_le :
+    ∀ᶠ x : ℕ in atTop,
+      ∑ q ∈ chenPairs x,
+          ((q.1 : ℝ) * (q.2 : ℝ) *
+            Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
+        0.492541 / Real.log x := by
+  sorry
+
+/-- A logarithmic error of order `x/(log x)^2.01` is eventually absorbed by
+any positive multiple of `x C_x/(log x)^2`. -/
+theorem eventually_log_error_le_singular
+    (C δ : ℝ) (hC : 0 < C) (hδ : 0 < δ) :
+    ∀ᶠ x : ℕ in atTop,
+      C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) ≤
+        δ * (x : ℝ) * chenConst x / (Real.log x) ^ 2 := by
+  let T : ℝ := C / (δ * twinConst)
+  have hden : 0 < δ * twinConst :=
+    mul_pos hδ twinConst_pos
+  have hT : 0 < T := div_pos hC hden
+  have htendsto :
+      Tendsto (fun y : ℝ =>
+          (Real.log y) ^ (0.01 : ℝ))
+        atTop atTop :=
+    (tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 0.01)).comp
+      Real.tendsto_log_atTop
+  have hlargeReal :
+      ∀ᶠ y : ℝ in atTop,
+        T ≤ (Real.log y) ^ (0.01 : ℝ) :=
+    htendsto.eventually (eventually_ge_atTop T)
+  have hlarge :=
+    tendsto_natCast_atTop_atTop.eventually hlargeReal
+  filter_upwards [hlarge, eventually_gt_atTop 1] with
+      x hlarge hx
+  have hxpos : (0 : ℝ) < x := by positivity
+  have hlogpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hlogSmallPos :
+      0 < (Real.log x) ^ (0.01 : ℝ) :=
+    Real.rpow_pos_of_pos hlogpos _
+  have hfactor :
+      C ≤ δ * chenConst x *
+          (Real.log x) ^ (0.01 : ℝ) := by
+    calc
+      C = δ * twinConst * T := by
+        dsimp only [T]
+        field_simp [twinConst_pos.ne']
+      _ ≤ δ * twinConst *
+          (Real.log x) ^ (0.01 : ℝ) := by gcongr
+      _ ≤ δ * chenConst x *
+          (Real.log x) ^ (0.01 : ℝ) := by
+        gcongr
+        exact twinConst_le_chenConst x
+  have hlogSplit :
+      (Real.log x) ^ (2.01 : ℝ) =
+        (Real.log x) ^ 2 *
+          (Real.log x) ^ (0.01 : ℝ) := by
+    rw [← Real.rpow_natCast]
+    rw [← Real.rpow_add hlogpos]
+    norm_num
+  rw [hlogSplit]
+  calc
+    C * (x : ℝ) /
+        ((Real.log x) ^ 2 *
+          (Real.log x) ^ (0.01 : ℝ)) =
+      (C / (Real.log x) ^ (0.01 : ℝ)) *
+        ((x : ℝ) / (Real.log x) ^ 2) := by
+          field_simp
+    _ ≤ (δ * chenConst x) *
+        ((x : ℝ) / (Real.log x) ^ 2) := by
+      gcongr
+      exact (div_le_iff₀ hlogSmallPos).2 hfactor
+    _ = δ * (x : ℝ) * chenConst x /
+        (Real.log x) ^ 2 := by ring
+
 /-- **Lemma 8**: for large even `x`, `Ω ≤ 3.9404 x C_x / (log x)²`.
 (The numerical constant comes from the integral estimate (24):
 `∫_{1/10}^{1/3} log(2-3α)/(α(1-α)) dα ≤ 0.49254`.) -/
 theorem sieveOmega_le :
     ∀ᶠ x : ℕ in atTop, Even x →
       (sieveOmega x : ℝ) ≤ 3.9404 * (x : ℝ) * chenConst x / (Real.log x) ^ 2 := by
-  sorry
+  let ε : ℝ := 0.000001
+  have hε : 0 < ε := by norm_num [ε]
+  have hε' : ε < 1 / 100 := by norm_num [ε]
+  obtain ⟨C, hC, hOmega⟩ :=
+    sieveOmega_le_mOne ε hε hε'
+  have hmOne := mOne_le ε hε hε'
+  have herror :=
+    eventually_log_error_le_singular C 0.00005 hC (by norm_num)
+  filter_upwards [hOmega, hmOne, chenPairs_kernel_le,
+      herror, eventually_gt_atTop 1] with
+      x hOmega hmOne hkernel herror hx
+  intro hxEven
+  have hxpos : (0 : ℝ) < x := by positivity
+  have hlogpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hconst :
+      0 < chenConst x :=
+    twinConst_pos.trans_le (twinConst_le_chenConst x)
+  let A : ℝ :=
+    (x : ℝ) * chenConst x / (Real.log x) ^ 2
+  have hAnonneg : 0 ≤ A := by
+    dsimp only [A]
+    positivity
+  have hden : 0 < 1 - ε := sub_pos.mpr (hε'.trans (by norm_num))
+  have hmOne' := hmOne hxEven
+  have hmain :
+      mOne x ε / (1 - ε) ≤
+        ((8 + 24 * ε) * 0.492541 / (1 - ε)) * A := by
+    calc
+      mOne x ε / (1 - ε) ≤
+          ((8 + 24 * ε) * (x : ℝ) * chenConst x /
+              Real.log x *
+            ∑ q ∈ chenPairs x,
+              ((q.1 : ℝ) * (q.2 : ℝ) *
+                Real.log ((x : ℝ) /
+                  ((q.1 : ℝ) * q.2)))⁻¹) /
+            (1 - ε) :=
+        (div_le_div_iff_of_pos_right hden).2 hmOne'
+      _ ≤ (((8 + 24 * ε) * (x : ℝ) * chenConst x /
+              Real.log x) *
+            (0.492541 / Real.log x)) /
+            (1 - ε) := by
+        gcongr
+      _ = ((8 + 24 * ε) * 0.492541 / (1 - ε)) * A := by
+        dsimp only [A]
+        field_simp
+  have hOmega' := hOmega hxEven
+  have herror' :
+      C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) ≤
+        0.00005 * A := by
+    dsimp only [A]
+    convert herror using 1
+    ring
+  have hnumeric :
+      (8 + 24 * ε) * 0.492541 / (1 - ε) +
+          0.00005 ≤ 3.9404 := by
+    norm_num [ε]
+  calc
+    (sieveOmega x : ℝ) ≤
+        mOne x ε / (1 - ε) +
+          C * (x : ℝ) /
+            (Real.log x) ^ (2.01 : ℝ) := hOmega'
+    _ ≤ ((8 + 24 * ε) * 0.492541 / (1 - ε)) * A +
+          0.00005 * A := add_le_add hmain herror'
+    _ = (((8 + 24 * ε) * 0.492541 / (1 - ε)) +
+          0.00005) * A := by ring
+    _ ≤ 3.9404 * A := by gcongr
+    _ = 3.9404 * (x : ℝ) * chenConst x /
+          (Real.log x) ^ 2 := by
+      dsimp only [A]
+      ring
 
 /-! ### Lemma 9 -/
+
+/-- The output of Richert's weighted sieve (Theorem A of [11]), after the two
+applications (26), the averaged progression estimate supplied by
+Bombieri--Vinogradov, and the elementary integral comparison (27). -/
+theorem richert_weighted_sieve_final_estimate :
+    ∀ᶠ x : ℕ in atTop, Even x →
+      8 * ((x : ℝ) * chenConst x / (Real.log x) ^ 2) *
+          (Real.log 4 - Real.log 8 / 2 - 0.0164725) ≤
+        (sievedPrimeCount x : ℝ) -
+          (1 / 2) *
+            ∑ p' ∈ midPrimes x,
+              (sievedPrimeCountAt x p' : ℝ) := by
+  sorry
 
 /-- **Lemma 9**: for large even `x`,
 `P_x(x, x^{1/10}) - (1/2) ∑_{x^{1/10} < p' ≤ x^{1/3}} P_x(x, p', x^{1/10})
@@ -292,6 +452,46 @@ theorem sieved_lower_bound :
       2.6408 * (x : ℝ) * chenConst x / (Real.log x) ^ 2 ≤
         (sievedPrimeCount x : ℝ) -
           (1 / 2) * ∑ p' ∈ midPrimes x, (sievedPrimeCountAt x p' : ℝ) := by
-  sorry
+  filter_upwards [richert_weighted_sieve_final_estimate,
+      eventually_gt_atTop 1] with x hrichert hx
+  intro hxEven
+  have hlog4 :
+      Real.log (4 : ℝ) = 2 * Real.log 2 := by
+    rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.log_pow]
+    norm_num
+  have hlog8 :
+      Real.log (8 : ℝ) = 3 * Real.log 2 := by
+    rw [show (8 : ℝ) = 2 ^ 3 by norm_num, Real.log_pow]
+    norm_num
+  have hbracket :
+      (0.3301 : ℝ) ≤
+        Real.log 4 - Real.log 8 / 2 - 0.0164725 := by
+    rw [hlog4, hlog8]
+    linarith [Real.log_two_gt_d9]
+  have hxpos : (0 : ℝ) < x := by positivity
+  have hlogpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hconst :
+      0 < chenConst x :=
+    twinConst_pos.trans_le (twinConst_le_chenConst x)
+  have hmainNonneg :
+      0 ≤ (x : ℝ) * chenConst x /
+        (Real.log x) ^ 2 := by positivity
+  have hrichert' := hrichert hxEven
+  calc
+    2.6408 * (x : ℝ) * chenConst x /
+        (Real.log x) ^ 2 =
+      (8 * 0.3301) *
+        ((x : ℝ) * chenConst x /
+          (Real.log x) ^ 2) := by ring
+    _ ≤ 8 *
+        ((x : ℝ) * chenConst x /
+          (Real.log x) ^ 2) *
+        (Real.log 4 - Real.log 8 / 2 - 0.0164725) := by
+      nlinarith
+    _ ≤ (sievedPrimeCount x : ℝ) -
+          (1 / 2) *
+            ∑ p' ∈ midPrimes x,
+              (sievedPrimeCountAt x p' : ℝ) := hrichert'
 
 end Chen

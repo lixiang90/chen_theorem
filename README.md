@@ -44,7 +44,8 @@ states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
 numerical deduction and qualitative extraction for Theorem 1 and the
 infinitude argument for Theorem 2—also contain no proof placeholders; their
 remaining analytic and shifted sieve inputs are isolated as named upstream
-targets. See [`formal/README.md`](formal/README.md) for the build instructions,
+targets. Inequality (28), including its nonsquarefree exceptional tail, is
+fully proved. See [`formal/README.md`](formal/README.md) for the build instructions,
 the full correspondence table against the paper, and design notes.
 
 ```
