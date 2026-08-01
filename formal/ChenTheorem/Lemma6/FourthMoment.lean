@@ -9,11 +9,11 @@ recorded below.
 -/
 import ChenTheorem.SieveLemmas
 import ChenTheorem.Lemma6.Coefficients
-import Mathlib.Analysis.Complex.CauchyIntegral
+import ChenTheorem.Lemma6.CauchyHolder
 
 set_option warn.sorry false
 
-open Filter Real
+open Filter Real MeasureTheory
 open scoped Classical
 
 namespace Chen
@@ -140,6 +140,95 @@ theorem lFourthTerm_nonneg (q : ℕ) (s : ℂ) :
     · positivity
     · exact le_rfl
 
+/-- For a fixed positive modulus the primitive fourth moment is continuous
+in the spectral parameter. -/
+theorem continuous_lFourthTerm {q : ℕ} (hq : 2 ≤ q) :
+    Continuous (lFourthTerm q) := by
+  classical
+  have hq0 : q ≠ 0 := by omega
+  letI : NeZero q := ⟨hq0⟩
+  have heq : lFourthTerm q = fun s =>
+      ∑ χ : DirichletCharacter ℂ q,
+        if χ.IsPrimitive then
+          ‖DirichletCharacter.LFunction χ s‖ ^ 4 else 0 := by
+    funext s
+    unfold lFourthTerm primSum
+    rw [dif_neg hq0]
+    simp only [tsum_fintype]
+  rw [heq]
+  apply continuous_finsetSum
+  intro χ hχmem
+  by_cases hχ : χ.IsPrimitive
+  · simp only [hχ, if_true]
+    exact (primitiveCharacter_differentiable_LFunction hq hχ).continuous.norm.pow 4
+  · simpa only [hχ, if_false] using
+      (continuous_const : Continuous (fun _ : ℂ => (0 : ℝ)))
+
+/-- Cauchy--Hölder estimate after summing over primitive characters at one
+fixed modulus. -/
+theorem lDerivFourthTerm_le_circleIntegral
+    {q : ℕ} (hq : 2 ≤ q) (s : ℂ) {r : ℝ} (hr : 0 < r) :
+    lDerivFourthTerm q s ≤
+      (2 * Real.pi * r ^ 4)⁻¹ *
+        ∫ θ in (0 : ℝ)..2 * Real.pi,
+          lFourthTerm q (circleMap s r θ) := by
+  classical
+  have hq0 : q ≠ 0 := by omega
+  letI : NeZero q := ⟨hq0⟩
+  let K : ℝ := (2 * Real.pi * r ^ 4)⁻¹
+  let G : DirichletCharacter ℂ q → ℝ → ℝ := fun χ θ =>
+    if χ.IsPrimitive then
+      ‖DirichletCharacter.LFunction χ (circleMap s r θ)‖ ^ 4
+    else 0
+  have hGint : ∀ χ, IntervalIntegrable (G χ) volume 0 (2 * Real.pi) := by
+    intro χ
+    by_cases hχ : χ.IsPrimitive
+    · have hdiff := primitiveCharacter_differentiable_LFunction hq hχ
+      have hcont : Continuous (fun θ : ℝ =>
+          ‖DirichletCharacter.LFunction χ (circleMap s r θ)‖ ^ 4) :=
+        (hdiff.continuous.norm.comp (continuous_circleMap s r)).pow 4
+      simpa only [G, hχ, if_true] using
+        hcont.intervalIntegrable 0 (2 * Real.pi)
+    · simpa only [G, hχ, if_false] using
+        (continuous_const.intervalIntegrable (0 : ℝ) (2 * Real.pi) :
+          IntervalIntegrable (fun _ : ℝ => (0 : ℝ)) volume 0 (2 * Real.pi))
+  rw [lDerivFourthTerm, dif_neg hq0]
+  unfold primSum
+  simp only [tsum_fintype]
+  calc
+    ∑ χ : DirichletCharacter ℂ q,
+        (if χ.IsPrimitive then
+          ‖deriv (DirichletCharacter.LFunction χ) s‖ ^ 4 else 0) ≤
+        ∑ χ : DirichletCharacter ℂ q,
+          K * ∫ θ in (0 : ℝ)..2 * Real.pi, G χ θ := by
+      apply Finset.sum_le_sum
+      intro χ hχmem
+      by_cases hχ : χ.IsPrimitive
+      · rw [if_pos hχ]
+        have hdiff := primitiveCharacter_differentiable_LFunction hq hχ
+        simpa only [K, G, hχ, if_true] using
+          norm_deriv_pow_four_le_circleIntegral hdiff hr
+      · rw [if_neg hχ]
+        simp [G, hχ]
+    _ = K * ∫ θ in (0 : ℝ)..2 * Real.pi,
+        ∑ χ : DirichletCharacter ℂ q, G χ θ := by
+      rw [← Finset.mul_sum]
+      congr 1
+      exact (intervalIntegral.integral_finsetSum
+        (fun χ _ => hGint χ)).symm
+    _ = (2 * Real.pi * r ^ 4)⁻¹ *
+        ∫ θ in (0 : ℝ)..2 * Real.pi,
+          lFourthTerm q (circleMap s r θ) := by
+      dsimp only [K]
+      congr 1
+      apply intervalIntegral.integral_congr
+      intro θ hθ
+      change (∑ χ : DirichletCharacter ℂ q, G χ θ) =
+        lFourthTerm q (circleMap s r θ)
+      unfold lFourthTerm primSum
+      rw [dif_neg hq0]
+      simp only [tsum_fintype, G]
+
 /-- The dyadic modulus interval
 `2^(l-1) (log x)^100 < d ≤ 2^l (log x)^100`. -/
 noncomputable def lemma6ModulusBlock (x l : ℕ) : Finset ℕ :=
@@ -249,6 +338,68 @@ theorem lemma6_weighted_lFourth_block_le
           ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
         (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 * ‖s‖ ^ 2 *
           (Real.log (lemma6ModulusCutoff x l)) ^ 4) := by rfl
+
+/-- Cauchy--Hölder after interchanging both finite sums (moduli and
+primitive characters) with the circle integral. -/
+theorem lemma6_weighted_lDerivFourth_le_circleIntegral
+    {x l : ℕ} (hxlog : 1 ≤ Real.log (x : ℝ))
+    (s : ℂ) {r : ℝ} (hr : 0 < r) :
+    ∑ d ∈ lemma6ModulusBlock x l,
+        (Nat.totient d : ℝ)⁻¹ * lDerivFourthTerm d s ≤
+      (2 * Real.pi * r ^ 4)⁻¹ *
+        ∫ θ in (0 : ℝ)..2 * Real.pi,
+          ∑ d ∈ lemma6ModulusBlock x l,
+            (Nat.totient d : ℝ)⁻¹ *
+              lFourthTerm d (circleMap s r θ) := by
+  classical
+  let K : ℝ := (2 * Real.pi * r ^ 4)⁻¹
+  let F : ℕ → ℝ → ℝ := fun d θ =>
+    (Nat.totient d : ℝ)⁻¹ * lFourthTerm d (circleMap s r θ)
+  have hd2 : ∀ d ∈ lemma6ModulusBlock x l, 2 ≤ d := by
+    intro d hd
+    exact (Finset.mem_Icc.mp
+      (lemma6ModulusBlock_subset_Icc hxlog hd)).1
+  have hFint : ∀ d ∈ lemma6ModulusBlock x l,
+      IntervalIntegrable (F d) volume 0 (2 * Real.pi) := by
+    intro d hd
+    have hcont : Continuous (F d) := by
+      dsimp only [F]
+      exact continuous_const.mul
+        ((continuous_lFourthTerm (hd2 d hd)).comp
+          (continuous_circleMap s r))
+    exact hcont.intervalIntegrable 0 (2 * Real.pi)
+  calc
+    ∑ d ∈ lemma6ModulusBlock x l,
+        (Nat.totient d : ℝ)⁻¹ * lDerivFourthTerm d s ≤
+        ∑ d ∈ lemma6ModulusBlock x l,
+          (Nat.totient d : ℝ)⁻¹ *
+            (K * ∫ θ in (0 : ℝ)..2 * Real.pi,
+              lFourthTerm d (circleMap s r θ)) := by
+      apply Finset.sum_le_sum
+      intro d hd
+      apply mul_le_mul_of_nonneg_left
+      · simpa only [K] using
+          lDerivFourthTerm_le_circleIntegral (hd2 d hd) s hr
+      · positivity
+    _ = ∑ d ∈ lemma6ModulusBlock x l,
+          K * ∫ θ in (0 : ℝ)..2 * Real.pi, F d θ := by
+      apply Finset.sum_congr rfl
+      intro d hd
+      dsimp only [F]
+      rw [intervalIntegral.integral_const_mul]
+      ring
+    _ = K * ∑ d ∈ lemma6ModulusBlock x l,
+          ∫ θ in (0 : ℝ)..2 * Real.pi, F d θ := by
+      rw [Finset.mul_sum]
+    _ = K * ∫ θ in (0 : ℝ)..2 * Real.pi,
+          ∑ d ∈ lemma6ModulusBlock x l, F d θ := by
+      congr 1
+      exact (intervalIntegral.integral_finsetSum hFint).symm
+    _ = (2 * Real.pi * r ^ 4)⁻¹ *
+        ∫ θ in (0 : ℝ)..2 * Real.pi,
+          ∑ d ∈ lemma6ModulusBlock x l,
+            (Nat.totient d : ℝ)⁻¹ *
+              lFourthTerm d (circleMap s r θ) := by rfl
 
 /-- A rigorous one-log-slack version of the `L'` fourth-moment estimate used
 by Lemma 6 after equation (15).
