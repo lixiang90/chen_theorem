@@ -46,7 +46,9 @@ infinitude argument for Theorem 2—also contain no proof placeholders; their
 remaining analytic and shifted sieve inputs are isolated as named upstream
 targets. Inequality (28), including its nonsquarefree exceptional tail, is
 fully proved; the numerical integrals (24) and (27) are also proved
-independently without `sorryAx`. See [`formal/README.md`](formal/README.md) for
+independently without `sorryAx`. Lemma 6 is now decomposed into its exact
+conductor, fourth-moment, dyadic, and zero-free-region inputs, with its final
+logarithmic deduction proved. See [`formal/README.md`](formal/README.md) for
 the build instructions, the full correspondence table against the paper, and
 design notes.
 

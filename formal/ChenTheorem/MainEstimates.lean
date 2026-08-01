@@ -2,9 +2,9 @@
 The main estimates: Lemmas 5–9 of Chen's paper.
 
 * Lemma 5 : `Ω ≤ (M₁+M₂)/(1-ε) + O(x/(log x)^{2.01})`.
-* Lemma 6 : `M₂ ≪ x/(log x)^{2.01}`.  Its finite-sum definition is in
-  `Defs.lean`; the equivalent contour representation involving `L'/L` will be
-  introduced when Lemma 6 is proved.
+* Lemma 6 : `M₂ ≪ x/(log x)^{2.01}`. Its conductor reduction, the exact
+  `N_m` interface, and the Lemma-3-dependent dyadic estimates are organized
+  under `Lemma6/`.
 * Lemmas 5 & 6 (combined) : the retained downstream interface
   `Ω ≤ M₁/(1-ε) + O(x/(log x)^{2.01})`.
 * Lemma 7 : the upper bound for `M₁` in terms of `x C_x / log x`.
@@ -15,10 +15,11 @@ The main estimates: Lemmas 5–9 of Chen's paper.
   proved in the paper via Bombieri's theorem and Richert's weighted sieve [11].
 
 The remaining analytic estimates are explicitly isolated as
-`sorry`-placeholders.  The final statement of Lemma 5 is assembled from those
-estimates by proved finite and algebraic reductions in `Lemma5/Core.lean`.
+`sorry`-placeholders. The final statements of Lemmas 5 and 6 are assembled
+from those estimates by proved finite and algebraic reductions in their
+respective modules.
 -/
-import ChenTheorem.Lemma5.Boundary.Analytic
+import ChenTheorem.Lemma6.Core
 import ChenTheorem.Main.NumericalBounds
 
 -- This file is still an explicitly documented collection of formalization targets.
@@ -236,15 +237,10 @@ theorem sieveOmega_le_mOne_add_mTwo
       field_simp
       ring
 
-/-! ### Lemma 6 -/
+/-! ### Lemma 6
 
-/-- **Lemma 6**: the primitive-character remainder satisfies
-`M₂ ≪ x/(log x)^{2.01}`. -/
-theorem mTwo_le
-    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
-    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop, Even x →
-      mTwo x ε ≤ C * (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
-  sorry
+The proof is organized in `Lemma6/Core.lean`; `mTwo_le` is imported from
+there. -/
 
 /-! ### Combined consequence of Lemmas 5 and 6 -/
 

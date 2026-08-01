@@ -440,10 +440,15 @@ theorem large_sieve_dyadic :
 /-! ### Lemma 3 : fourth moment of `L`-functions -/
 
 /-- **Lemma 3**: for `Re s ≥ 1/2`,
-`∑_{q ≤ Q} ∑*_{χ mod q} |L(s, χ)|⁴ ≪ Q² |s|² (log Q)⁴`. -/
+`∑_{2 ≤ q ≤ Q} ∑*_{χ mod q} |L(s, χ)|⁴ ≪ Q² |s|² (log Q)⁴`.
+
+The scan writes only `q ≤ Q`, but its proof uses the character-sum estimate
+for nonprincipal primitive characters. Thus `q = 1` (whose character gives
+the zeta pole at `s = 1`) is implicitly excluded. Lemma 6 only uses moduli
+strictly larger than one. -/
 theorem lFunction_fourth_moment :
     ∃ C : ℝ, 0 < C ∧ ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
-      ∑ q ∈ Finset.Icc 1 Q, lFourthTerm q s ≤
+      ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
         C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4 := by
   sorry
 

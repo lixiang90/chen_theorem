@@ -351,10 +351,11 @@ noncomputable def mFive (x : ℕ) (ε : ℝ) : ℝ :=
 
 /-- Finite-sum form of the primitive-character error `M₂`.
 
-The paper writes this quantity as a vertical integral involving `L'/L`.  For
+The paper writes this quantity as a vertical integral involving `L'/L`. For
 Lemma 5 it is more convenient to use the equivalent finite von Mangoldt sum
-displayed below.  The contour representation will be introduced as a separate
-theorem at the start of Lemma 6.
+displayed below. `Lemma6/Core.lean` introduces the conductor-grouped finite
+counterpart `lemma6Nm`; proving the Mellin/contour identification is part of
+the isolated equation-(12) target.
 
 For each character modulo `d`, `χ.primitiveCharacter` is the primitive
 character of conductor `d*` inducing `χ`. -/
