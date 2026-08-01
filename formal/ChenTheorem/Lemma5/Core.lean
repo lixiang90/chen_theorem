@@ -952,7 +952,7 @@ theorem mFive_eq_badContribution
     hdpos hddata.2.1.symm, norm_neg]
 
 /-- Lift a primitive character at a divisor of `d` to level `d`. -/
-private noncomputable def primitiveLift
+noncomputable def primitiveLift
     (d : ℕ) [NeZero d]
     (z : Σ k : ↥d.divisors,
       {χ : DirichletCharacter ℂ k.1 // χ.IsPrimitive}) :
@@ -962,7 +962,7 @@ private noncomputable def primitiveLift
 
 /-- Every character modulo a nonzero `d` is obtained uniquely by lifting its
 primitive character from its conductor. -/
-private theorem primitiveLift_bijective
+theorem primitiveLift_bijective
     (d : ℕ) [NeZero d] :
     Function.Bijective (primitiveLift d) := by
   constructor
@@ -1005,7 +1005,7 @@ private theorem primitiveLift_bijective
     refine ⟨⟨k, ψ⟩, ?_⟩
     exact χ.changeLevel_primitiveCharacter
 
-private noncomputable def primitiveData
+noncomputable def primitiveData
     (d : ℕ) [NeZero d] (χ : DirichletCharacter ℂ d) :
     Σ k : ↥d.divisors,
       {ψ : DirichletCharacter ℂ k.1 // ψ.IsPrimitive} :=
@@ -1015,7 +1015,7 @@ private noncomputable def primitiveData
 
 /-- Equivalence implementing the conductor partition of all characters
 modulo `d`. -/
-private noncomputable def primitiveLiftEquiv
+noncomputable def primitiveLiftEquiv
     (d : ℕ) [NeZero d] :
     (Σ k : ↥d.divisors,
       {χ : DirichletCharacter ℂ k.1 // χ.IsPrimitive}) ≃
@@ -1027,7 +1027,7 @@ private noncomputable def primitiveLiftEquiv
     right_inv := fun χ => χ.changeLevel_primitiveCharacter }
 
 /-- Reindex a sum over all characters by conductor and primitive character. -/
-private theorem sum_characters_eq_sum_primitiveLifts
+theorem sum_characters_eq_sum_primitiveLifts
     (d : ℕ) [NeZero d] (F : DirichletCharacter ℂ d → ℂ) :
     (∑ χ : DirichletCharacter ℂ d, F χ) =
       ∑ z : Σ k : ↥d.divisors,
@@ -1037,7 +1037,7 @@ private theorem sum_characters_eq_sum_primitiveLifts
 
 /-- A primitive character agrees pointwise with its associated primitive
 character (whose level is definitionally its conductor). -/
-private theorem primitiveCharacter_eq_self_apply
+theorem primitiveCharacter_eq_self_apply
     {k : ℕ} [NeZero k]
     (ψ : DirichletCharacter ℂ k) (hψ : ψ.IsPrimitive) (a : ℕ) :
     ψ.primitiveCharacter a = ψ a := by
@@ -1065,7 +1065,7 @@ private theorem primitiveCharacter_eq_self_apply
 
 /-- The primitive character attached to a lifted character is the primitive
 character from which it was lifted. -/
-private theorem primitiveLift_primitiveCharacter_apply
+theorem primitiveLift_primitiveCharacter_apply
     (d : ℕ) [NeZero d]
     (z : Σ k : ↥d.divisors,
       {ψ : DirichletCharacter ℂ k.1 // ψ.IsPrimitive})
@@ -1324,7 +1324,7 @@ theorem primitive_twisted_sum_bound
 
 /-- Replace a sum over the subtype of primitive characters by the usual
 finite `tsum` with an `IsPrimitive` indicator. -/
-private theorem sum_primitive_subtype_eq_tsum
+theorem sum_primitive_subtype_eq_tsum
     (k : ℕ) (F : DirichletCharacter ℂ k → ℂ) :
     (∑ ψ : {ψ : DirichletCharacter ℂ k // ψ.IsPrimitive}, F ψ.1) =
       ∑' ψ : DirichletCharacter ℂ k,
