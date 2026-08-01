@@ -9,8 +9,8 @@ This is a Lake project giving a **formal skeleton** — precise Lean statements 
 (A LaTeX transcription of the paper, in Chinese and English, lives in the parent
 directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 
-- **Lean**: `leanprover/lean4:v4.31.0`
-- **Mathlib**: release tag `v4.31.0`
+- **Lean**: `leanprover/lean4:v4.32.1`
+- **Mathlib**: release tag `v4.32.1`
 
 ## Build
 
@@ -167,7 +167,7 @@ lake build
 
 ## Status
 
-Builds cleanly with `lake build` (Lean `v4.31.0`, Mathlib `v4.31.0`) with zero
+Builds cleanly with `lake build` (Lean `v4.32.1`, Mathlib `v4.32.1`) with zero
 errors and zero warnings.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,

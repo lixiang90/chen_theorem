@@ -111,11 +111,11 @@ theorem gallagher_centered (hf : ∀ t, HasDerivAt f (f' t) t) (hf' : Continuous
           rw [intervalIntegral.integral_const, smul_eq_mul, hcd]
       _ ≤ ∫ t in c..d, (‖f t‖ ^ 2 + 2 * ∫ u in Set.Ioc c d, ‖f u‖ * ‖f' u‖) := by
           refine intervalIntegral.integral_mono_on_of_le_Ioo hcd'
-            intervalIntegral.intervalIntegrable_const ?_ hpt
-          exact (hfnorm.intervalIntegrable (μ := MeasureTheory.volume) _ _).add intervalIntegral.intervalIntegrable_const
+            intervalIntegrable_const ?_ hpt
+          exact (hfnorm.intervalIntegrable (μ := MeasureTheory.volume) _ _).add intervalIntegrable_const
       _ = (∫ t in c..d, ‖f t‖ ^ 2) + δ * ∫ t in c..d, ‖f t‖ * ‖f' t‖ := by
           rw [intervalIntegral.integral_add (hfnorm.intervalIntegrable (μ := MeasureTheory.volume) _ _)
-            intervalIntegral.intervalIntegrable_const, intervalIntegral.integral_const, smul_eq_mul, hcd, hC]
+            intervalIntegrable_const, intervalIntegral.integral_const, smul_eq_mul, hcd, hC]
           ring
   have hleft := hhalf (by linarith : x - δ/2 ≤ x) (le_refl x) (by ring)
   have hright := hhalf (le_refl x) (by linarith : x ≤ x + δ/2) (by ring)

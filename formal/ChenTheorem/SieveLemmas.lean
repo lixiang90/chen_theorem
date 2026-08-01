@@ -127,7 +127,7 @@ theorem chenPhi_le_one (x : ℝ) (_hx : 1 < x) {y : ℝ} (_hy : 0 ≤ y) :
     MeasureTheory.setIntegral_mono_set (integrableOn_gammaIntegrand_Ioi n)
       ((MeasureTheory.ae_restrict_iff' measurableSet_Ioi).mpr
         (MeasureTheory.ae_of_all _ (fun t ht => gammaIntegrand_nonneg ht.le)))
-      (HasSubset.Subset.eventuallyLE Set.Ioc_subset_Ioi_self)
+      (LE.le.eventuallyLE Set.Ioc_subset_Ioi_self)
   rw [← factorial_eq_integral n] at hmono
   have hfactpos : (0 : ℝ) < (n.factorial : ℝ) := by positivity
   rw [inv_mul_le_iff₀ hfactpos, mul_one]
@@ -167,7 +167,7 @@ theorem chenPhi_monotoneOn (x : ℝ) (hx : 1 < x) :
       MeasureTheory.setIntegral_mono_set (integrableOn_gammaIntegrand_Ioc n _)
         ((MeasureTheory.ae_restrict_iff' measurableSet_Ioc).mpr
           (MeasureTheory.ae_of_all _ (fun t ht => gammaIntegrand_nonneg ht.1.le)))
-        (HasSubset.Subset.eventuallyLE hsub)
+        (LE.le.eventuallyLE hsub)
     have hfact : (0 : ℝ) ≤ ((n.factorial : ℝ))⁻¹ := by positivity
     exact mul_le_mul_of_nonneg_left hmono hfact
 
@@ -355,7 +355,7 @@ theorem chenPhi_ge {x y : ℝ} (hx1 : 1 < x) (hx : (10 : ℝ) ^ 4 ≤ Real.log x
       ((MeasureTheory.ae_restrict_iff' measurableSet_Ioi).mpr
         (MeasureTheory.ae_of_all _ (fun t ht =>
           gammaIntegrand_nonneg (lt_of_le_of_lt (by positivity : (0 : ℝ) ≤ 2 * (n : ℝ)) ht).le)))
-      (HasSubset.Subset.eventuallyLE (Set.Ioi_subset_Ioi ha_ge_2n))
+      (LE.le.eventuallyLE (Set.Ioi_subset_Ioi ha_ge_2n))
   have hcombine : (∫ t in Set.Ioi a, Real.exp (-t) * t ^ n)
       ≤ 2 * (n : ℝ) ^ n * Real.exp ((n : ℝ) * Real.log 2 - 2 * n) :=
     hmono2.trans (integral_gammaIntegrand_Ioi_two_mul_n_le n hn_pos)

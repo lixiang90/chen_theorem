@@ -302,8 +302,6 @@ theorem mFiveArithmetic_inner_le_uniform
               ((1 + 24 / Real.log 2) ^ (16777216 : ℝ) *
                 (x : ℝ) ^ ((1 : ℝ) / 24))) := by
       gcongr
-      exact mul_nonneg (by positivity)
-        ArithmeticFunction.vonMangoldt_nonneg
     _ = (6 : ℝ) ^ (46656 : ℝ) *
         (1 + 24 / Real.log 2) ^ (16777216 : ℝ) *
           (x : ℝ) ^ ((1 : ℝ) / 8) *
