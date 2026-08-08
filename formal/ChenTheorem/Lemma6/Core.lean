@@ -7,7 +7,8 @@ Equation (12) is isolated from the estimates (13), (19), (20), and (21), so
 the remaining analytic work has the same boundaries as the paper.
 -/
 import ChenTheorem.Lemma6.Coefficients
-import ChenTheorem.Lemma6.FourthMoment
+import ChenTheorem.Lemma6.Dyadic
+import ChenTheorem.Lemma6.Mollifier
 
 set_option warn.sorry false
 
@@ -32,6 +33,92 @@ noncomputable def lemma6PrimitiveBlock (x m l : ℕ) : ℂ :=
         ∑ n ∈ smoothedMIndices x q,
           (smoothedMKernel x q n : ℂ) *
             χ (q.1 * q.2 * n : ZMod l))
+
+/-- Prime pairs surviving the cofactor coprimality condition in `N_m`. -/
+noncomputable def lemma6AdmissiblePairs (x m : ℕ) : Finset (ℕ × ℕ) :=
+  (chenPairs x).filter (fun q => Nat.Coprime (q.1 * q.2) m)
+
+/-- The finite set of pair-product dyadic indices occupied for a fixed
+cofactor. -/
+noncomputable def lemma6PairBlockIndices (x m : ℕ) : Finset ℕ :=
+  (lemma6AdmissiblePairs x m).image (lemma6PairBlockIndex x)
+
+/-- The `k`-th prime-pair piece of a primitive conductor block. -/
+noncomputable def lemma6PrimitivePairBlock
+    (x m l k : ℕ) : ℂ :=
+  primComplexSum l (fun χ =>
+    starRingEnd ℂ (χ (x : ZMod l)) *
+      ∑ q ∈ (lemma6AdmissiblePairs x m).filter
+          (fun q => q ∈ lemma6PairBlock x k),
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod l))
+
+/-- Exact prime-pair half of equation (13). -/
+theorem lemma6PrimitiveBlock_eq_sum_pairBlocks
+    {x m l : ℕ} (hx : 1 ≤ x) :
+    lemma6PrimitiveBlock x m l =
+      ∑ k ∈ lemma6PairBlockIndices x m,
+        lemma6PrimitivePairBlock x m l k := by
+  let P := lemma6AdmissiblePairs x m
+  let K := lemma6PairBlockIndices x m
+  let G : (ℕ × ℕ) → DirichletCharacter ℂ l → ℂ := fun q χ =>
+    ∑ n ∈ smoothedMIndices x q,
+      (smoothedMKernel x q n : ℂ) *
+        χ (q.1 * q.2 * n : ZMod l)
+  have hpair (χ : DirichletCharacter ℂ l) :
+      ∑ q ∈ P, G q χ =
+        ∑ k ∈ K,
+          ∑ q ∈ P.filter (fun q => lemma6PairBlockIndex x q = k),
+            G q χ := by
+    have hfiber := Finset.sum_fiberwise_eq_sum_filter P K
+      (lemma6PairBlockIndex x) (fun q => G q χ)
+    rw [Finset.filter_eq_self.mpr] at hfiber
+    · exact hfiber.symm
+    · intro q hq
+      exact Finset.mem_image.mpr ⟨q, hq, rfl⟩
+  have hfibereq (k : ℕ) :
+      P.filter (fun q => lemma6PairBlockIndex x q = k) =
+        P.filter (fun q => q ∈ lemma6PairBlock x k) := by
+    ext q
+    simp only [Finset.mem_filter]
+    constructor
+    · rintro ⟨hqP, hindex⟩
+      have hqchen : q ∈ chenPairs x :=
+        (Finset.mem_filter.mp hqP).1
+      obtain ⟨j, hj⟩ := exists_mem_lemma6PairBlock hx hqchen
+      have hcanonical := lemma6PairBlockIndex_mem ⟨j, hj⟩
+      rw [hindex] at hcanonical
+      exact ⟨hqP, hcanonical⟩
+    · rintro ⟨hqP, hqblock⟩
+      exact ⟨hqP, lemma6PairBlockIndex_eq hqblock⟩
+  unfold lemma6PrimitiveBlock lemma6PrimitivePairBlock
+  change primComplexSum l (fun χ =>
+      starRingEnd ℂ (χ (x : ZMod l)) * ∑ q ∈ P, G q χ) =
+      ∑ k ∈ K, primComplexSum l (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod l)) *
+          ∑ q ∈ P.filter (fun q => q ∈ lemma6PairBlock x k), G q χ)
+  simp_rw [← hfibereq]
+  have hdecomp (χ : DirichletCharacter ℂ l) :
+      starRingEnd ℂ (χ (x : ZMod l)) * ∑ q ∈ P, G q χ =
+        ∑ k ∈ K, starRingEnd ℂ (χ (x : ZMod l)) *
+          ∑ q ∈ P.filter (fun q => lemma6PairBlockIndex x q = k),
+            G q χ := by
+    rw [hpair, Finset.mul_sum]
+  rw [show (fun χ : DirichletCharacter ℂ l =>
+      starRingEnd ℂ (χ (x : ZMod l)) * ∑ q ∈ P, G q χ) =
+      (fun χ => ∑ k ∈ K, starRingEnd ℂ (χ (x : ZMod l)) *
+        ∑ q ∈ P.filter (fun q => lemma6PairBlockIndex x q = k), G q χ) by
+    funext χ
+    exact hdecomp χ]
+  unfold primComplexSum
+  simp only [tsum_fintype]
+  rw [Finset.sum_comm]
+  apply Finset.sum_congr rfl
+  intro χ hχ
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true]
+  · simp only [hp, if_false, Finset.sum_const_zero]
 
 /-- Removing the conductor `l` from the original modulus does not change its
 primitive block.  The newly admitted pairs with `(p₁p₂,l) ≠ 1` contribute
@@ -489,14 +576,294 @@ noncomputable def lemma6NmSmall (x : ℕ) (ε : ℝ) (m : ℕ) : ℝ :=
 
 /-- The positive-dyadic-conductor part `l > (log x)^100`, estimated in
 equations (19) and (20). -/
+noncomputable def lemma6LargeConductors (x : ℕ) (ε : ℝ) : Finset ℕ :=
+  ((sieveModuli x ε).erase 1).filter
+    (fun l : ℕ => ¬(l : ℝ) ≤ (Real.log x) ^ 100)
+
 noncomputable def lemma6NmLarge (x : ℕ) (ε : ℝ) (m : ℕ) : ℝ :=
-  ∑ l ∈ ((sieveModuli x ε).erase 1).filter
-      (fun l : ℕ => ¬(l : ℝ) ≤ (Real.log x) ^ 100),
+  ∑ l ∈ lemma6LargeConductors x ε,
     lemma6NmTerm x m l
+
+/-- Only squarefree conductors contribute to the large-conductor sum. -/
+noncomputable def lemma6LargeSquarefreeConductors
+    (x : ℕ) (ε : ℝ) : Finset ℕ :=
+  (lemma6LargeConductors x ε).filter Squarefree
+
+theorem lemma6NmLarge_eq_squarefree_sum
+    (x : ℕ) (ε : ℝ) (m : ℕ) :
+    lemma6NmLarge x ε m =
+      ∑ d ∈ lemma6LargeSquarefreeConductors x ε,
+        lemma6NmTerm x m d := by
+  unfold lemma6NmLarge lemma6LargeSquarefreeConductors
+  have hzero :
+      ∑ d ∈ (lemma6LargeConductors x ε).filter
+          (fun d => ¬Squarefree d), lemma6NmTerm x m d = 0 := by
+    apply Finset.sum_eq_zero
+    intro d hd
+    have hdnsq := (Finset.mem_filter.mp hd).2
+    unfold lemma6NmTerm lemma6LinearWeight
+    rw [ArithmeticFunction.moebius_eq_zero_of_not_squarefree hdnsq]
+    norm_num
+  have hsplit := Finset.sum_filter_add_sum_filter_not
+    (s := lemma6LargeConductors x ε) (p := Squarefree)
+    (f := lemma6NmTerm x m)
+  rw [hzero, add_zero] at hsplit
+  exact hsplit.symm
+
+/-- The finite set of positive dyadic indices actually occupied by large
+conductors. -/
+noncomputable def lemma6LargeBlockIndices
+    (x : ℕ) (ε : ℝ) : Finset ℕ :=
+  (lemma6LargeSquarefreeConductors x ε).image
+    (lemma6ModulusBlockIndex x)
+
+theorem lemma6LargeSquarefreeConductor_exists_block
+    {x d : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hd : d ∈ lemma6LargeSquarefreeConductors x ε) :
+    ∃ l : ℕ, 1 ≤ l ∧ d ∈ lemma6ModulusBlock x l := by
+  have hddata := hd
+  rw [lemma6LargeSquarefreeConductors, Finset.mem_filter] at hddata
+  have hdlarge := hddata.1
+  rw [lemma6LargeConductors, Finset.mem_filter] at hdlarge
+  have hdsieve : d ∈ sieveModuli x ε :=
+    Finset.mem_of_mem_erase hdlarge.1
+  have hsievedata := hdsieve
+  rw [sieveModuli, Finset.mem_filter] at hsievedata
+  have hdx : d ≤ x := by
+    have := Finset.mem_range.mp hsievedata.1
+    omega
+  exact exists_mem_lemma6ModulusBlock hxlog
+    (lt_of_not_ge hdlarge.2) hddata.2 hdx
+
+/-- In the large-conductor range, a fiber of the canonical block index is
+exactly intersection with the corresponding paper block. -/
+theorem lemma6LargeConductor_fiber_eq_block
+    {x l : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    (lemma6LargeSquarefreeConductors x ε).filter
+        (fun d => lemma6ModulusBlockIndex x d = l) =
+      (lemma6LargeSquarefreeConductors x ε).filter
+        (fun d => d ∈ lemma6ModulusBlock x l) := by
+  ext d
+  simp only [Finset.mem_filter]
+  constructor
+  · rintro ⟨hd, hindex⟩
+    obtain ⟨k, hk1, hk⟩ :=
+      lemma6LargeSquarefreeConductor_exists_block hxlog hd
+    have hcanonical := lemma6ModulusBlockIndex_mem ⟨k, hk⟩
+    rw [hindex] at hcanonical
+    exact ⟨hd, hcanonical⟩
+  · rintro ⟨hd, hdblock⟩
+    exact ⟨hd, lemma6ModulusBlockIndex_eq hdblock⟩
+
+/-- Exact conductor half of equation (13): the large part of `N_m` is the
+sum over its occupied positive dyadic blocks. -/
+theorem lemma6NmLarge_eq_sum_blocks
+    {x m : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    lemma6NmLarge x ε m =
+      ∑ l ∈ lemma6LargeBlockIndices x ε,
+        ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+            (fun d => d ∈ lemma6ModulusBlock x l),
+          lemma6NmTerm x m d := by
+  rw [lemma6NmLarge_eq_squarefree_sum]
+  simp_rw [← lemma6LargeConductor_fiber_eq_block hxlog]
+  have hfiber := Finset.sum_fiberwise_eq_sum_filter
+    (lemma6LargeSquarefreeConductors x ε)
+    (lemma6LargeBlockIndices x ε)
+    (lemma6ModulusBlockIndex x) (lemma6NmTerm x m)
+  rw [Finset.filter_eq_self.mpr] at hfiber
+  · exact hfiber.symm
+  · intro d hd
+    exact Finset.mem_image.mpr ⟨d, hd, rfl⟩
+
+/-- One `(l,k)` summand after both dyadic decompositions in equation (13). -/
+noncomputable def lemma6NmPairTerm
+    (x m d k : ℕ) : ℝ :=
+  lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖
+
+theorem lemma6NmPairTerm_nonneg (x m d k : ℕ) :
+    0 ≤ lemma6NmPairTerm x m d k := by
+  unfold lemma6NmPairTerm
+  exact mul_nonneg (lemma6LinearWeight_nonneg d) (norm_nonneg _)
+
+/-- Equation (13) in the finite model: the large-conductor part is bounded
+by the sum over the occupied conductor and prime-pair dyadic blocks. -/
+theorem lemma6NmLarge_le_sum_pairBlocks
+    {x m : ℕ} {ε : ℝ} (hx : 1 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    lemma6NmLarge x ε m ≤
+      ∑ l ∈ lemma6LargeBlockIndices x ε,
+        ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+            (fun d => d ∈ lemma6ModulusBlock x l),
+          ∑ k ∈ lemma6PairBlockIndices x m,
+            lemma6NmPairTerm x m d k := by
+  rw [lemma6NmLarge_eq_sum_blocks hxlog]
+  apply Finset.sum_le_sum
+  intro l hl
+  apply Finset.sum_le_sum
+  intro d hd
+  unfold lemma6NmTerm
+  rw [lemma6PrimitiveBlock_eq_sum_pairBlocks hx]
+  calc
+    lemma6LinearWeight d *
+        ‖∑ k ∈ lemma6PairBlockIndices x m,
+          lemma6PrimitivePairBlock x m d k‖ ≤
+      lemma6LinearWeight d *
+        ∑ k ∈ lemma6PairBlockIndices x m,
+          ‖lemma6PrimitivePairBlock x m d k‖ := by
+      apply mul_le_mul_of_nonneg_left
+      · exact norm_sum_le _ _
+      · exact lemma6LinearWeight_nonneg d
+    _ = ∑ k ∈ lemma6PairBlockIndices x m,
+        lemma6NmPairTerm x m d k := by
+      unfold lemma6NmPairTerm
+      rw [Finset.mul_sum]
+
+/-- The occupied conductor-block indices are logarithmically bounded. -/
+theorem lemma6LargeBlockIndices_subset_range
+    {x : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    lemma6LargeBlockIndices x ε ⊆ Finset.range (Nat.log 2 x + 2) := by
+  intro l hl
+  rw [lemma6LargeBlockIndices, Finset.mem_image] at hl
+  obtain ⟨d, hd, rfl⟩ := hl
+  obtain ⟨k, hk1, hk⟩ :=
+    lemma6LargeSquarefreeConductor_exists_block hxlog hd
+  have hcanonical := lemma6ModulusBlockIndex_mem ⟨k, hk⟩
+  have hkdata := hcanonical
+  rw [lemma6ModulusBlock, Finset.mem_filter] at hkdata
+  have hlogpow : (1 : ℝ) ≤ Real.log (x : ℝ) ^ 100 :=
+    one_le_pow₀ hxlog
+  have hpowltR : ((2 : ℕ) ^ (lemma6ModulusBlockIndex x d - 1) : ℝ) < d := by
+    norm_num only [Nat.cast_pow, Nat.cast_ofNat]
+    calc
+      (2 : ℝ) ^ (lemma6ModulusBlockIndex x d - 1) ≤
+          (2 : ℝ) ^ (lemma6ModulusBlockIndex x d - 1) *
+            Real.log (x : ℝ) ^ 100 := by
+        exact le_mul_of_one_le_right (by positivity) hlogpow
+      _ < d := hkdata.2.2.1
+  have hpowlt : (2 : ℕ) ^ (lemma6ModulusBlockIndex x d - 1) < d := by
+    exact_mod_cast hpowltR
+  have hddata := hd
+  rw [lemma6LargeSquarefreeConductors, Finset.mem_filter] at hddata
+  have hdlarge := hddata.1
+  rw [lemma6LargeConductors, Finset.mem_filter] at hdlarge
+  have hdsieve : d ∈ sieveModuli x ε :=
+    Finset.mem_of_mem_erase hdlarge.1
+  have hsievedata := hdsieve
+  rw [sieveModuli, Finset.mem_filter] at hsievedata
+  have hdx : d ≤ x := by
+    have := Finset.mem_range.mp hsievedata.1
+    omega
+  have hlogbound : lemma6ModulusBlockIndex x d - 1 ≤ Nat.log 2 x :=
+    Nat.le_log_of_pow_le (by norm_num) (hpowlt.le.trans hdx)
+  rw [Finset.mem_range]
+  omega
+
+theorem card_lemma6LargeBlockIndices_le
+    {x : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    (lemma6LargeBlockIndices x ε).card ≤ Nat.log 2 x + 2 := by
+  calc
+    (lemma6LargeBlockIndices x ε).card ≤
+        (Finset.range (Nat.log 2 x + 2)).card :=
+      Finset.card_le_card (lemma6LargeBlockIndices_subset_range hxlog)
+    _ = Nat.log 2 x + 2 := Finset.card_range _
+
+/-- The occupied prime-pair block indices are also logarithmically bounded. -/
+theorem lemma6PairBlockIndices_subset_range
+    {x m : ℕ} (hx : 1 ≤ x) :
+    lemma6PairBlockIndices x m ⊆
+      Finset.range (Nat.log 2 (x * x) + 1) := by
+  intro k hk
+  rw [lemma6PairBlockIndices, Finset.mem_image] at hk
+  obtain ⟨q, hqP, rfl⟩ := hk
+  have hqchen : q ∈ chenPairs x := (Finset.mem_filter.mp hqP).1
+  obtain ⟨j, hj⟩ := exists_mem_lemma6PairBlock hx hqchen
+  have hcanonical := lemma6PairBlockIndex_mem ⟨j, hj⟩
+  have hkdata := hcanonical
+  rw [lemma6PairBlock, Finset.mem_filter] at hkdata
+  have hqdata := hqchen
+  rw [chenPairs, Finset.mem_filter] at hqdata
+  have hq1x : q.1 ≤ x := by
+    have := Finset.mem_range.mp (Finset.mem_product.mp hqdata.1).1
+    omega
+  have hq2x : q.2 ≤ x := by
+    have := Finset.mem_range.mp (Finset.mem_product.mp hqdata.1).2
+    omega
+  have hprodx : q.1 * q.2 ≤ x * x := Nat.mul_le_mul hq1x hq2x
+  have hxpos : (0 : ℝ) < x := by
+    exact_mod_cast (show 0 < x by omega)
+  have hscale : (1 : ℝ) ≤ (x : ℝ) ^ ((13 : ℝ) / 30) := by
+    exact Real.one_le_rpow (by exact_mod_cast hx) (by norm_num)
+  have hpowltR : ((2 : ℕ) ^ (lemma6PairBlockIndex x q) : ℝ) <
+      (q.1 * q.2 : ℕ) := by
+    norm_num only [Nat.cast_pow, Nat.cast_ofNat]
+    calc
+      (2 : ℝ) ^ lemma6PairBlockIndex x q ≤
+          (2 : ℝ) ^ lemma6PairBlockIndex x q *
+            (x : ℝ) ^ ((13 : ℝ) / 30) := by
+        exact le_mul_of_one_le_right (by positivity) hscale
+      _ < (q.1 * q.2 : ℕ) := hkdata.2.1
+  have hpowlt : (2 : ℕ) ^ lemma6PairBlockIndex x q < q.1 * q.2 := by
+    exact_mod_cast hpowltR
+  have hlogbound : lemma6PairBlockIndex x q ≤ Nat.log 2 (x * x) :=
+    Nat.le_log_of_pow_le (by norm_num) (hpowlt.le.trans hprodx)
+  rw [Finset.mem_range]
+  omega
+
+theorem card_lemma6PairBlockIndices_le
+    {x m : ℕ} (hx : 1 ≤ x) :
+    (lemma6PairBlockIndices x m).card ≤ Nat.log 2 (x * x) + 1 := by
+  calc
+    (lemma6PairBlockIndices x m).card ≤
+        (Finset.range (Nat.log 2 (x * x) + 1)).card :=
+      Finset.card_le_card (lemma6PairBlockIndices_subset_range hx)
+    _ = Nat.log 2 (x * x) + 1 := Finset.card_range _
+
+theorem card_lemma6LargeBlockIndices_cast_le_log
+    {x : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    ((lemma6LargeBlockIndices x ε).card : ℝ) ≤
+      (1 / Real.log 2 + 2) * Real.log x := by
+  have hcardNat := card_lemma6LargeBlockIndices_le (x := x) (ε := ε) hxlog
+  have hcardR : ((lemma6LargeBlockIndices x ε).card : ℝ) ≤
+      (Nat.log 2 x : ℝ) + 2 := by exact_mod_cast hcardNat
+  have hx1 : 1 ≤ x := by
+    by_contra hx
+    have : x = 0 := by omega
+    subst x
+    norm_num at hxlog
+  have hnatlog := natLog_two_cast_le hx1
+  calc
+    ((lemma6LargeBlockIndices x ε).card : ℝ) ≤
+        (Nat.log 2 x : ℝ) + 2 := hcardR
+    _ ≤ Real.log x / Real.log 2 + 2 * Real.log x := by
+      exact add_le_add hnatlog (by nlinarith)
+    _ = (1 / Real.log 2 + 2) * Real.log x := by ring
+
+theorem card_lemma6PairBlockIndices_cast_le_log
+    {x m : ℕ} (hx : 1 ≤ x) (hxlog : 1 ≤ Real.log (x : ℝ)) :
+    ((lemma6PairBlockIndices x m).card : ℝ) ≤
+      (2 / Real.log 2 + 1) * Real.log x := by
+  have hcardNat := card_lemma6PairBlockIndices_le (x := x) (m := m) hx
+  have hcardR : ((lemma6PairBlockIndices x m).card : ℝ) ≤
+      (Nat.log 2 (x * x) : ℝ) + 1 := by exact_mod_cast hcardNat
+  have hxx : 1 ≤ x * x := by
+    simpa only [one_mul] using Nat.mul_le_mul hx hx
+  have hnatlog := natLog_two_cast_le hxx
+  have hx0 : x ≠ 0 := by omega
+  have hlogxx : Real.log (x * x : ℕ) = 2 * Real.log x := by
+    norm_num only [Nat.cast_mul]
+    rw [Real.log_mul (by exact_mod_cast hx0) (by exact_mod_cast hx0)]
+    ring
+  rw [hlogxx] at hnatlog
+  calc
+    ((lemma6PairBlockIndices x m).card : ℝ) ≤
+        (Nat.log 2 (x * x) : ℝ) + 1 := hcardR
+    _ ≤ (2 * Real.log x) / Real.log 2 + Real.log x := by
+      gcongr
+    _ = (2 / Real.log 2 + 1) * Real.log x := by ring
 
 theorem lemma6Nm_eq_small_add_large (x : ℕ) (ε : ℝ) (m : ℕ) :
     lemma6Nm x ε m = lemma6NmSmall x ε m + lemma6NmLarge x ε m := by
-  unfold lemma6Nm lemma6NmSmall lemma6NmLarge
+  unfold lemma6Nm lemma6NmSmall lemma6NmLarge lemma6LargeConductors
   simpa only using
     (Finset.sum_filter_add_sum_filter_not
       (s := (sieveModuli x ε).erase 1)
@@ -768,10 +1135,105 @@ theorem mTwo_le_log6_mul_nm
   refine ⟨m, hm.1, hm.2.2, ?_⟩
   exact hxuniform hxEven (lemma6Nm x ε m) hmmax
 
-/-- Equations (13), (19), and (20): the positive dyadic conductor blocks.
+/-- Focused analytic target for equations (19) and (20): every occupied
+`(l,k)` block has the paper's `x/(log x)^20` bound. -/
+def Lemma6LargePairBlockEstimate (ε : ℝ) : Prop :=
+  ∃ A : ℝ, 0 < A ∧ ∀ᶠ x : ℕ in atTop, Even x →
+    ∀ m : ℕ, 1 < m →
+      (m : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) →
+      ∀ l ∈ lemma6LargeBlockIndices x ε,
+        ∀ k ∈ lemma6PairBlockIndices x m,
+          ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+              (fun d => d ∈ lemma6ModulusBlock x l),
+            lemma6NmPairTerm x m d k ≤
+          A * (x : ℝ) / (Real.log x) ^ 20
 
-The derivative fourth moment is an explicit hypothesis, making the dependence
-on Lemma 3 visible. -/
+/-- Equations (14)--(20), with the derivative fourth moment exposing the
+precise dependence on Lemma 3. -/
+theorem lemma6_large_pair_block_estimate_of_deriv_fourth_moment
+    (hfourth : Lemma6DerivativeFourthMoment)
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    Lemma6LargePairBlockEstimate ε := by
+  sorry
+
+/-- Summing the `O((log x)^2)` occupied blocks loses exactly two logarithms. -/
+theorem lemma6_nmLarge_le_log18_of_pair_block_estimate
+    {ε : ℝ} (hblock : Lemma6LargePairBlockEstimate ε) :
+    ∃ B : ℝ, 0 < B ∧ ∀ᶠ x : ℕ in atTop, Even x →
+      ∀ m : ℕ, 1 < m →
+        (m : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) →
+        lemma6NmLarge x ε m ≤
+          B * (x : ℝ) / (Real.log x) ^ 18 := by
+  obtain ⟨A, hA, hblock⟩ := hblock
+  let cL : ℝ := 1 / Real.log 2 + 2
+  let cK : ℝ := 2 / Real.log 2 + 1
+  let B : ℝ := cL * cK * A
+  refine ⟨B, by dsimp only [B, cL, cK]; positivity, ?_⟩
+  have hlogOneReal : ∀ᶠ y : ℝ in atTop, 1 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 1)
+  have hlogOne : ∀ᶠ x : ℕ in atTop, 1 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hlogOneReal
+  filter_upwards [hblock, hlogOne] with x hxblock hxlog
+  intro hxEven m hm1 hmx
+  have hx1 : 1 ≤ x := by
+    by_contra hx
+    have : x = 0 := by omega
+    subst x
+    norm_num at hxlog
+  let R : ℝ := A * (x : ℝ) / (Real.log x) ^ 20
+  have hR0 : 0 ≤ R := by dsimp only [R]; positivity
+  have hperL : ∀ l ∈ lemma6LargeBlockIndices x ε,
+      ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+          (fun d => d ∈ lemma6ModulusBlock x l),
+        ∑ k ∈ lemma6PairBlockIndices x m,
+          lemma6NmPairTerm x m d k ≤
+        ((lemma6PairBlockIndices x m).card : ℝ) * R := by
+    intro l hl
+    rw [Finset.sum_comm]
+    calc
+      ∑ k ∈ lemma6PairBlockIndices x m,
+          ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+              (fun d => d ∈ lemma6ModulusBlock x l),
+            lemma6NmPairTerm x m d k ≤
+        ∑ _k ∈ lemma6PairBlockIndices x m, R := by
+          apply Finset.sum_le_sum
+          intro k hk
+          simpa only [R] using hxblock hxEven m hm1 hmx l hl k hk
+      _ = ((lemma6PairBlockIndices x m).card : ℝ) * R := by simp
+  have hmajor := lemma6NmLarge_le_sum_pairBlocks
+    (x := x) (m := m) (ε := ε) hx1 hxlog
+  have hdouble :
+      ∑ l ∈ lemma6LargeBlockIndices x ε,
+        ∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+            (fun d => d ∈ lemma6ModulusBlock x l),
+          ∑ k ∈ lemma6PairBlockIndices x m,
+            lemma6NmPairTerm x m d k ≤
+      ((lemma6LargeBlockIndices x ε).card : ℝ) *
+        (((lemma6PairBlockIndices x m).card : ℝ) * R) := by
+    calc
+      _ ≤ ∑ _l ∈ lemma6LargeBlockIndices x ε,
+          ((lemma6PairBlockIndices x m).card : ℝ) * R := by
+        apply Finset.sum_le_sum
+        intro l hl
+        exact hperL l hl
+      _ = ((lemma6LargeBlockIndices x ε).card : ℝ) *
+          (((lemma6PairBlockIndices x m).card : ℝ) * R) := by simp
+  have hcL := card_lemma6LargeBlockIndices_cast_le_log
+    (x := x) (ε := ε) hxlog
+  have hcK := card_lemma6PairBlockIndices_cast_le_log
+    (x := x) (m := m) hx1 hxlog
+  apply hmajor.trans
+  apply hdouble.trans
+  calc
+    ((lemma6LargeBlockIndices x ε).card : ℝ) *
+        (((lemma6PairBlockIndices x m).card : ℝ) * R) ≤
+      (cL * Real.log x) * ((cK * Real.log x) * R) := by
+        gcongr
+    _ = B * (x : ℝ) / (Real.log x) ^ 18 := by
+      dsimp only [B, R]
+      field_simp
+
+/-- Equations (13), (19), and (20): the positive dyadic conductor blocks. -/
 theorem lemma6_nmLarge_le_log18_of_deriv_fourth_moment
     (hfourth : Lemma6DerivativeFourthMoment)
     (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
@@ -779,8 +1241,10 @@ theorem lemma6_nmLarge_le_log18_of_deriv_fourth_moment
       ∀ m : ℕ, 1 < m →
         (m : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) →
         lemma6NmLarge x ε m ≤
-          B * (x : ℝ) / (Real.log x) ^ 18 := by
-  sorry
+          B * (x : ℝ) / (Real.log x) ^ 18 :=
+  lemma6_nmLarge_le_log18_of_pair_block_estimate
+    (lemma6_large_pair_block_estimate_of_deriv_fourth_moment
+      hfourth ε hε hε')
 
 /-- Equation (21): small conductors are handled by shifting the contour into
 the classical zero-free region. This input is independent of Lemma 3. -/
