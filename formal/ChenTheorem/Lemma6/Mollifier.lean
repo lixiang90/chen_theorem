@@ -128,4 +128,161 @@ theorem abs_lemma6MollifierCoeff_le_card
       · simp
     _ = (n.divisorsAntidiagonal.card : ℤ) := by simp
 
+/-- The pairs in the truncated product whose product is `n` are exactly the
+bounded divisor-antidivisor pairs of `n`.  This is the finite fibre used to
+regroup the two truncated Dirichlet polynomials in the proof of Lemma 6. -/
+theorem lemma6MollifierFiber_eq (H n : ℕ) :
+    ((Finset.Icc 1 H ×ˢ Finset.Icc 1 H).filter
+        (fun p => p.1 * p.2 = n)) =
+      n.divisorsAntidiagonal.filter
+        (fun p => p.1 ≤ H ∧ p.2 ≤ H) := by
+  ext p
+  constructor
+  · intro hp
+    have hpdata := Finset.mem_filter.mp hp
+    have hpmem := Finset.mem_product.mp hpdata.1
+    have hp1 := Finset.mem_Icc.mp hpmem.1
+    have hp2 := Finset.mem_Icc.mp hpmem.2
+    apply Finset.mem_filter.mpr
+    refine ⟨Nat.mem_divisorsAntidiagonal.mpr ⟨hpdata.2, ?_⟩,
+      hp1.2, hp2.2⟩
+    intro hn0
+    rw [hn0] at hpdata
+    have hp1pos : 0 < p.1 := by omega
+    have hp2pos : 0 < p.2 := by omega
+    have := Nat.mul_pos hp1pos hp2pos
+    omega
+  · intro hp
+    have hpdata := Finset.mem_filter.mp hp
+    have hanti := Nat.mem_divisorsAntidiagonal.mp hpdata.1
+    have hp1ne := Nat.left_ne_zero_of_mem_divisorsAntidiagonal hpdata.1
+    have hp2ne := Nat.right_ne_zero_of_mem_divisorsAntidiagonal hpdata.1
+    apply Finset.mem_filter.mpr
+    exact ⟨Finset.mem_product.mpr
+      ⟨Finset.mem_Icc.mpr ⟨Nat.one_le_iff_ne_zero.mpr hp1ne, hpdata.2.1⟩,
+        Finset.mem_Icc.mpr ⟨Nat.one_le_iff_ne_zero.mpr hp2ne, hpdata.2.2⟩⟩,
+      hanti.1⟩
+
+/-- The mollifier coefficient as a Kronecker delta minus the fibre of the
+truncated product. -/
+theorem lemma6MollifierCoeff_eq_delta_sub_fiber (H n : ℕ) :
+    lemma6MollifierCoeff H n =
+      (if n = 1 then 1 else 0) -
+        ∑ p ∈ (Finset.Icc 1 H ×ˢ Finset.Icc 1 H).filter
+            (fun p => p.1 * p.2 = n),
+          ArithmeticFunction.moebius p.2 := by
+  unfold lemma6MollifierCoeff
+  rw [← Finset.sum_filter]
+  rw [← lemma6MollifierFiber_eq]
+
+/-- The finite truncation of the Dirichlet series playing the role of
+`L(ω, χ)` in the exact algebraic part of equation (14). -/
+noncomputable def lemma6TruncatedLPolynomial
+    {R : Type*} [AddCommMonoid R] (H : ℕ) (a : ℕ → R) : R :=
+  ∑ n ∈ Finset.Icc 1 H, a n
+
+/-- The truncated Möbius polynomial `S(H, ω, χ)` in equation (14). -/
+noncomputable def lemma6MollifierPolynomial
+    {R : Type*} [Ring R] (H : ℕ) (a : ℕ → R) : R :=
+  ∑ n ∈ Finset.Icc 1 H,
+    (ArithmeticFunction.moebius n : R) * a n
+
+/-- The finite `C_H`-polynomial on the right-hand side of equation (14). -/
+noncomputable def lemma6MollifierRemainderPolynomial
+    {R : Type*} [Ring R] (H : ℕ) (a : ℕ → R) : R :=
+  ∑ n ∈ Finset.Icc 1 (H * H),
+    (lemma6MollifierCoeff H n : R) * a n
+
+/-- Regroup the product of the two truncated Dirichlet polynomials by the
+value `n = m * d`. -/
+theorem lemma6_truncated_product_eq_sum_fibers
+    {R : Type*} [CommRing R] (H : ℕ) (a : ℕ → R)
+    (hmul : ∀ m n, 1 ≤ m → 1 ≤ n → a (m * n) = a m * a n) :
+    lemma6TruncatedLPolynomial H a * lemma6MollifierPolynomial H a =
+      ∑ n ∈ Finset.Icc 1 (H * H),
+        (∑ p ∈ (Finset.Icc 1 H ×ˢ Finset.Icc 1 H).filter
+            (fun p => p.1 * p.2 = n),
+          (ArithmeticFunction.moebius p.2 : R)) * a n := by
+  let S := Finset.Icc 1 H
+  let P := S ×ˢ S
+  let N := Finset.Icc 1 (H * H)
+  have hprod_mem (p : ℕ × ℕ) (hp : p ∈ P) : p.1 * p.2 ∈ N := by
+    have hpmem := Finset.mem_product.mp hp
+    have hp1 := Finset.mem_Icc.mp hpmem.1
+    have hp2 := Finset.mem_Icc.mp hpmem.2
+    exact Finset.mem_Icc.mpr
+      ⟨Nat.mul_pos hp1.1 hp2.1, Nat.mul_le_mul hp1.2 hp2.2⟩
+  have hfiber := Finset.sum_fiberwise_eq_sum_filter P N
+    (fun p : ℕ × ℕ => p.1 * p.2)
+    (fun p => (ArithmeticFunction.moebius p.2 : R) * a (p.1 * p.2))
+  rw [Finset.filter_eq_self.mpr hprod_mem] at hfiber
+  change (∑ n ∈ S, a n) *
+      (∑ n ∈ S, (ArithmeticFunction.moebius n : R) * a n) = _
+  calc
+    (∑ n ∈ S, a n) *
+        (∑ n ∈ S, (ArithmeticFunction.moebius n : R) * a n) =
+      ∑ p ∈ P,
+        (ArithmeticFunction.moebius p.2 : R) * a (p.1 * p.2) := by
+      rw [Finset.sum_mul_sum, ← Finset.sum_product']
+      apply Finset.sum_congr rfl
+      intro p hp
+      have hpmem := Finset.mem_product.mp hp
+      have hp1 := (Finset.mem_Icc.mp hpmem.1).1
+      have hp2 := (Finset.mem_Icc.mp hpmem.2).1
+      rw [hmul p.1 p.2 hp1 hp2]
+      ring
+    _ = ∑ n ∈ N,
+        ∑ p ∈ P.filter (fun p => p.1 * p.2 = n),
+          (ArithmeticFunction.moebius p.2 : R) * a (p.1 * p.2) :=
+      hfiber.symm
+    _ = ∑ n ∈ N,
+        (∑ p ∈ P.filter (fun p => p.1 * p.2 = n),
+          (ArithmeticFunction.moebius p.2 : R)) * a n := by
+      apply Finset.sum_congr rfl
+      intro n hn
+      rw [Finset.sum_mul]
+      apply Finset.sum_congr rfl
+      intro p hp
+      rw [(Finset.mem_filter.mp hp).2]
+
+/-- Exact finite form of the `C_H` identity used before equation (14):
+`1 - L_H(a) S_H(a) = ∑_{n ≤ H²} C_H(n) a(n)` for multiplicative `a`
+normalised by `a(1) = 1`. -/
+theorem lemma6_one_sub_truncated_product_eq_remainder
+    {R : Type*} [CommRing R] {H : ℕ} (hH : 1 ≤ H)
+    (a : ℕ → R) (ha1 : a 1 = 1)
+    (hmul : ∀ m n, 1 ≤ m → 1 ≤ n → a (m * n) = a m * a n) :
+    1 - lemma6TruncatedLPolynomial H a * lemma6MollifierPolynomial H a =
+      lemma6MollifierRemainderPolynomial H a := by
+  let N := Finset.Icc 1 (H * H)
+  let P := Finset.Icc 1 H ×ˢ Finset.Icc 1 H
+  have h1mem : 1 ∈ N := by
+    apply Finset.mem_Icc.mpr
+    constructor
+    · exact le_rfl
+    · nlinarith
+  have hdelta :
+      ∑ n ∈ N, (if n = 1 then (1 : R) else 0) * a n = 1 := by
+    rw [Finset.sum_eq_single 1]
+    · simp [ha1]
+    · intro b hb hbne
+      simp [hbne]
+    · exact fun h => (h h1mem).elim
+  rw [lemma6_truncated_product_eq_sum_fibers H a hmul]
+  change 1 - (∑ n ∈ N,
+      (∑ p ∈ P.filter (fun p => p.1 * p.2 = n),
+        (ArithmeticFunction.moebius p.2 : R)) * a n) = _
+  rw [← hdelta, ← Finset.sum_sub_distrib]
+  unfold lemma6MollifierRemainderPolynomial
+  change (∑ n ∈ N,
+      ((if n = 1 then (1 : R) else 0) * a n -
+        (∑ p ∈ P.filter (fun p => p.1 * p.2 = n),
+          (ArithmeticFunction.moebius p.2 : R)) * a n)) =
+    ∑ n ∈ N, (lemma6MollifierCoeff H n : R) * a n
+  apply Finset.sum_congr rfl
+  intro n hn
+  rw [lemma6MollifierCoeff_eq_delta_sub_fiber]
+  push_cast
+  ring
+
 end Chen
