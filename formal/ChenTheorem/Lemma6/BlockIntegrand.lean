@@ -445,4 +445,46 @@ theorem lemma6_equation19_B_holder
     unfold lemma6LDerivNorm
     split_ifs <;> positivity
 
+/-- Formula (20), `B` part: the same weighted `2,4,4` Hölder inequality,
+but with the mollifier in the second moment and the pair polynomial in the
+fourth moment.  This is the factor ordering printed across pages 12--13. -/
+theorem lemma6_equation20_B_holder
+    {x l : ℕ}
+    (hxlarge : Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100)
+    (m k H : ℕ) (ν : ℝ) :
+    (∑ i ∈ lemma6CharacterBlock x l,
+        lemma6PrimitiveBaseWeight i *
+          (3 : ℝ) ^ distinctPrimeFactors i.1 *
+          lemma6PairBlockNorm x m k (lemma6BetaPoint x ν) i *
+          lemma6MollifierNorm H (lemma6BetaPoint x ν) i *
+          lemma6LDerivNorm (lemma6BetaPoint x ν) i) ^ 4 ≤
+      (lemma6ExceptionalFactorAt x l *
+          ∑ i ∈ lemma6CharacterBlock x l,
+            lemma6PrimitiveBaseWeight i *
+              lemma6MollifierNorm H (lemma6BetaPoint x ν) i ^ 2) ^ 2 *
+        (∑ i ∈ lemma6CharacterBlock x l,
+          lemma6PrimitiveBaseWeight i *
+            lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4) *
+          ∑ i ∈ lemma6CharacterBlock x l,
+            lemma6PrimitiveBaseWeight i *
+              lemma6PairBlockNorm x m k (lemma6BetaPoint x ν) i ^ 4 := by
+  simpa only [mul_assoc, mul_comm, mul_left_comm] using
+    (lemma6_weighted_holder_244_on_modulusBlock
+      (lemma6CharacterBlock x l) (fun i => i.1)
+      lemma6PrimitiveBaseWeight
+      (lemma6MollifierNorm H (lemma6BetaPoint x ν))
+      (lemma6LDerivNorm (lemma6BetaPoint x ν))
+      (lemma6PairBlockNorm x m k (lemma6BetaPoint x ν)) hxlarge
+      (by
+        intro i hi
+        rw [lemma6CharacterBlock, Finset.mem_sigma] at hi
+        exact hi.1)
+      (by intro i hi; exact lemma6PrimitiveBaseWeight_nonneg i)
+      (by intro i hi; exact norm_nonneg _)
+      (by
+        intro i hi
+        unfold lemma6LDerivNorm
+        split_ifs <;> positivity)
+      (by intro i hi; exact norm_nonneg _))
+
 end Chen

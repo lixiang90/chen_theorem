@@ -7,9 +7,8 @@ Equation (12) is isolated from the estimates (13), (19), (20), and (21), so
 the remaining analytic work has the same boundaries as the paper.
 -/
 import ChenTheorem.Lemma6.Coefficients
-import ChenTheorem.Lemma6.BlockIntegrand
+import ChenTheorem.Lemma6.Equation20
 import ChenTheorem.Lemma6.Dyadic
-import ChenTheorem.Lemma6.MollifierLargeSieve
 
 set_option warn.sorry false
 
@@ -1126,6 +1125,60 @@ theorem mTwo_le_log6_mul_nm
   have hm := (mem_lemma6MRange.mp hmRange)
   refine ⟨m, hm.1, hm.2.2, ?_⟩
   exact hxuniform hxEven (lemma6Nm x ε m) hmmax
+
+/-- For every occupied positive conductor block, its real upper endpoint is
+strictly below the `2x^(1/2-ε)` ceiling used in equation (20). -/
+theorem lemma6_occupied_modulusScale_lt_two_threshold
+    {x l : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hl : l ∈ lemma6LargeBlockIndices x ε) :
+    lemma6DyadicModulusScale x l <
+      2 * (x : ℝ) ^ ((1 : ℝ) / 2 - ε) := by
+  rw [lemma6LargeBlockIndices, Finset.mem_image] at hl
+  obtain ⟨d, hd, rfl⟩ := hl
+  obtain ⟨j, hj1, hj⟩ :=
+    lemma6LargeSquarefreeConductor_exists_block hxlog hd
+  have hindex : lemma6ModulusBlockIndex x d = j :=
+    lemma6ModulusBlockIndex_eq hj
+  have hjdata := hj
+  rw [lemma6ModulusBlock, Finset.mem_filter] at hjdata
+  have hdlarge := (Finset.mem_filter.mp hd).1
+  have hderase := (Finset.mem_filter.mp hdlarge).1
+  have hdsieve : d ∈ sieveModuli x ε := Finset.mem_of_mem_erase hderase
+  have hdthreshold : (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε) :=
+    (Finset.mem_filter.mp hdsieve).2.2.2
+  rw [hindex]
+  unfold lemma6DyadicModulusScale
+  have hpow : (2 : ℝ) ^ j = 2 * (2 : ℝ) ^ (j - 1) := by
+    calc
+      (2 : ℝ) ^ j = 2 ^ ((j - 1) + 1) := by congr 1; omega
+      _ = 2 ^ (j - 1) * 2 := by rw [pow_succ]
+      _ = 2 * 2 ^ (j - 1) := by ring
+  rw [hpow]
+  nlinarith [hjdata.2.2.1]
+
+/-- The three parameter regions on pages 11--12 are exhaustive for every
+occupied `(l,k)` block: the first two disjuncts are the two cases combined
+in equation (19), and the last disjunct is equation (20). -/
+theorem lemma6_occupied_pair_modulus_regime_split
+    {x l k : ℕ} {ε : ℝ} (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hl : l ∈ lemma6LargeBlockIndices x ε) :
+    lemma6PairDyadicScale x k > (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ∨
+      ((x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≥ lemma6PairDyadicScale x k ∧
+        lemma6PairDyadicScale x k > lemma6DyadicModulusScale x l) ∨
+      (lemma6PairDyadicScale x k ≤ lemma6DyadicModulusScale x l ∧
+        lemma6DyadicModulusScale x l <
+          2 * (x : ℝ) ^ ((1 : ℝ) / 2 - ε)) := by
+  have hmod := lemma6_occupied_modulusScale_lt_two_threshold hxlog hl
+  by_cases hhigh : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) <
+      lemma6PairDyadicScale x k
+  · exact Or.inl hhigh
+  · right
+    have hthreshold : lemma6PairDyadicScale x k ≤
+        (x : ℝ) ^ ((1 : ℝ) / 2 - ε) := le_of_not_gt hhigh
+    by_cases hpair : lemma6DyadicModulusScale x l <
+        lemma6PairDyadicScale x k
+    · exact Or.inl ⟨hthreshold, hpair⟩
+    · exact Or.inr ⟨le_of_not_gt hpair, hmod⟩
 
 /-- Focused analytic target for equations (19) and (20): every occupied
 `(l,k)` block has the paper's `x/(log x)^20` bound. -/
