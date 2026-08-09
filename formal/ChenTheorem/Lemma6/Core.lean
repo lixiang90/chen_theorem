@@ -7,8 +7,8 @@ Equation (12) is isolated from the estimates (13), (19), (20), and (21), so
 the remaining analytic work has the same boundaries as the paper.
 -/
 import ChenTheorem.Lemma6.Coefficients
+import ChenTheorem.Lemma6.BlockIntegrand
 import ChenTheorem.Lemma6.Dyadic
-import ChenTheorem.Lemma6.ExceptionalWeight
 import ChenTheorem.Lemma6.MollifierLargeSieve
 
 set_option warn.sorry false
@@ -34,15 +34,6 @@ noncomputable def lemma6PrimitiveBlock (x m l : ℕ) : ℂ :=
         ∑ n ∈ smoothedMIndices x q,
           (smoothedMKernel x q n : ℂ) *
             χ (q.1 * q.2 * n : ZMod l))
-
-/-- Prime pairs surviving the cofactor coprimality condition in `N_m`. -/
-noncomputable def lemma6AdmissiblePairs (x m : ℕ) : Finset (ℕ × ℕ) :=
-  (chenPairs x).filter (fun q => Nat.Coprime (q.1 * q.2) m)
-
-/-- The finite set of pair-product dyadic indices occupied for a fixed
-cofactor. -/
-noncomputable def lemma6PairBlockIndices (x m : ℕ) : Finset ℕ :=
-  (lemma6AdmissiblePairs x m).image (lemma6PairBlockIndex x)
 
 /-- The `k`-th prime-pair piece of a primitive conductor block. -/
 noncomputable def lemma6PrimitivePairBlock

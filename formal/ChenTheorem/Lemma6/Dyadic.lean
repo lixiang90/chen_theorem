@@ -6,11 +6,134 @@ This file proves that the large squarefree conductors occurring in `N_m`
 are covered by exactly one such positive block.
 -/
 import ChenTheorem.Lemma6.FourthMoment
+import ChenTheorem.Lemma6.ExceptionalWeight
 
-open Real
+open Real Filter
 open scoped Classical
 
 namespace Chen
+
+/-- The real upper endpoint of the `l`-th dyadic modulus block. -/
+noncomputable def lemma6DyadicModulusScale (x l : ℕ) : ℝ :=
+  (2 : ℝ) ^ l * (Real.log x) ^ 100
+
+/-- The exceptional factor `I_{l,x}` appearing after equation (18). -/
+noncomputable def lemma6ExceptionalFactorAt (x l : ℕ) : ℝ :=
+  lemma6ExceptionalFactor (lemma6DyadicModulusScale x l)
+
+/-- Eventually the base scale `(log x)^100` is beyond the range where
+the monotonic exceptional-factor envelope is valid. -/
+theorem eventually_exp_exp_one_le_log_pow_hundred :
+    ∀ᶠ x : ℕ in atTop,
+      Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100 := by
+  have hlog :
+      Tendsto (fun x : ℕ => Real.log (x : ℝ)) atTop atTop :=
+    Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
+  have hlarge := hlog.eventually
+    (eventually_ge_atTop (Real.exp (Real.exp 1)))
+  filter_upwards [hlarge] with x hx
+  have hbase : 1 ≤ Real.log (x : ℝ) := by
+    exact (Real.one_le_exp (Real.exp_pos 1).le).trans hx
+  calc
+    Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) := hx
+    _ = Real.log (x : ℝ) ^ 1 := by rw [pow_one]
+    _ ≤ Real.log (x : ℝ) ^ 100 :=
+      pow_le_pow_right₀ hbase (by norm_num)
+
+/-- Equation (18), in the pointwise squared form actually used on a
+dyadic modulus block in equations (19) and (20). -/
+theorem lemma6_equation18_sq_le_on_modulusBlock
+    {x l d : ℕ}
+    (hxlarge : Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100)
+    (hd : d ∈ lemma6ModulusBlock x l) :
+    ((3 : ℝ) ^ distinctPrimeFactors d) ^ 2 ≤
+      lemma6ExceptionalFactorAt x l := by
+  have hddata := hd
+  rw [lemma6ModulusBlock, Finset.mem_filter] at hddata
+  have hpow : (1 : ℝ) ≤ (2 : ℝ) ^ (l - 1) :=
+    one_le_pow₀ (by norm_num)
+  have hlogpow : 0 ≤ Real.log (x : ℝ) ^ 100 :=
+    hxlarge.trans' (Real.exp_pos _).le
+  have hlower : Real.exp (Real.exp 1) ≤
+      (2 : ℝ) ^ (l - 1) * Real.log (x : ℝ) ^ 100 := by
+    calc
+      Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100 := hxlarge
+      _ = 1 * Real.log (x : ℝ) ^ 100 := by rw [one_mul]
+      _ ≤ (2 : ℝ) ^ (l - 1) * Real.log (x : ℝ) ^ 100 :=
+        mul_le_mul_of_nonneg_right hpow hlogpow
+  have hdlarge : Real.exp (Real.exp 1) < (d : ℝ) :=
+    hlower.trans_lt hddata.2.2.1
+  have hd2 : 2 ≤ d := by
+    have htwo : (2 : ℝ) < Real.exp (Real.exp 1) := by
+      exact Real.exp_one_gt_two.trans
+        (Real.exp_lt_exp.mpr (Real.one_lt_exp_iff.mpr zero_lt_one))
+    exact_mod_cast (htwo.trans hdlarge).le
+  have hμ : ArithmeticFunction.moebius d ≠ 0 :=
+    ArithmeticFunction.moebius_ne_zero_iff_squarefree.mpr hddata.2.1
+  exact lemma6_equation18_sq_le_exceptionalFactor hμ hd2 hdlarge
+    hddata.2.2.2
+
+/-- For all sufficiently large `x`, the equation-(18) exceptional factor
+uniformly controls every modulus in every dyadic block. -/
+theorem eventually_lemma6_equation18_sq_le_on_modulusBlock :
+    ∀ᶠ x : ℕ in atTop, ∀ l d : ℕ,
+      d ∈ lemma6ModulusBlock x l →
+        ((3 : ℝ) ^ distinctPrimeFactors d) ^ 2 ≤
+          lemma6ExceptionalFactorAt x l := by
+  filter_upwards [eventually_exp_exp_one_le_log_pow_hundred] with x hx
+  intro l d hd
+  exact lemma6_equation18_sq_le_on_modulusBlock hx hd
+
+/-- Weighted Cauchy--Schwarz after equation (17), with equation (18)
+already absorbed uniformly over the modulus block.  The auxiliary index
+type can include both a modulus and a primitive character. -/
+theorem lemma6_weighted_cauchy_on_modulusBlock
+    {ι : Type*} (s : Finset ι) (modulus : ι → ℕ)
+    (w f g : ι → ℝ) {x l : ℕ}
+    (hxlarge : Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100)
+    (hmodulus : ∀ i ∈ s, modulus i ∈ lemma6ModulusBlock x l)
+    (hw : ∀ i ∈ s, 0 ≤ w i) :
+    (∑ i ∈ s,
+        w i * (3 : ℝ) ^ distinctPrimeFactors (modulus i) * f i * g i) ^ 2 ≤
+      (lemma6ExceptionalFactorAt x l *
+          ∑ i ∈ s, w i * f i ^ 2) *
+        ∑ i ∈ s, w i * g i ^ 2 := by
+  apply weighted_cauchy_sq_of_sq_le
+  · exact hw
+  · exact (lemma6ExceptionalFactor_pos _).le
+  · intro i hi
+    exact lemma6_equation18_sq_le_on_modulusBlock hxlarge
+      (hmodulus i hi)
+
+/-- The `2,4,4` Hölder estimate used for the `B` integral in equation
+(19), again with equation (18) already absorbed into `I_{l,x}`. -/
+theorem lemma6_weighted_holder_244_on_modulusBlock
+    {ι : Type*} (s : Finset ι) (modulus : ι → ℕ)
+    (w f g h : ι → ℝ) {x l : ℕ}
+    (hxlarge : Real.exp (Real.exp 1) ≤ Real.log (x : ℝ) ^ 100)
+    (hmodulus : ∀ i ∈ s, modulus i ∈ lemma6ModulusBlock x l)
+    (hw : ∀ i ∈ s, 0 ≤ w i)
+    (hf : ∀ i ∈ s, 0 ≤ f i)
+    (hg : ∀ i ∈ s, 0 ≤ g i)
+    (hh : ∀ i ∈ s, 0 ≤ h i) :
+    (∑ i ∈ s,
+        w i * (3 : ℝ) ^ distinctPrimeFactors (modulus i) *
+          f i * g i * h i) ^ 4 ≤
+      (lemma6ExceptionalFactorAt x l *
+          ∑ i ∈ s, w i * f i ^ 2) ^ 2 *
+        (∑ i ∈ s, w i * g i ^ 4) *
+          ∑ i ∈ s, w i * h i ^ 4 := by
+  apply weighted_holder_244_pow_four_of_sq_le
+  · exact hw
+  · intro i hi
+    positivity
+  · exact hf
+  · exact hg
+  · exact hh
+  · exact (lemma6ExceptionalFactor_pos _).le
+  · intro i hi
+    exact lemma6_equation18_sq_le_on_modulusBlock hxlarge
+      (hmodulus i hi)
 
 /-- Every squarefree conductor above `(log x)^100` and at most `x` belongs
 to a positive dyadic modulus block. -/
