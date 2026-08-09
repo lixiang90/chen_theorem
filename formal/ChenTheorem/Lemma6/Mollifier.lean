@@ -285,4 +285,18 @@ theorem lemma6_one_sub_truncated_product_eq_remainder
   push_cast
   ring
 
+/-- Equation (16), separated from the analytic meaning of its three
+factors.  Once `L` is nonzero, the logarithmic derivative splits into the
+mollified remainder term and the derivative--mollifier term:
+`L'/L = (L'/L) * (1 - L*S) + L'*S`. -/
+theorem lemma6_logDeriv_mollifier_identity
+    {K : Type*} [Field K] (L L' S : K) (hL : L ≠ 0) :
+    L' / L = (L' / L) * (1 - L * S) + L' * S := by
+  have hcancel : L⁻¹ * L = 1 := inv_mul_cancel₀ hL
+  have hmiddle : (L' * L⁻¹) * (L * S) = L' * S := by
+    calc
+      (L' * L⁻¹) * (L * S) = L' * (L⁻¹ * L) * S := by ring
+      _ = L' * S := by rw [hcancel, mul_one]
+  rw [div_eq_mul_inv, mul_sub, mul_one, hmiddle, sub_add_cancel]
+
 end Chen

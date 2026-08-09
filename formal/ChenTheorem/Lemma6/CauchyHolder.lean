@@ -4,11 +4,108 @@ The fourth-power Cauchy--Hölder estimate used after equation (15).
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Convex.Integral
 import Mathlib.Analysis.Convex.Mul
+import Mathlib.Algebra.Order.BigOperators.Ring.Finset
 
 open MeasureTheory Set Real
 open scoped Interval
 
 namespace Chen
+
+/-- Weighted Cauchy--Schwarz in the form used for the `A` term after
+equation (17).  The exceptional arithmetic factor `c i` is absorbed into
+the first second moment through the pointwise bound `c i ^ 2 ≤ I`. -/
+theorem weighted_cauchy_sq_of_sq_le
+    {ι : Type*} (s : Finset ι) (w c f g : ι → ℝ) {I : ℝ}
+    (hw : ∀ i ∈ s, 0 ≤ w i)
+    (hI : 0 ≤ I) (hcI : ∀ i ∈ s, c i ^ 2 ≤ I) :
+    (∑ i ∈ s, w i * c i * f i * g i) ^ 2 ≤
+      (I * ∑ i ∈ s, w i * f i ^ 2) *
+        ∑ i ∈ s, w i * g i ^ 2 := by
+  have hcs := Finset.sum_sq_le_sum_mul_sum_of_sq_le_mul s
+    (r := fun i => w i * c i * f i * g i)
+    (f := fun i => I * (w i * f i ^ 2))
+    (g := fun i => w i * g i ^ 2)
+    (fun i hi => mul_nonneg hI (mul_nonneg (hw i hi) (sq_nonneg _)))
+    (fun i hi => mul_nonneg (hw i hi) (sq_nonneg _))
+    (fun i hi => by
+      calc
+        (w i * c i * f i * g i) ^ 2 =
+            c i ^ 2 * (w i ^ 2 * f i ^ 2 * g i ^ 2) := by ring
+        _ ≤ I * (w i ^ 2 * f i ^ 2 * g i ^ 2) :=
+          mul_le_mul_of_nonneg_right (hcI i hi) (by positivity)
+        _ = (I * (w i * f i ^ 2)) * (w i * g i ^ 2) := by ring)
+  simpa only [← Finset.mul_sum] using hcs
+
+/-- Weighted three-factor Hölder in the polynomial `2,4,4` form used for
+the `B` term after equation (17).  Keeping fourth powers avoids introducing
+square roots into the later dyadic estimates. -/
+theorem weighted_holder_244_pow_four_of_sq_le
+    {ι : Type*} (s : Finset ι) (w c f g h : ι → ℝ) {I : ℝ}
+    (hw : ∀ i ∈ s, 0 ≤ w i) (hc : ∀ i ∈ s, 0 ≤ c i)
+    (hf : ∀ i ∈ s, 0 ≤ f i) (hg : ∀ i ∈ s, 0 ≤ g i)
+    (hh : ∀ i ∈ s, 0 ≤ h i)
+    (hI : 0 ≤ I) (hcI : ∀ i ∈ s, c i ^ 2 ≤ I) :
+    (∑ i ∈ s, w i * c i * f i * g i * h i) ^ 4 ≤
+      (I * ∑ i ∈ s, w i * f i ^ 2) ^ 2 *
+        (∑ i ∈ s, w i * g i ^ 4) *
+          ∑ i ∈ s, w i * h i ^ 4 := by
+  let A : ℝ := ∑ i ∈ s, w i * c i * f i * g i * h i
+  let F : ℝ := I * ∑ i ∈ s, w i * f i ^ 2
+  let G : ℝ := ∑ i ∈ s, w i * (g i * h i) ^ 2
+  let G₄ : ℝ := ∑ i ∈ s, w i * g i ^ 4
+  let H₄ : ℝ := ∑ i ∈ s, w i * h i ^ 4
+  have hA0 : 0 ≤ A := by
+    dsimp only [A]
+    apply Finset.sum_nonneg
+    intro i hi
+    exact mul_nonneg
+      (mul_nonneg
+        (mul_nonneg (mul_nonneg (hw i hi) (hc i hi)) (hf i hi))
+        (hg i hi))
+      (hh i hi)
+  have hF0 : 0 ≤ F := by
+    dsimp only [F]
+    exact mul_nonneg hI (Finset.sum_nonneg fun i hi =>
+      mul_nonneg (hw i hi) (sq_nonneg _))
+  have hG0 : 0 ≤ G := by
+    dsimp only [G]
+    apply Finset.sum_nonneg
+    intro i hi
+    exact mul_nonneg (hw i hi) (sq_nonneg _)
+  have hG₄0 : 0 ≤ G₄ := by
+    dsimp only [G₄]
+    apply Finset.sum_nonneg
+    intro i hi
+    exact mul_nonneg (hw i hi) (by positivity)
+  have hH₄0 : 0 ≤ H₄ := by
+    dsimp only [H₄]
+    apply Finset.sum_nonneg
+    intro i hi
+    exact mul_nonneg (hw i hi) (by positivity)
+  have hfirst : A ^ 2 ≤ F * G := by
+    simpa only [A, F, G, mul_assoc] using
+      weighted_cauchy_sq_of_sq_le s w c f (fun i => g i * h i)
+        hw hI hcI
+  have hsecond : G ^ 2 ≤ G₄ * H₄ := by
+    dsimp only [G, G₄, H₄]
+    apply Finset.sum_sq_le_sum_mul_sum_of_sq_le_mul s
+      (r := fun i => w i * (g i * h i) ^ 2)
+      (f := fun i => w i * g i ^ 4)
+      (g := fun i => w i * h i ^ 4)
+    · intro i hi
+      exact mul_nonneg (hw i hi) (by positivity)
+    · intro i hi
+      exact mul_nonneg (hw i hi) (by positivity)
+    · intro i hi
+      ring_nf
+      exact le_rfl
+  change A ^ 4 ≤ F ^ 2 * G₄ * H₄
+  calc
+    A ^ 4 = (A ^ 2) ^ 2 := by ring
+    _ ≤ (F * G) ^ 2 := by gcongr
+    _ = F ^ 2 * G ^ 2 := by ring
+    _ ≤ F ^ 2 * (G₄ * H₄) := by gcongr
+    _ = F ^ 2 * G₄ * H₄ := by ring
 
 /-- Jensen's inequality on an interval of length `2π`, in the exact
 fourth-power form needed for Cauchy's formula. -/
