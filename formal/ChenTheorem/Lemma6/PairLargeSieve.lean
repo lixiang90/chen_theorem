@@ -4,7 +4,10 @@ The character-large-sieve input for the prime-pair polynomial in equations
 `p₁ p₂` on Chen's prime-pair range.
 -/
 import ChenTheorem.Lemma6.MomentConnection
+import ChenTheorem.Lemma6.DivisorSquareWeighted
 import ChenTheorem.LargeSieve.Character
+import Mathlib.Algebra.Order.BigOperators.Ring.Finset
+import Mathlib.NumberTheory.Harmonic.Bounds
 
 open Real
 open scoped Classical
@@ -204,6 +207,182 @@ theorem norm_lemma6PairCoefficient_sq_le
   · obtain ⟨q, hfiber⟩ := Finset.card_eq_one.mp hone
     simp [lemma6PairCoefficient, fiber, hfiber]
 
+/-- The prime-pair range leaves at least `x^(1/3)` in the complementary
+quotient.  This is the elementary lower bound for the logarithmic
+denominator in equations (19) and (20). -/
+theorem lemma6_rpow_third_lt_pairQuotient
+    {x : ℕ} {q : ℕ × ℕ} (hq : q ∈ chenPairs x) :
+    (x : ℝ) ^ ((1 : ℝ) / 3) <
+      (x : ℝ) / ((q.1 : ℝ) * q.2) := by
+  have hq' := hq
+  simp only [chenPairs, Finset.mem_filter, Finset.mem_product,
+    Finset.mem_range] at hq'
+  rcases hq'.2 with
+    ⟨hp₁, hp₂, _hp₁lo, _hp₁hi, hp₂lo, hp₂hi⟩
+  have hp₁pos : (0 : ℝ) < q.1 := by exact_mod_cast hp₁.pos
+  have hp₂pos : (0 : ℝ) < q.2 := by exact_mod_cast hp₂.pos
+  have hdiv0 : 0 ≤ (x : ℝ) / (q.1 : ℝ) := by positivity
+  rw [← Real.sqrt_eq_rpow] at hp₂hi
+  have hp₂sq :
+      (q.2 : ℝ) ^ 2 ≤ (x : ℝ) / (q.1 : ℝ) := by
+    nlinarith [Real.sq_sqrt hdiv0]
+  have hprodSq :
+      (q.1 : ℝ) * (q.2 : ℝ) ^ 2 ≤ (x : ℝ) := by
+    simpa [mul_comm] using (le_div_iff₀ hp₁pos).mp hp₂sq
+  apply (lt_div_iff₀ (mul_pos hp₁pos hp₂pos)).2
+  calc
+    (x : ℝ) ^ ((1 : ℝ) / 3) * ((q.1 : ℝ) * q.2) <
+        (q.2 : ℝ) * ((q.1 : ℝ) * q.2) :=
+      mul_lt_mul_of_pos_right hp₂lo (mul_pos hp₁pos hp₂pos)
+    _ = (q.1 : ℝ) * (q.2 : ℝ) ^ 2 := by ring
+    _ ≤ (x : ℝ) := hprodSq
+
+/-- Once `log x ≥ 3`, the logarithmic denominator attached to every
+admissible prime pair is at least one. -/
+theorem lemma6_one_le_pairLog
+    {x : ℕ} {q : ℕ × ℕ} (hxlog : 3 ≤ Real.log (x : ℝ))
+    (hq : q ∈ chenPairs x) :
+    1 ≤ Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) := by
+  have hxpos : (0 : ℝ) < x := by
+    by_contra hx
+    have hx0 : (x : ℝ) = 0 :=
+      le_antisymm (le_of_not_gt hx) (Nat.cast_nonneg x)
+    have : x = 0 := by exact_mod_cast hx0
+    subst x
+    norm_num at hxlog
+  have hquot := lemma6_rpow_third_lt_pairQuotient hq
+  have hpowpos : 0 < (x : ℝ) ^ ((1 : ℝ) / 3) := by positivity
+  have hlogLower :
+      (1 : ℝ) / 3 * Real.log x ≤
+        Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) := by
+    calc
+      (1 : ℝ) / 3 * Real.log x =
+          Real.log ((x : ℝ) ^ ((1 : ℝ) / 3)) := by
+        rw [Real.log_rpow hxpos]
+      _ ≤ Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) :=
+        Real.strictMonoOn_log.monotoneOn
+          (Set.mem_Ioi.mpr hpowpos)
+          (Set.mem_Ioi.mpr (hpowpos.trans hquot)) hquot.le
+  nlinarith
+
+/-- At Chen's `β`-line, uniqueness of `p₁p₂` and the logarithmic
+denominator give the coefficient bound `|a_n|² ≤ 1/n`. -/
+theorem norm_lemma6PairCoefficient_beta_sq_le_inv
+    (x m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) (n : ℕ) :
+    ‖lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+        (lemma6BetaPoint x ν) n‖ ^ 2 ≤ (n : ℝ)⁻¹ := by
+  let fiber := (lemma6AdmissiblePairBlock x m k).filter
+    (fun q => q.1 * q.2 = n)
+  have hcard := card_lemma6AdmissiblePairBlock_productFiber_le_one x m k n
+  have hcases : fiber.card = 0 ∨ fiber.card = 1 := by
+    dsimp only [fiber]
+    omega
+  rcases hcases with hzero | hone
+  · have hfiber : fiber = ∅ := Finset.card_eq_zero.mp hzero
+    simp [lemma6PairCoefficient, fiber, hfiber]
+  · obtain ⟨q, hfiber⟩ := Finset.card_eq_one.mp hone
+    have hqfiber : q ∈ fiber := by simp [hfiber]
+    have hqmem := Finset.mem_filter.mp hqfiber
+    have hqchen : q ∈ chenPairs x :=
+      (Finset.mem_filter.mp
+        (Finset.mem_filter.mp hqmem.1).1).1
+    have hqdata := (Finset.mem_filter.mp hqchen).2
+    have hnposNat : 0 < n := by
+      rw [← hqmem.2]
+      exact Nat.mul_pos hqdata.1.pos hqdata.2.1.pos
+    have hnpos : (0 : ℝ) < n := by exact_mod_cast hnposNat
+    have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast hnposNat
+    have hlogx : 0 < Real.log (x : ℝ) := lt_of_lt_of_le (by norm_num) hxlog
+    have hbeta :
+        (1 : ℝ) / 2 ≤ (lemma6BetaPoint x ν).re := by
+      rw [lemma6BetaPoint_re]
+      have : 0 ≤ (1 : ℝ) / Real.log x := by positivity
+      linarith
+    have hpow :
+        (n : ℝ) ^ ((1 : ℝ) / 2) ≤
+          (n : ℝ) ^ (lemma6BetaPoint x ν).re :=
+      Real.rpow_le_rpow_of_exponent_le hn1 hbeta
+    have hlog :
+        1 ≤ Real.log ((x : ℝ) / (n : ℝ)) := by
+      rw [← hqmem.2]
+      simpa only [Nat.cast_mul] using
+        (lemma6_one_le_pairLog hxlog hqchen)
+    have hden :
+        Real.sqrt n ≤
+          (n : ℝ) ^ (lemma6BetaPoint x ν).re *
+            Real.log ((x : ℝ) / (n : ℝ)) := by
+      rw [Real.sqrt_eq_rpow]
+      exact hpow.trans
+        (le_mul_of_one_le_right (Real.rpow_nonneg hnpos.le _) hlog)
+    have hden0 :
+        0 ≤ (n : ℝ) ^ (lemma6BetaPoint x ν).re *
+          Real.log ((x : ℝ) / (n : ℝ)) := by positivity
+    have hdenSq :
+        (n : ℝ) ≤
+          ((n : ℝ) ^ (lemma6BetaPoint x ν).re *
+            Real.log ((x : ℝ) / (n : ℝ))) ^ 2 := by
+      calc
+        (n : ℝ) = (Real.sqrt n) ^ 2 := (Real.sq_sqrt hnpos.le).symm
+        _ ≤ ((n : ℝ) ^ (lemma6BetaPoint x ν).re *
+            Real.log ((x : ℝ) / (n : ℝ))) ^ 2 :=
+          pow_le_pow_left₀ (Real.sqrt_nonneg _) hden 2
+    have hinv := one_div_le_one_div_of_le hnpos hdenSq
+    have hset :
+        (lemma6AdmissiblePairBlock x m k).filter
+            (fun q => q.1 * q.2 = n) = {q} := by
+      simpa only [fiber] using hfiber
+    simp only [lemma6PairCoefficient, hset, Finset.sum_singleton]
+    rw [norm_div, norm_one, norm_mul,
+      Complex.norm_natCast_cpow_of_pos hnposNat]
+    simp only [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (zero_le_one.trans hlog)]
+    simpa only [one_div, inv_pow] using hinv
+
+/-- The coefficient square sum in equation (19) has at most a harmless
+harmonic loss.  A later dyadic endpoint simplification can sharpen this to
+an absolute constant, as in the printed proof. -/
+theorem lemma6_pairCoefficient_sum_sq_beta_le_harmonic
+    (x m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) :
+    (∑ n ∈ Finset.Ioc (lemma6PairLowerCutoff x k)
+        (lemma6PairUpperCutoff x k),
+      ‖lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+        (lemma6BetaPoint x ν) n‖ ^ 2) ≤
+      (harmonic (lemma6PairUpperCutoff x k) : ℝ) := by
+  calc
+    (∑ n ∈ Finset.Ioc (lemma6PairLowerCutoff x k)
+        (lemma6PairUpperCutoff x k),
+      ‖lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+        (lemma6BetaPoint x ν) n‖ ^ 2) ≤
+        ∑ n ∈ Finset.Ioc (lemma6PairLowerCutoff x k)
+          (lemma6PairUpperCutoff x k), (n : ℝ)⁻¹ := by
+      apply Finset.sum_le_sum
+      intro n hn
+      exact norm_lemma6PairCoefficient_beta_sq_le_inv x m k ν hxlog n
+    _ ≤ ∑ n ∈ Finset.Icc 1 (lemma6PairUpperCutoff x k),
+          (n : ℝ)⁻¹ := by
+      apply Finset.sum_le_sum_of_subset_of_nonneg
+      · intro n hn
+        rw [Finset.mem_Ioc] at hn
+        rw [Finset.mem_Icc]
+        omega
+      · intro n hn hnot
+        positivity
+    _ = (harmonic (lemma6PairUpperCutoff x k) : ℝ) := by
+      simp only [harmonic_eq_sum_Icc, Rat.cast_sum, Rat.cast_inv,
+        Rat.cast_natCast]
+
+/-- A convenient logarithmic form of the preceding coefficient bound. -/
+theorem lemma6_pairCoefficient_sum_sq_beta_le_log
+    (x m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) :
+    (∑ n ∈ Finset.Ioc (lemma6PairLowerCutoff x k)
+        (lemma6PairUpperCutoff x k),
+      ‖lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+        (lemma6BetaPoint x ν) n‖ ^ 2) ≤
+      1 + Real.log (lemma6PairUpperCutoff x k) := by
+  exact (lemma6_pairCoefficient_sum_sq_beta_le_harmonic
+    x m k ν hxlog).trans (harmonic_le_one_add_log _)
+
+
 /-- Raw character-large-sieve estimate for the actual prime-pair polynomial
 on one modulus interval and one pair-product block. -/
 theorem lemma6_pairPolynomial_large_sieve :
@@ -259,6 +438,138 @@ noncomputable def lemma6PairSquareCoefficient
   ∑ p ∈ (S ×ˢ S).filter (fun p => p.1 * p.2 = r),
     lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k) s p.1 *
       lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k) s p.2
+
+/-- A product fibre in the squared pair polynomial is a subset of the
+divisor antidiagonal of its product. -/
+theorem card_lemma6PairSquareFiber_le_divisors
+    (x k r : ℕ) (hr : r ≠ 0) :
+    (((Finset.Ioc (lemma6PairLowerCutoff x k)
+        (lemma6PairUpperCutoff x k)) ×ˢ
+      Finset.Ioc (lemma6PairLowerCutoff x k)
+        (lemma6PairUpperCutoff x k)).filter
+          (fun p => p.1 * p.2 = r)).card ≤
+      r.divisorsAntidiagonal.card := by
+  apply Finset.card_le_card
+  intro p hp
+  have hpdata := Finset.mem_filter.mp hp
+  exact Nat.mem_divisorsAntidiagonal.mpr ⟨hpdata.2, hr⟩
+
+/-- On the `β`-line, Cauchy--Schwarz on each product fibre bounds the
+squared-convolution coefficient by `τ(r)²/r`. -/
+theorem norm_lemma6PairSquareCoefficient_beta_sq_le
+    (x m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) (r : ℕ) :
+    ‖lemma6PairSquareCoefficient x m k (lemma6BetaPoint x ν) r‖ ^ 2 ≤
+      (r.divisorsAntidiagonal.card : ℝ) ^ 2 / (r : ℝ) := by
+  let S := Finset.Ioc (lemma6PairLowerCutoff x k)
+    (lemma6PairUpperCutoff x k)
+  let fiber := (S ×ˢ S).filter (fun p => p.1 * p.2 = r)
+  let a : ℕ → ℂ := fun n =>
+    lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+      (lemma6BetaPoint x ν) n
+  by_cases hr : r = 0
+  · subst r
+    have hcoeff :
+        lemma6PairSquareCoefficient x m k (lemma6BetaPoint x ν) 0 = 0 := by
+      unfold lemma6PairSquareCoefficient
+      apply Finset.sum_eq_zero
+      intro p hp
+      have hpdata := Finset.mem_filter.mp hp
+      have hpmem := Finset.mem_product.mp hpdata.1
+      have hp1 := (Finset.mem_Ioc.mp hpmem.1).1
+      have hp2 := (Finset.mem_Ioc.mp hpmem.2).1
+      rcases Nat.mul_eq_zero.mp hpdata.2 with hp1zero | hp2zero <;> omega
+    rw [hcoeff]
+    simp
+  · have hrposNat : 0 < r := Nat.pos_of_ne_zero hr
+    have hrpos : (0 : ℝ) < r := by exact_mod_cast hrposNat
+    have hcard : fiber.card ≤ r.divisorsAntidiagonal.card := by
+      dsimp only [fiber, S]
+      exact card_lemma6PairSquareFiber_le_divisors x k r hr
+    have hterm : ∀ p ∈ fiber,
+        ‖a p.1 * a p.2‖ ^ 2 ≤ (r : ℝ)⁻¹ := by
+      intro p hp
+      have hpdata := Finset.mem_filter.mp hp
+      have hpmem := Finset.mem_product.mp hpdata.1
+      have h1 := norm_lemma6PairCoefficient_beta_sq_le_inv
+        x m k ν hxlog p.1
+      have h2 := norm_lemma6PairCoefficient_beta_sq_le_inv
+        x m k ν hxlog p.2
+      calc
+        ‖a p.1 * a p.2‖ ^ 2 =
+            ‖a p.1‖ ^ 2 * ‖a p.2‖ ^ 2 := by
+          rw [norm_mul, mul_pow]
+        _ ≤ (p.1 : ℝ)⁻¹ * (p.2 : ℝ)⁻¹ :=
+          mul_le_mul h1 h2 (by positivity) (by positivity)
+        _ = (r : ℝ)⁻¹ := by
+          rw [← mul_inv, ← Nat.cast_mul, hpdata.2]
+    have hsumTerms :
+        (∑ p ∈ fiber, ‖a p.1 * a p.2‖ ^ 2) ≤
+          (fiber.card : ℝ) * (r : ℝ)⁻¹ := by
+      calc
+        (∑ p ∈ fiber, ‖a p.1 * a p.2‖ ^ 2) ≤
+            ∑ _p ∈ fiber, (r : ℝ)⁻¹ := by
+          apply Finset.sum_le_sum
+          intro p hp
+          exact hterm p hp
+        _ = (fiber.card : ℝ) * (r : ℝ)⁻¹ := by simp
+    have hnormSum :
+        ‖∑ p ∈ fiber, a p.1 * a p.2‖ ≤
+          ∑ p ∈ fiber, ‖a p.1 * a p.2‖ :=
+      norm_sum_le _ _
+    have hcauchy :
+        (∑ p ∈ fiber, ‖a p.1 * a p.2‖) ^ 2 ≤
+          (fiber.card : ℝ) *
+            ∑ p ∈ fiber, ‖a p.1 * a p.2‖ ^ 2 := by
+      simpa using (Finset.sum_mul_sq_le_sq_mul_sq fiber
+        (fun _p => (1 : ℝ)) (fun p => ‖a p.1 * a p.2‖))
+    unfold lemma6PairSquareCoefficient
+    dsimp only [S, fiber, a] at hcard hterm hsumTerms hnormSum hcauchy ⊢
+    calc
+      ‖∑ p ∈ (S ×ˢ S).filter (fun p => p.1 * p.2 = r),
+          a p.1 * a p.2‖ ^ 2 ≤
+          (∑ p ∈ (S ×ˢ S).filter (fun p => p.1 * p.2 = r),
+            ‖a p.1 * a p.2‖) ^ 2 :=
+        pow_le_pow_left₀ (norm_nonneg _) hnormSum 2
+      _ ≤ (((S ×ˢ S).filter (fun p => p.1 * p.2 = r)).card : ℝ) *
+          ∑ p ∈ (S ×ˢ S).filter (fun p => p.1 * p.2 = r),
+            ‖a p.1 * a p.2‖ ^ 2 := hcauchy
+      _ ≤ (((S ×ˢ S).filter (fun p => p.1 * p.2 = r)).card : ℝ) *
+          ((((S ×ˢ S).filter (fun p => p.1 * p.2 = r)).card : ℝ) *
+            (r : ℝ)⁻¹) := by
+        gcongr
+      _ = (((S ×ˢ S).filter (fun p => p.1 * p.2 = r)).card : ℝ) ^ 2 /
+          (r : ℝ) := by ring
+      _ ≤ (r.divisorsAntidiagonal.card : ℝ) ^ 2 / (r : ℝ) := by
+        gcongr
+
+/-- Summing the preceding pointwise estimate invokes the divisor-square
+mean already proved for equation (15).  Thus the coefficient sum in the
+pair fourth moment costs only four logarithms. -/
+theorem lemma6_pairSquareCoefficient_sum_sq_beta_le_log_four :
+    ∃ C : ℝ, 0 < C ∧ ∀ (x m k : ℕ) (ν : ℝ),
+      3 ≤ Real.log (x : ℝ) → 2 ≤ lemma6PairUpperCutoff x k ^ 2 →
+      (∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
+        ‖lemma6PairSquareCoefficient x m k
+          (lemma6BetaPoint x ν) r‖ ^ 2) ≤
+        C * (Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ)) ^ 4 := by
+  rcases lemma6_divisorSquare_over_n_le_log_four with ⟨C, hC, hdiv⟩
+  refine ⟨C, hC, ?_⟩
+  intro x m k ν hxlog hU
+  calc
+    (∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
+        ‖lemma6PairSquareCoefficient x m k
+          (lemma6BetaPoint x ν) r‖ ^ 2) ≤
+      ∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
+        (r.divisorsAntidiagonal.card : ℝ) ^ 2 / (r : ℝ) := by
+      apply Finset.sum_le_sum
+      intro r hr
+      exact norm_lemma6PairSquareCoefficient_beta_sq_le
+        x m k ν hxlog r
+    _ = ∑ r ∈ Finset.Icc 1 (lemma6PairUpperCutoff x k ^ 2),
+        (r.divisorsAntidiagonal.card : ℝ) ^ 2 / (r : ℝ) := by
+      congr 1
+    _ ≤ C * (Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ)) ^ 4 :=
+      hdiv _ hU
 
 /-- Exact expansion of the squared pair polynomial.  Its product support is
 contained in `(0,U²]`, where `U` is the integer upper endpoint of the pair

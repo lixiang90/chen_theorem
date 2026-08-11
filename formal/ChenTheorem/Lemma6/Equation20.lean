@@ -93,8 +93,41 @@ noncomputable def lemma6PairFourthMajorant
   ((lemma6ModulusCutoff x l : ℝ) +
       (lemma6PairUpperCutoff x k ^ 2 : ℝ) /
         (lemma6ModulusLowerCutoff x l : ℝ)) *
-    ∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
+  ∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
       ‖lemma6PairSquareCoefficient x m k s r‖ ^ 2
+
+/-- The pair fourth-moment majorant after the squared coefficients are
+controlled by the divisor-square mean. -/
+theorem lemma6PairFourthMajorant_beta_le_log_four :
+    ∃ C : ℝ, 0 < C ∧ ∀ (x l m k : ℕ) (ν : ℝ),
+      3 ≤ Real.log (x : ℝ) → 2 ≤ lemma6PairUpperCutoff x k ^ 2 →
+      lemma6PairFourthMajorant x l m k (lemma6BetaPoint x ν) ≤
+        C * ((lemma6ModulusCutoff x l : ℝ) +
+          (lemma6PairUpperCutoff x k ^ 2 : ℝ) /
+            (lemma6ModulusLowerCutoff x l : ℝ)) *
+          (Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ)) ^ 4 := by
+  rcases lemma6_pairSquareCoefficient_sum_sq_beta_le_log_four with
+    ⟨C, hC, hcoeff⟩
+  refine ⟨C, hC, ?_⟩
+  intro x l m k ν hxlog hU
+  unfold lemma6PairFourthMajorant
+  calc
+    ((lemma6ModulusCutoff x l : ℝ) +
+        (lemma6PairUpperCutoff x k ^ 2 : ℝ) /
+          (lemma6ModulusLowerCutoff x l : ℝ)) *
+      ∑ r ∈ Finset.Ioc 0 (lemma6PairUpperCutoff x k ^ 2),
+        ‖lemma6PairSquareCoefficient x m k
+          (lemma6BetaPoint x ν) r‖ ^ 2 ≤
+      ((lemma6ModulusCutoff x l : ℝ) +
+        (lemma6PairUpperCutoff x k ^ 2 : ℝ) /
+          (lemma6ModulusLowerCutoff x l : ℝ)) *
+        (C * (Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ)) ^ 4) := by
+      gcongr
+      exact hcoeff x m k ν hxlog hU
+    _ = C * ((lemma6ModulusCutoff x l : ℝ) +
+          (lemma6PairUpperCutoff x k ^ 2 : ℝ) /
+            (lemma6ModulusLowerCutoff x l : ℝ)) *
+        (Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ)) ^ 4 := by ring
 
 /-- Formula (20) with all three moments instantiated.  The remaining
 paper-specific work is to simplify the two coefficient majorants under the

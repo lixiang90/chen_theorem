@@ -7,7 +7,7 @@ Equation (12) is isolated from the estimates (13), (19), (20), and (21), so
 the remaining analytic work has the same boundaries as the paper.
 -/
 import ChenTheorem.Lemma6.Coefficients
-import ChenTheorem.Lemma6.Equation20
+import ChenTheorem.Lemma6.Integration
 import ChenTheorem.Lemma6.Dyadic
 
 set_option warn.sorry false

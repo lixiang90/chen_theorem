@@ -38,6 +38,12 @@ theorem lemma6BetaPoint_re (x : ℕ) (ν : ℝ) :
       1 / 2 + 1 / Real.log (x : ℝ)
   ring
 
+@[simp]
+theorem lemma6BetaPoint_im (x : ℕ) (ν : ℝ) :
+    (lemma6BetaPoint x ν).im = ν := by
+  change 0 + (ν * 1 + 0 * 0) = ν
+  ring
+
 /-- The vertical line used in Lemma 6 lies in the half-plane covered by the
 corrected statement of Lemma 3. -/
 theorem half_le_lemma6BetaPoint_re {x : ℕ} (hx : 2 ≤ x) (ν : ℝ) :

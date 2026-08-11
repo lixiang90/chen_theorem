@@ -92,6 +92,21 @@ noncomputable def lemma6PairSecondMajorant
         ‖lemma6PairCoefficient x
           (lemma6AdmissiblePairBlock x m k) s n‖ ^ 2
 
+/-- The pair second-moment majorant on the `β`-line after the coefficient
+sum is reduced to a scalar logarithm. -/
+theorem lemma6PairSecondMajorant_beta_le_log
+    (x l m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) :
+    lemma6PairSecondMajorant x l m k (lemma6BetaPoint x ν) ≤
+      ((lemma6ModulusCutoff x l : ℝ) +
+          ((lemma6PairUpperCutoff x k -
+            lemma6PairLowerCutoff x k : ℕ) : ℝ) /
+            (lemma6ModulusLowerCutoff x l : ℝ)) *
+        (1 + Real.log (lemma6PairUpperCutoff x k)) := by
+  unfold lemma6PairSecondMajorant
+  apply mul_le_mul_of_nonneg_left
+    (lemma6_pairCoefficient_sum_sq_beta_le_log x m k ν hxlog)
+  positivity
+
 /-- Equation-(15) majorant for the mollifier fourth moment. -/
 noncomputable def lemma6MollifierFourthMajorant
     (x l H : ℕ) : ℝ :=
