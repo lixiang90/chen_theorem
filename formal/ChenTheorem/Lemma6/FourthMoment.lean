@@ -674,10 +674,7 @@ Lemma 3 are proved above.  What remains here is the analytic Cauchy--Hölder
 inequality, its interchange with the finite primitive-character sum, and the
 final elementary simplification of the dyadic cutoff. -/
 theorem lemma6_deriv_fourth_moment_of_lFunction_fourth_moment
-    (hL : ∃ C : ℝ, 0 < C ∧
-      ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
-        ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
-          C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4) :
+    (hL : Lemma3FourthMoment) :
     Lemma6DerivativeFourthMoment := by
   obtain ⟨C, hC, hL⟩ := hL
   refine ⟨1024 / Real.log 2 * C, by positivity, ?_⟩

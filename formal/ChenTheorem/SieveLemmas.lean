@@ -439,6 +439,16 @@ theorem large_sieve_dyadic :
 
 /-! ### Lemma 3 : fourth moment of `L`-functions -/
 
+/-- The precise form of Lemma 3 used later in Lemma 6.
+
+It starts at modulus `2`, is uniform on the closed half-plane
+`Re s ≥ 1/2`, and retains the paper's `Q² |s|² (log Q)⁴` dependence. -/
+def Lemma3FourthMoment : Prop :=
+  ∃ C : ℝ, 0 < C ∧ ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q →
+    (1 / 2 : ℝ) ≤ s.re →
+      ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
+        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4
+
 /-- **Lemma 3**: for `Re s ≥ 1/2`,
 `∑_{2 ≤ q ≤ Q} ∑*_{χ mod q} |L(s, χ)|⁴ ≪ Q² |s|² (log Q)⁴`.
 
@@ -446,10 +456,7 @@ The scan writes only `q ≤ Q`, but its proof uses the character-sum estimate
 for nonprincipal primitive characters. Thus `q = 1` (whose character gives
 the zeta pole at `s = 1`) is implicitly excluded. Lemma 6 only uses moduli
 strictly larger than one. -/
-theorem lFunction_fourth_moment :
-    ∃ C : ℝ, 0 < C ∧ ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
-      ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
-        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4 := by
+theorem lFunction_fourth_moment : Lemma3FourthMoment := by
   sorry
 
 /-! ### Lemma 4 : primitive character sums at a point -/

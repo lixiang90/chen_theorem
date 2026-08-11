@@ -8,7 +8,7 @@ the remaining analytic work has the same boundaries as the paper.
 -/
 import ChenTheorem.Lemma6.Coefficients
 import ChenTheorem.Lemma6.Integration
-import ChenTheorem.Lemma6.Dyadic
+import ChenTheorem.Lemma6.Parameters
 
 set_option warn.sorry false
 

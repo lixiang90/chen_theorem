@@ -284,6 +284,42 @@ theorem lemma6ExceptionalFactor_pos (Q : ℝ) :
   unfold lemma6ExceptionalFactor
   positivity
 
+/-- Chen's exceptional factor is smaller than every fixed positive power.
+This is the quantitative form used when the remaining powers of
+`I_{l,x}` are absorbed in equations (19) and (20). -/
+theorem eventually_lemma6ExceptionalFactor_le_rpow
+    {δ : ℝ} (hδ : 0 < δ) :
+    ∀ᶠ Q : ℝ in Filter.atTop,
+      lemma6ExceptionalFactor Q ≤ Q ^ δ := by
+  have hloglog : Filter.Tendsto
+      (fun Q : ℝ => Real.log (Real.log Q))
+      Filter.atTop Filter.atTop :=
+    Real.tendsto_log_atTop.comp Real.tendsto_log_atTop
+  have hlarge := hloglog.eventually
+    (Filter.eventually_ge_atTop (6 / δ))
+  filter_upwards [hlarge, Filter.eventually_gt_atTop (1 : ℝ)] with Q hQlog hQ
+  have hlogQ : 0 ≤ Real.log Q := Real.log_nonneg hQ.le
+  have hloglogpos : 0 < Real.log (Real.log Q) := by
+    have hthreshold : 0 < (6 : ℝ) / δ := div_pos (by norm_num) hδ
+    linarith
+  have hratio :
+      (6 : ℝ) / Real.log (Real.log Q) ≤ δ := by
+    apply (div_le_iff₀ hloglogpos).2
+    have := (div_le_iff₀ hδ).1 hQlog
+    nlinarith
+  unfold lemma6ExceptionalFactor logLogRatio
+  calc
+    Real.exp (6 * (Real.log Q / Real.log (Real.log Q))) =
+        Real.exp (Real.log Q *
+          (6 / Real.log (Real.log Q))) := by
+      congr 1
+      field_simp
+    _ ≤ Real.exp (Real.log Q * δ) := by
+      exact Real.exp_le_exp.mpr
+        (mul_le_mul_of_nonneg_left hratio hlogQ)
+    _ = Q ^ δ :=
+      (Real.rpow_def_of_pos (zero_lt_one.trans hQ) δ).symm
+
 /-- Equation (18), squared and enlarged from `d` to a dyadic endpoint `Q`.
 This is exactly the pointwise hypothesis consumed by the weighted
 Cauchy--Hölder lemmas. -/

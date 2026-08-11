@@ -40,6 +40,42 @@ theorem eventually_exp_exp_one_le_log_pow_hundred :
     _ ≤ Real.log (x : ℝ) ^ 100 :=
       pow_le_pow_right₀ hbase (by norm_num)
 
+/-- Uniformly in the dyadic index, the exceptional factor is bounded by
+every prescribed positive power of its dyadic endpoint. -/
+theorem eventually_lemma6ExceptionalFactorAt_le_rpow
+    {δ : ℝ} (hδ : 0 < δ) :
+    ∀ᶠ x : ℕ in atTop, ∀ l : ℕ,
+      lemma6ExceptionalFactorAt x l ≤
+        (lemma6DyadicModulusScale x l) ^ δ := by
+  obtain ⟨Q₀, hQ₀⟩ :=
+    Filter.eventually_atTop.1
+      (eventually_lemma6ExceptionalFactor_le_rpow hδ)
+  have hlog :
+      Tendsto (fun x : ℕ => Real.log (x : ℝ)) atTop atTop :=
+    Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
+  have hlarge := hlog.eventually
+    (eventually_ge_atTop (max 1 Q₀))
+  filter_upwards [hlarge] with x hx
+  intro l
+  have hlogone : 1 ≤ Real.log (x : ℝ) :=
+    (le_max_left 1 Q₀).trans hx
+  have hQlog : Q₀ ≤ Real.log (x : ℝ) :=
+    (le_max_right 1 Q₀).trans hx
+  have hQbase : Q₀ ≤ Real.log (x : ℝ) ^ 100 := by
+    calc
+      Q₀ ≤ Real.log (x : ℝ) := hQlog
+      _ = Real.log (x : ℝ) ^ 1 := by rw [pow_one]
+      _ ≤ Real.log (x : ℝ) ^ 100 :=
+        pow_le_pow_right₀ hlogone (by norm_num)
+  have hbaseScale :
+      Real.log (x : ℝ) ^ 100 ≤ lemma6DyadicModulusScale x l := by
+    unfold lemma6DyadicModulusScale
+    simpa only [one_mul] using
+      (mul_le_mul_of_nonneg_right
+        (one_le_pow₀ (by norm_num : (1 : ℝ) ≤ 2))
+        (by positivity : 0 ≤ Real.log (x : ℝ) ^ 100))
+  exact hQ₀ _ (hQbase.trans hbaseScale)
+
 /-- Equation (18), in the pointwise squared form actually used on a
 dyadic modulus block in equations (19) and (20). -/
 theorem lemma6_equation18_sq_le_on_modulusBlock
