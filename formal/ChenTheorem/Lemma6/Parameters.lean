@@ -7,7 +7,7 @@ an absolute factor once the corresponding block is occupied.  This is the
 bookkeeping needed before simplifying the moment majorants.
 -/
 import ChenTheorem.Lemma6.Integration
-import ChenTheorem.Lemma6.RemainderConnection
+import ChenTheorem.Lemma6.Equation14
 
 open Real
 
