@@ -102,8 +102,8 @@ preceding equation (14).  It is a Pólya--Vinogradov/partial-summation input
 and is logically independent of Chen's Lemma 3. -/
 def Lemma6LFunctionTruncation : Prop :=
   ∃ C : ℝ, 0 < C ∧ ∀ {q H : ℕ} [NeZero q] {s : ℂ},
-    1 ≤ H → 1 ≤ s.re →
-    ∀ χ : DirichletCharacter ℂ q,
+    2 ≤ q → 1 ≤ H → 1 ≤ s.re →
+    ∀ χ : DirichletCharacter ℂ q, χ.IsPrimitive →
       ‖lemma6LSeriesTail H s χ‖ ≤
         C * ‖s‖ * Real.sqrt q * Real.log (2 * q) / H
 
@@ -286,8 +286,8 @@ character large sieve; the second is the paper's analytic error term. -/
 theorem norm_one_sub_LFunction_mul_mollifierAt_sq_le_of_truncation
     (htrunc : Lemma6LFunctionTruncation) :
     ∃ C : ℝ, 0 < C ∧ ∀ {q H : ℕ} [NeZero q] {s : ℂ},
-      1 ≤ H → 1 < s.re →
-      ∀ χ : DirichletCharacter ℂ q,
+      2 ≤ q → 1 ≤ H → 1 < s.re →
+      ∀ χ : DirichletCharacter ℂ q, χ.IsPrimitive →
         ‖1 - DirichletCharacter.LFunction χ s *
             lemma6MollifierAt H s χ‖ ^ 2 ≤
           2 * ‖lemma6MollifierRemainderPolynomial H
@@ -296,8 +296,8 @@ theorem norm_one_sub_LFunction_mul_mollifierAt_sq_le_of_truncation
             (harmonic H : ℝ) ^ 2) := by
   rcases htrunc with ⟨C, hC, htail⟩
   refine ⟨C, hC, ?_⟩
-  intro q H _ s hH hs χ
-  have htail' := htail hH hs.le χ
+  intro q H _ s hq hH hs χ hχ
+  have htail' := htail hq hH hs.le χ hχ
   have hmoll := norm_lemma6MollifierAt_le_harmonic (H := H) hs.le χ
   have hharm : 0 ≤ (harmonic H : ℝ) := by
     simp_rw [harmonic_eq_sum_Icc, Rat.cast_sum, Rat.cast_inv,

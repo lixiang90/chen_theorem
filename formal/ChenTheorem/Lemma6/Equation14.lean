@@ -198,7 +198,7 @@ theorem lemma6_equation14_of_truncation
           intro χ hχ
           split_ifs with hp
           · simpa only [lemma6Equation14ErrorTerm] using
-              hpoint hH hs χ
+              hpoint (by omega : 2 ≤ q) hH hs χ hp
           · exact le_rfl
         · positivity
     _ ≤ 2 * (∑ q ∈ Finset.Ioc D Q, (q.totient : ℝ)⁻¹ *
