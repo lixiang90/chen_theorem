@@ -15,6 +15,11 @@ open scoped ArithmeticFunction.Moebius Classical
 
 namespace Chen
 
+/-- Complex-valued sum over primitive characters modulo `q`. -/
+noncomputable def primComplexSum
+    (q : ℕ) (F : DirichletCharacter ℂ q → ℂ) : ℂ :=
+  ∑' χ : DirichletCharacter ℂ q, if χ.IsPrimitive then F χ else 0
+
 /-- The nonnegative sieve coefficient `|μ(d)| 3^ν(d) / φ(d)`. -/
 noncomputable def lemma6TotientWeight (d : ℕ) : ℝ :=
   |((ArithmeticFunction.moebius d : ℤ) : ℝ)| *

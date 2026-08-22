@@ -41,6 +41,29 @@ noncomputable def lemma6MollifierAt
   ∑ n ∈ Finset.Icc 1 H,
     (ArithmeticFunction.moebius n : ℂ) * χ n / (n : ℂ) ^ s
 
+/-- The truncated Möbius mollifier is an entire Dirichlet polynomial in
+the complex variable. -/
+theorem differentiable_lemma6MollifierAt
+    {q : ℕ} (H : ℕ) (χ : DirichletCharacter ℂ q) :
+    Differentiable ℂ (fun s => lemma6MollifierAt H s χ) := by
+  unfold lemma6MollifierAt
+  apply Differentiable.fun_sum
+  intro n hn
+  have hn1 : 1 ≤ n := (Finset.mem_Icc.mp hn).1
+  have hn0 : (n : ℂ) ≠ 0 := by
+    exact_mod_cast (show n ≠ 0 by omega)
+  letI : NeZero (n : ℂ) := ⟨hn0⟩
+  have hpow : Differentiable ℂ (fun s : ℂ => (n : ℂ) ^ s) :=
+    differentiable_const_cpow_of_neZero _
+  have hinv : Differentiable ℂ (fun s : ℂ => ((n : ℂ) ^ s)⁻¹) :=
+    hpow.inv (fun s => Complex.cpow_ne_zero_iff.mpr (Or.inl hn0))
+  have hconst : Differentiable ℂ
+      (fun _ : ℂ => (ArithmeticFunction.moebius n : ℂ) * χ n) :=
+    differentiable_const _
+  change Differentiable ℂ (fun s : ℂ =>
+    ((ArithmeticFunction.moebius n : ℂ) * χ n) * ((n : ℂ) ^ s)⁻¹)
+  exact hconst.mul hinv
+
 /-- Equation (16) for the actual Dirichlet L-function on Chen's
 `α`-line.  Nonvanishing is discharged by absolute convergence in
 `Re s > 1`. -/
@@ -110,6 +133,63 @@ theorem lemma6_norm_logDeriv_le_majorant
   rw [hidentity, norm_neg, LSeries, lemma6LogDerivMajorant]
   exact (norm_tsum_le_tsum_norm htwistNorm).trans
     (htwistNorm.tsum_le_tsum hterm hΛNorm)
+
+/-- A character-independent absolute-convergence majorant for `L'` on a
+vertical line in `Re s > 1`.  The argument is a real number because the
+norms of the differentiated Dirichlet-series terms depend only on the real
+part of `s`. -/
+noncomputable def lemma6LDerivMajorant (sigma : ℝ) : ℝ :=
+  ∑' n : ℕ,
+    ‖LSeries.term (LSeries.logMul (1 : ℕ → ℂ)) (sigma : ℂ) n‖
+
+/-- In the absolutely convergent half-plane, `L'(s, chi)` is bounded by the
+untwisted differentiated Dirichlet series at `Re s`.  In particular this
+bound is uniform in the height on every fixed vertical line to the right of
+one. -/
+theorem lemma6_norm_deriv_LFunction_le_majorant
+    {q : ℕ} [NeZero q] (chi : DirichletCharacter ℂ q)
+    {s : ℂ} (hs : 1 < s.re) :
+    ‖deriv (DirichletCharacter.LFunction chi) s‖ ≤
+      lemma6LDerivMajorant s.re := by
+  have hq0 : q ≠ 0 := NeZero.ne q
+  have hchiAbs : LSeries.abscissaOfAbsConv (chi ·) < s.re := by
+    rw [DirichletCharacter.absicssaOfAbsConv_eq_one hq0 chi]
+    exact_mod_cast hs
+  have hchi : LSeriesSummable (LSeries.logMul (chi ·)) s :=
+    LSeriesSummable_logMul_of_lt_re hchiAbs
+  have hone : LSeriesSummable
+      (LSeries.logMul (1 : ℕ → ℂ)) (s.re : ℂ) := by
+    apply LSeriesSummable_logMul_of_lt_re
+    rw [LSeries.abscissaOfAbsConv_one]
+    exact_mod_cast hs
+  have hchiNorm : Summable (fun n : ℕ =>
+      ‖LSeries.term (LSeries.logMul (chi ·)) s n‖) := by
+    rw [summable_norm_iff]
+    exact hchi
+  have honeNorm : Summable (fun n : ℕ =>
+      ‖LSeries.term (LSeries.logMul (1 : ℕ → ℂ))
+        (s.re : ℂ) n‖) := by
+    rw [summable_norm_iff]
+    exact hone
+  have hterm (n : ℕ) :
+      ‖LSeries.term (LSeries.logMul (chi ·)) s n‖ ≤
+        ‖LSeries.term (LSeries.logMul (1 : ℕ → ℂ))
+          (s.re : ℂ) n‖ := by
+    calc
+      ‖LSeries.term (LSeries.logMul (chi ·)) s n‖ ≤
+          ‖LSeries.term (LSeries.logMul (1 : ℕ → ℂ)) s n‖ := by
+        apply LSeries.norm_term_le
+        simp only [LSeries.logMul, Pi.one_apply, mul_one, norm_mul]
+        simpa only [mul_one] using
+          mul_le_mul_of_nonneg_left (chi.norm_le_one n) (norm_nonneg _)
+      _ = ‖LSeries.term (LSeries.logMul (1 : ℕ → ℂ))
+          (s.re : ℂ) n‖ := by
+        simp only [LSeries.norm_term_eq, Complex.ofReal_re]
+  rw [DirichletCharacter.deriv_LFunction_eq_deriv_LSeries chi hs,
+    LSeries_deriv hchiAbs, norm_neg, LSeries,
+    lemma6LDerivMajorant]
+  exact (norm_tsum_le_tsum_norm hchiNorm).trans
+    (hchiNorm.tsum_le_tsum hterm honeNorm)
 
 /-- Pointwise `A + B` split in equation (17).  `P` is the prime-pair
 Dirichlet polynomial; its precise dyadic support is irrelevant to this

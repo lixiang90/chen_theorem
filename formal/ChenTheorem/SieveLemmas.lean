@@ -439,15 +439,63 @@ theorem large_sieve_dyadic :
 
 /-! ### Lemma 3 : fourth moment of `L`-functions -/
 
-/-- The precise form of Lemma 3 used later in Lemma 6.
+/-- The strong form of Lemma 3 used later in Lemma 6.
 
 It starts at modulus `2`, is uniform on the closed half-plane
-`Re s ≥ 1/2`, and retains the paper's `Q² |s|² (log Q)⁴` dependence. -/
+`Re s ≥ 1/2`, and retains the paper's claimed
+`Q² |s|² (log Q)⁴` dependence.  There are two distinct corrections to
+keep in mind:
+
+* the scan's range `q ≤ Q` must omit `q = 1`, since its primitive
+  character has `L(s,χ) = ζ(s)` and hence a pole at `s = 1`;
+* the proof printed in the scan does not establish the displayed dependence
+  on `s`: its penultimate line contains
+  `(Q² + Q²|s|²) ∑_{n≤(Q|s|)²} d(n)²/n`, which leaves a factor
+  `(log (Q|s|))⁴`.
+
+Thus this definition records the *claimed strong estimate*, not the estimate
+actually obtained by the printed calculation.  The latter is isolated as
+`Lemma3FourthMomentWithHeightLog` below. -/
 def Lemma3FourthMoment : Prop :=
   ∃ C : ℝ, 0 < C ∧ ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q →
     (1 / 2 : ℝ) ≤ s.re →
       ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
         C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4
+
+/-- The fourth-moment form supported by the calculation printed in the
+proof of Lemma 3, after excluding modulus one.  The harmless `2`, `1 + ‖s‖`
+regularization makes the logarithm positive uniformly on the stated range.
+
+This is deliberately a separate proposition: it is weaker than
+`Lemma3FourthMoment`, and using it in Lemma 6 requires retaining the height
+logarithm through the subsequent Cauchy and `ν`-integration estimates. -/
+def Lemma3FourthMomentWithHeightLog : Prop :=
+  ∃ C : ℝ, 0 < C ∧ ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q →
+    (1 / 2 : ℝ) ≤ s.re →
+      ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
+        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 *
+          (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4
+
+/-- The claimed strong form implies the height-logarithmic form supported
+by the printed calculation.  This direction is elementary; the converse is
+precisely the unjustified loss of height dependence in the scan. -/
+theorem lemma3FourthMomentWithHeightLog_of_strong
+    (hstrong : Lemma3FourthMoment) : Lemma3FourthMomentWithHeightLog := by
+  rcases hstrong with ⟨C, hC, hbound⟩
+  refine ⟨C, hC, ?_⟩
+  intro Q s hQ hs
+  have hQpos : (0 : ℝ) < Q := by positivity
+  have hQone : (1 : ℝ) ≤ Q := by exact_mod_cast (show 1 ≤ Q by omega)
+  have harg : (Q : ℝ) ≤ 2 * (Q : ℝ) * (1 + ‖s‖) := by
+    nlinarith [norm_nonneg s]
+  have hlog : Real.log (Q : ℝ) ≤
+      Real.log (2 * (Q : ℝ) * (1 + ‖s‖)) :=
+    Real.log_le_log hQpos harg
+  have hlog0 : 0 ≤ Real.log (Q : ℝ) := Real.log_nonneg hQone
+  have hpow : (Real.log (Q : ℝ)) ^ 4 ≤
+      (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4 :=
+    pow_le_pow_left₀ hlog0 hlog 4
+  exact (hbound Q s hQ hs).trans (by gcongr)
 
 /-- **Lemma 3**: for `Re s ≥ 1/2`,
 `∑_{2 ≤ q ≤ Q} ∑*_{χ mod q} |L(s, χ)|⁴ ≪ Q² |s|² (log Q)⁴`.
@@ -455,7 +503,10 @@ def Lemma3FourthMoment : Prop :=
 The scan writes only `q ≤ Q`, but its proof uses the character-sum estimate
 for nonprincipal primitive characters. Thus `q = 1` (whose character gives
 the zeta pole at `s = 1`) is implicitly excluded. Lemma 6 only uses moduli
-strictly larger than one. -/
+strictly larger than one.
+
+The theorem remains the unresolved *strong* analytic input: the proof in the
+scan only yields the height-logarithmic variant above. -/
 theorem lFunction_fourth_moment : Lemma3FourthMoment := by
   sorry
 

@@ -46,6 +46,58 @@ noncomputable def lemma6PairBlockPolynomial
   lemma6PairDirichletPolynomial x
     (lemma6AdmissiblePairBlock x m k) s χ
 
+/-- Membership in an actual admissible pair block exposes the two
+primality hypotheses used both by Mellin inversion and by holomorphy of
+the associated Dirichlet polynomial. -/
+theorem primes_of_mem_lemma6AdmissiblePairBlock
+    {x m k : ℕ} {q : ℕ × ℕ}
+    (hq : q ∈ lemma6AdmissiblePairBlock x m k) :
+    q.1.Prime ∧ q.2.Prime := by
+  have hqadmissible : q ∈ lemma6AdmissiblePairs x m :=
+    (Finset.mem_filter.mp hq).1
+  have hqchen : q ∈ chenPairs x :=
+    (Finset.mem_filter.mp hqadmissible).1
+  have hqdata := (Finset.mem_filter.mp hqchen).2
+  exact ⟨hqdata.1, hqdata.2.1⟩
+
+/-- The actual prime-pair block is an entire Dirichlet polynomial in its
+complex argument.  The possible zero of the fixed logarithmic denominator
+is harmless because Lean's division is totalized; it gives the constant
+zero summand in that case. -/
+theorem differentiable_lemma6PairBlockPolynomial
+    {d : ℕ} (x m k : ℕ) (χ : DirichletCharacter ℂ d) :
+    Differentiable ℂ (fun s => lemma6PairBlockPolynomial x m k s χ) := by
+  unfold lemma6PairBlockPolynomial lemma6PairDirichletPolynomial
+  simp only [Nat.cast_mul]
+  apply Differentiable.fun_sum
+  intro q hq
+  obtain ⟨hp1, hp2⟩ := primes_of_mem_lemma6AdmissiblePairBlock hq
+  have hn0 : (q.1 * q.2 : ℂ) ≠ 0 := by
+    norm_cast
+    exact Nat.mul_ne_zero hp1.ne_zero hp2.ne_zero
+  letI : NeZero (q.1 * q.2 : ℂ) := ⟨hn0⟩
+  have hpow : Differentiable ℂ (fun s : ℂ => (q.1 * q.2 : ℂ) ^ s) :=
+    differentiable_const_cpow_of_neZero _
+  by_cases hlog : Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) = 0
+  · have hlogC :
+        (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ) = 0 := by
+      exact_mod_cast hlog
+    simp only [hlogC, mul_zero, div_zero]
+    exact differentiable_const _
+  · have hden : Differentiable ℂ (fun s : ℂ =>
+        (q.1 * q.2 : ℂ) ^ s *
+          (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ)) := by
+      fun_prop
+    have hdeninv : Differentiable ℂ (fun s : ℂ =>
+        ((q.1 * q.2 : ℂ) ^ s *
+          (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ))⁻¹) :=
+      hden.inv (fun s => mul_ne_zero
+        (Complex.cpow_ne_zero_iff.mpr (Or.inl hn0))
+        (Complex.ofReal_ne_zero.mpr hlog))
+    have hmul := hdeninv.const_mul
+      (χ (q.1 : ZMod d) * χ (q.2 : ZMod d))
+    simpa only [div_eq_mul_inv, Nat.cast_mul, map_mul] using hmul
+
 /-- The one-modulus `A` summand after equation (16). -/
 noncomputable def lemma6AModulus
     {d : ℕ} [NeZero d] (x H : ℕ) (pairs : Finset (ℕ × ℕ))
@@ -373,6 +425,79 @@ noncomputable def lemma6LDerivNorm
   else
     letI : NeZero i.1 := ⟨hd⟩
     ‖deriv (DirichletCharacter.LFunction i.2) s‖
+
+/-- The `B` block after moving the contour from `α` to `β`.  Keeping this
+as a separate definition makes the still-required contour-shift step
+explicit rather than silently identifying the two lines. -/
+noncomputable def lemma6BBlockAtBeta
+    (x m l k H : ℕ) (ν : ℝ) : ℝ :=
+  ∑ d ∈ lemma6ModulusBlock x l,
+    lemma6LinearWeight d *
+      lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν)
+
+/-- Expand the equation-(17) `A` block into the single dependent character
+block used by the moment inequalities. -/
+theorem lemma6ABlockAtAlpha_eq_characterBlock_sum
+    (x m l k H : ℕ) (ν : ℝ) :
+    lemma6ABlockAtAlpha x m l k H ν =
+      ∑ i ∈ lemma6CharacterBlock x l,
+        lemma6PrimitiveBaseWeight i *
+          (3 : ℝ) ^ distinctPrimeFactors i.1 *
+          lemma6PairBlockNorm x m k (lemma6AlphaPoint x ν) i *
+          lemma6RemainderNorm H (lemma6AlphaPoint x ν) i := by
+  rw [lemma6CharacterBlock, Finset.sum_sigma]
+  unfold lemma6ABlockAtAlpha
+  apply Finset.sum_congr rfl
+  intro d hd
+  have hd0 : d ≠ 0 := by
+    have hdmem := hd
+    rw [lemma6ModulusBlock, Finset.mem_filter] at hdmem
+    by_contra h
+    subst d
+    norm_num at hdmem
+  simp only [lemma6LinearWeight, lemma6AModulusTotal, hd0, ↓reduceDIte,
+    lemma6AModulus, lemma6PrimitiveBaseWeight, lemma6PairBlockNorm,
+    lemma6PairBlockPolynomial, lemma6RemainderNorm, primSum, tsum_fintype]
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro χ hχ
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true]
+    ring
+  · simp [hp]
+
+/-- Expand the shifted `B` block into the dependent character block used
+by equations (19) and (20). -/
+theorem lemma6BBlockAtBeta_eq_characterBlock_sum
+    (x m l k H : ℕ) (ν : ℝ) :
+    lemma6BBlockAtBeta x m l k H ν =
+      ∑ i ∈ lemma6CharacterBlock x l,
+        lemma6PrimitiveBaseWeight i *
+          (3 : ℝ) ^ distinctPrimeFactors i.1 *
+          lemma6PairBlockNorm x m k (lemma6BetaPoint x ν) i *
+          lemma6MollifierNorm H (lemma6BetaPoint x ν) i *
+          lemma6LDerivNorm (lemma6BetaPoint x ν) i := by
+  rw [lemma6CharacterBlock, Finset.sum_sigma]
+  unfold lemma6BBlockAtBeta
+  apply Finset.sum_congr rfl
+  intro d hd
+  have hd0 : d ≠ 0 := by
+    have hdmem := hd
+    rw [lemma6ModulusBlock, Finset.mem_filter] at hdmem
+    by_contra h
+    subst d
+    norm_num at hdmem
+  simp only [lemma6LinearWeight, lemma6BModulusTotal, hd0, ↓reduceDIte,
+    lemma6BModulus, lemma6PrimitiveBaseWeight, lemma6PairBlockNorm,
+    lemma6PairBlockPolynomial, lemma6MollifierNorm, lemma6LDerivNorm,
+    primSum, tsum_fintype]
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro χ hχ
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true]
+    ring
+  · simp [hp]
 
 /-- Formula (19), `A` part: weighted Cauchy--Schwarz on the actual
 modulus/primitive-character block, with equation (18) absorbed into

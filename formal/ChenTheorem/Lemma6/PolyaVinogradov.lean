@@ -7,6 +7,9 @@ also covers the composite moduli occurring in Chen's argument.
 -/
 import ChenTheorem.Lemma6.RemainderConnection
 import Mathlib.Analysis.Fourier.ZMod
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+import Mathlib.Data.ZMod.ValMinAbs
+import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.NumberTheory.AbelSummation
 
 open scoped Classical
@@ -184,5 +187,354 @@ theorem primitive_character_prefix_fourier
       apply Finset.sum_congr rfl
       intro k hk
       rw [additiveCharacterPrefix, Finset.mul_sum])
+
+/-- The elementary geometric bound for a nontrivial additive-character
+prefix. -/
+theorem additiveCharacterPrefix_norm_le
+    {q : ℕ} [NeZero q] (k : ZMod q) (hk : k ≠ 0) (N : ℕ) :
+    ‖additiveCharacterPrefix k N‖ ≤
+      2 / ‖ZMod.stdAddChar k - 1‖ := by
+  have hchar : ZMod.stdAddChar k ≠ 1 := by
+    intro h
+    have heq : ZMod.stdAddChar k =
+        ZMod.stdAddChar (0 : ZMod q) := by simpa using h
+    exact hk (ZMod.injective_stdAddChar heq)
+  have hsum : additiveCharacterPrefix k N =
+      ∑ n ∈ range N, (ZMod.stdAddChar k) ^ n := by
+    unfold additiveCharacterPrefix
+    apply Finset.sum_congr rfl
+    intro n hn
+    rw [show ZMod.stdAddChar (k * (n : ZMod q)) =
+      (ZMod.stdAddChar k) ^ n by
+        rw [mul_comm]
+        have hmul : (n : ZMod q) * k = n • k := by
+          simpa using
+            (Nat.cast_smul_eq_nsmul (R := ZMod q) n k).symm
+        rw [hmul, AddChar.map_nsmul_eq_pow]]
+  rw [hsum, geom_sum_eq hchar, norm_div]
+  apply div_le_div_of_nonneg_right _ (norm_nonneg _)
+  calc
+    ‖ZMod.stdAddChar k ^ N - 1‖ ≤
+        ‖ZMod.stdAddChar k ^ N‖ + ‖(1 : ℂ)‖ := norm_sub_le _ _
+    _ = 2 := by
+      simp only [norm_pow, AddChar.norm_apply, one_pow, norm_one]
+      norm_num
+
+/-- On the first half of a residue system the distance of the standard
+additive character from one is bounded below linearly. -/
+theorem stdAddChar_sub_one_norm_lower_bound_nat
+    {q d : ℕ} [NeZero q] (hd : d ≤ q / 2) :
+    4 * (d : ℝ) / q ≤
+      ‖ZMod.stdAddChar (d : ZMod q) - 1‖ := by
+  have hq : (0 : ℝ) < q := by exact_mod_cast NeZero.pos q
+  have hdq : (d : ℝ) / q ≤ 1 / 2 := by
+    rw [div_le_iff₀ hq]
+    have hcast : (d : ℝ) * 2 ≤ q := by
+      exact_mod_cast
+        (Nat.le_div_iff_mul_le (by norm_num : 0 < 2)).mp hd
+    nlinarith
+  have hangle : |Real.pi * (d : ℝ) / q| ≤ Real.pi / 2 := by
+    rw [abs_of_nonneg (by positivity)]
+    calc
+      Real.pi * (d : ℝ) / q = Real.pi * ((d : ℝ) / q) := by ring
+      _ ≤ Real.pi * (1 / 2) :=
+        mul_le_mul_of_nonneg_left hdq Real.pi_pos.le
+      _ = Real.pi / 2 := by ring
+  have hsin := Real.mul_abs_le_abs_sin hangle
+  rw [show (d : ZMod q) = ((d : ℤ) : ZMod q) by norm_cast,
+    ZMod.stdAddChar_coe]
+  have hexp :
+      Complex.exp (2 * (Real.pi : ℂ) * Complex.I *
+          (d : ℤ) / (q : ℕ)) =
+        Complex.exp (Complex.I *
+          ((2 * Real.pi * d / q : ℝ) : ℂ)) := by
+    congr 1
+    push_cast
+    ring
+  rw [hexp, Complex.norm_exp_I_mul_ofReal_sub_one]
+  rw [Real.norm_eq_abs, abs_mul,
+    abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 2)]
+  have harg : |Real.pi * (d : ℝ) / q| =
+      Real.pi * d / q := abs_of_nonneg (by positivity)
+  rw [show (2 * Real.pi * (d : ℝ) / q) / 2 =
+      Real.pi * d / q by ring]
+  rw [harg] at hsin
+  field_simp at hsin ⊢
+  nlinarith [Real.pi_pos]
+
+/-- Replacing a frequency by its negative does not change its distance
+from one on the unit circle. -/
+theorem stdAddChar_neg_sub_one_norm
+    {q : ℕ} [NeZero q] (k : ZMod q) :
+    ‖ZMod.stdAddChar (-k) - 1‖ =
+      ‖ZMod.stdAddChar k - 1‖ := by
+  rw [AddChar.map_neg_eq_inv]
+  let z := ZMod.stdAddChar k
+  have hzNorm : ‖z‖ = 1 := by simp [z]
+  have hz : z ≠ 0 := by
+    intro h
+    rw [h, norm_zero] at hzNorm
+    norm_num at hzNorm
+  calc
+    ‖z⁻¹ - 1‖ = ‖z⁻¹ * (1 - z)‖ := by
+      congr 1
+      field_simp
+    _ = ‖z⁻¹‖ * ‖1 - z‖ := norm_mul _ _
+    _ = ‖1 - z‖ := by rw [norm_inv, hzNorm, inv_one, one_mul]
+    _ = ‖z - 1‖ := norm_sub_rev _ _
+
+/-- The denominator in the geometric estimate is controlled by the
+centered representative of the frequency. -/
+theorem stdAddChar_sub_one_norm_lower_bound
+    {q : ℕ} [NeZero q] (k : ZMod q) :
+    4 * (k.valMinAbs.natAbs : ℝ) / q ≤
+      ‖ZMod.stdAddChar k - 1‖ := by
+  let d := k.valMinAbs.natAbs
+  have hd : d ≤ q / 2 := ZMod.natAbs_valMinAbs_le k
+  have hbase : 4 * (d : ℝ) / q ≤
+      ‖ZMod.stdAddChar (d : ZMod q) - 1‖ :=
+    stdAddChar_sub_one_norm_lower_bound_nat hd
+  rw [ZMod.natCast_natAbs_valMinAbs] at hbase
+  split at hbase
+  · simpa only [d] using hbase
+  · rw [stdAddChar_neg_sub_one_norm k] at hbase
+    simpa only [d] using hbase
+
+/-- The centered geometric-progression estimate used in the
+Pólya--Vinogradov argument. -/
+theorem additiveCharacterPrefix_norm_le_centered
+    {q : ℕ} [NeZero q] (k : ZMod q) (hk : k ≠ 0) (N : ℕ) :
+    ‖additiveCharacterPrefix k N‖ ≤
+      (q : ℝ) / (2 * k.valMinAbs.natAbs) := by
+  let d := k.valMinAbs.natAbs
+  have hdpos : (0 : ℝ) < d := by
+    exact_mod_cast (show 0 < d by
+      rw [Nat.pos_iff_ne_zero]
+      intro hd
+      have hval : k.valMinAbs = 0 := Int.natAbs_eq_zero.mp hd
+      exact hk (ZMod.valMinAbs_eq_zero k |>.mp hval))
+  have hqpos : (0 : ℝ) < q := by exact_mod_cast NeZero.pos q
+  have hden := stdAddChar_sub_one_norm_lower_bound k
+  have hlowerpos : 0 < 4 * (d : ℝ) / q := by positivity
+  calc
+    ‖additiveCharacterPrefix k N‖ ≤
+        2 / ‖ZMod.stdAddChar k - 1‖ :=
+      additiveCharacterPrefix_norm_le k hk N
+    _ ≤ 2 / (4 * (d : ℝ) / q) := by
+      exact div_le_div_of_nonneg_left (by norm_num) hlowerpos hden
+    _ = (q : ℝ) / (2 * k.valMinAbs.natAbs) := by
+      dsimp only [d]
+      field_simp
+      ring
+
+/-- The reciprocal centered frequency, extended by zero at frequency
+zero. -/
+noncomputable def centeredReciprocal
+    {q : ℕ} [NeZero q] (k : ZMod q) : ℝ :=
+  if k = 0 then 0 else ((k.valMinAbs.natAbs : ℝ)⁻¹)
+
+/-- The sum of centered reciprocal frequencies in a natural residue
+system is at most twice the corresponding harmonic number. -/
+theorem centered_reciprocal_sum_nat (q : ℕ) (hq : 1 ≤ q) :
+    ∑ j ∈ Ico 1 q,
+        (((min j (q - j) : ℕ) : ℝ)⁻¹) ≤
+      2 * (harmonic (q - 1) : ℝ) := by
+  have hpoint : ∀ j ∈ Ico 1 q,
+      (((min j (q - j) : ℕ) : ℝ)⁻¹) ≤
+        (j : ℝ)⁻¹ + (((q - j : ℕ) : ℝ)⁻¹) := by
+    intro j hj
+    by_cases h : j ≤ q - j
+    · rw [min_eq_left h]
+      exact le_add_of_nonneg_right (inv_nonneg.mpr (by positivity))
+    · rw [min_eq_right (le_of_not_ge h)]
+      exact le_add_of_nonneg_left (inv_nonneg.mpr (by positivity))
+  calc
+    ∑ j ∈ Ico 1 q, (((min j (q - j) : ℕ) : ℝ)⁻¹) ≤
+        ∑ j ∈ Ico 1 q,
+          ((j : ℝ)⁻¹ + (((q - j : ℕ) : ℝ)⁻¹)) := by
+      apply Finset.sum_le_sum
+      intro j hj
+      exact hpoint j hj
+    _ = (∑ j ∈ Ico 1 q, (j : ℝ)⁻¹) +
+        ∑ j ∈ Ico 1 q, (((q - j : ℕ) : ℝ)⁻¹) := by
+      rw [Finset.sum_add_distrib]
+    _ = 2 * ∑ j ∈ Ico 1 q, (j : ℝ)⁻¹ := by
+      rw [show (∑ j ∈ Ico 1 q,
+          (((q - j : ℕ) : ℝ)⁻¹)) =
+          ∑ j ∈ Ico 1 q, ((j : ℝ)⁻¹) by
+        apply Finset.sum_bij (fun j _ ↦ q - j)
+        · intro j hj
+          simp only [mem_Ico] at hj ⊢
+          omega
+        · intro j₁ hj₁ j₂ hj₂ heq
+          simp only [mem_Ico] at hj₁ hj₂
+          omega
+        · intro b hb
+          refine ⟨q - b, ?_, ?_⟩
+          · simp only [mem_Ico] at hb ⊢
+            omega
+          · simp only [mem_Ico] at hb
+            omega
+        · intro j hj
+          rfl]
+      ring
+    _ = 2 * (harmonic (q - 1) : ℝ) := by
+      congr 1
+      have hset : Ico 1 q = Icc 1 (q - 1) := by
+        ext j
+        simp only [mem_Ico, mem_Icc]
+        omega
+      rw [hset, harmonic_eq_sum_Icc, Rat.cast_sum]
+      simp only [Rat.cast_inv, Rat.cast_natCast]
+
+/-- The centered reciprocal sum over `ZMod q`. -/
+theorem centered_reciprocal_sum_zmod (q : ℕ) [NeZero q]
+    (hq : 1 ≤ q) :
+    ∑ k : ZMod q, centeredReciprocal k ≤
+      2 * (harmonic (q - 1) : ℝ) := by
+  rw [← show (∑ i : Fin q,
+      centeredReciprocal ((i : ℕ) : ZMod q)) =
+      ∑ k : ZMod q, centeredReciprocal k by
+        apply Fintype.sum_equiv (ZMod.finEquiv q)
+        intro i
+        cases q with
+        | zero => exact (NeZero.ne 0 rfl).elim
+        | succ q =>
+            exact congrArg centeredReciprocal
+              (@ZMod.natCast_zmod_val (q + 1) inferInstance
+                ((i : Fin (q + 1)) : ZMod (q + 1)))]
+  rw [Fin.sum_univ_eq_sum_range
+    (fun j => centeredReciprocal (j : ZMod q)) q]
+  have hpoint (j : ℕ) (hj : j < q) :
+      centeredReciprocal (j : ZMod q) =
+        if j = 0 then 0 else
+          (((min j (q - j) : ℕ) : ℝ)⁻¹) := by
+    unfold centeredReciprocal
+    have hzero : (j : ZMod q) = 0 ↔ j = 0 := by
+      rw [ZMod.natCast_eq_zero_iff]
+      constructor
+      · intro hdvd
+        exact Nat.eq_zero_of_dvd_of_lt hdvd hj
+      · intro h
+        simp [h]
+    rw [if_congr hzero (by rfl) (by rfl)]
+    split
+    · rfl
+    · rw [ZMod.valMinAbs_natAbs_eq_min, ZMod.val_natCast,
+        Nat.mod_eq_of_lt hj]
+  calc
+    ∑ j ∈ range q, centeredReciprocal (j : ZMod q) =
+        ∑ j ∈ range q, if j = 0 then 0 else
+          (((min j (q - j) : ℕ) : ℝ)⁻¹) := by
+      apply Finset.sum_congr rfl
+      intro j hj
+      exact hpoint j (mem_range.mp hj)
+    _ = ∑ j ∈ Ico 1 q,
+          (((min j (q - j) : ℕ) : ℝ)⁻¹) := by
+      have hrange : range q = insert 0 (Ico 1 q) := by
+        ext j
+        simp only [mem_range, mem_insert, mem_Ico]
+        omega
+      rw [hrange, sum_insert (by simp), if_pos rfl, zero_add]
+      apply Finset.sum_congr rfl
+      intro j hj
+      have hj0 : j ≠ 0 := by
+        intro h
+        subst j
+        simpa using hj
+      rw [if_neg hj0]
+    _ ≤ 2 * (harmonic (q - 1) : ℝ) :=
+      centered_reciprocal_sum_nat q hq
+
+/-- Pólya--Vinogradov in a sharp harmonic-number form.  The estimate is
+uniform in the prefix length. -/
+theorem primitive_character_prefix_sum_norm_le_harmonic
+    {q : ℕ} [NeZero q] {χ : DirichletCharacter ℂ q}
+    (hχ : χ.IsPrimitive) (hq : 2 ≤ q) (N : ℕ) :
+    ‖∑ n ∈ range N, χ n‖ ≤
+      Real.sqrt q * (harmonic (q - 1) : ℝ) := by
+  letI : Fact (1 < q) := ⟨by omega⟩
+  rw [primitive_character_prefix_fourier hχ]
+  calc
+    ‖∑ k : ZMod q, (q : ℂ)⁻¹ * χ⁻¹ (-k) *
+        gaussSum χ ZMod.stdAddChar * additiveCharacterPrefix k N‖ ≤
+        ∑ k : ZMod q, ‖(q : ℂ)⁻¹ * χ⁻¹ (-k) *
+          gaussSum χ ZMod.stdAddChar *
+            additiveCharacterPrefix k N‖ := norm_sum_le _ _
+    _ ≤ ∑ k : ZMod q,
+        Real.sqrt q / 2 * centeredReciprocal k := by
+      apply Finset.sum_le_sum
+      intro k hk
+      by_cases hk0 : k = 0
+      · subst k
+        rw [MulChar.map_nonunit _ (by
+          simpa only [neg_zero] using
+            (not_isUnit_zero : ¬IsUnit (0 : ZMod q)))]
+        simp [centeredReciprocal]
+      · have hprefix :=
+          additiveCharacterPrefix_norm_le_centered k hk0 N
+        have hchar : ‖χ⁻¹ (-k)‖ ≤ 1 :=
+          DirichletCharacter.norm_le_one _ _
+        have hqpos : (0 : ℝ) < q := by
+          exact_mod_cast NeZero.pos q
+        have hdpos : (0 : ℝ) < k.valMinAbs.natAbs := by
+          exact_mod_cast (show 0 < k.valMinAbs.natAbs by
+            rw [Nat.pos_iff_ne_zero]
+            intro hd
+            have hval : k.valMinAbs = 0 :=
+              Int.natAbs_eq_zero.mp hd
+            exact hk0 (ZMod.valMinAbs_eq_zero k |>.mp hval))
+        rw [norm_mul, norm_mul, norm_mul, norm_inv,
+          Complex.norm_natCast, norm_primitive_gaussSum hχ]
+        rw [centeredReciprocal, if_neg hk0]
+        calc
+          (q : ℝ)⁻¹ * ‖χ⁻¹ (-k)‖ * Real.sqrt q *
+              ‖additiveCharacterPrefix k N‖ ≤
+              (q : ℝ)⁻¹ * 1 * Real.sqrt q *
+                ((q : ℝ) / (2 * k.valMinAbs.natAbs)) := by
+            gcongr
+          _ = Real.sqrt q / 2 *
+                ((k.valMinAbs.natAbs : ℝ)⁻¹) := by
+            field_simp
+    _ = Real.sqrt q / 2 *
+        ∑ k : ZMod q, centeredReciprocal k := by
+      rw [Finset.mul_sum]
+    _ ≤ Real.sqrt q / 2 *
+        (2 * (harmonic (q - 1) : ℝ)) := by
+      gcongr
+      exact centered_reciprocal_sum_zmod q (by omega)
+    _ = Real.sqrt q * (harmonic (q - 1) : ℝ) := by ring
+
+/-- The logarithmic Pólya--Vinogradov form used for partial summation.
+The explicit constant is immaterial for Lemma 6. -/
+theorem primitive_character_prefix_sum_norm_le
+    {q : ℕ} [NeZero q] {χ : DirichletCharacter ℂ q}
+    (hχ : χ.IsPrimitive) (hq : 2 ≤ q) (N : ℕ) :
+    ‖∑ n ∈ range N, χ n‖ ≤
+      3 * Real.sqrt q * Real.log (2 * q) := by
+  have hq1 : 1 ≤ q := by omega
+  have hqm1pos : (0 : ℝ) < ((q - 1 : ℕ) : ℝ) := by
+    exact_mod_cast (by omega : 0 < q - 1)
+  have hargpos : (0 : ℝ) < 2 * q := by positivity
+  have hlogmono : Real.log (q - 1 : ℕ) ≤
+      Real.log (2 * q : ℕ) := by
+    exact Real.log_le_log hqm1pos (by exact_mod_cast (show q - 1 ≤ 2 * q by omega))
+  have hlogtwo : Real.log 2 ≤ Real.log (2 * q : ℕ) := by
+    exact Real.log_le_log (by norm_num) (by exact_mod_cast (show 2 ≤ 2 * q by omega))
+  have hone : (1 : ℝ) ≤ 2 * Real.log (2 * q : ℕ) := by
+    nlinarith [Real.log_two_gt_d9]
+  have hharm := harmonic_le_one_add_log (q - 1)
+  have hH : (harmonic (q - 1) : ℝ) ≤
+      3 * Real.log (2 * q : ℕ) := by
+    linarith
+  calc
+    ‖∑ n ∈ range N, χ n‖ ≤
+        Real.sqrt q * (harmonic (q - 1) : ℝ) :=
+      primitive_character_prefix_sum_norm_le_harmonic hχ hq N
+    _ ≤ Real.sqrt q * (3 * Real.log (2 * q : ℕ)) := by
+      gcongr
+    _ = 3 * Real.sqrt q * Real.log (2 * q) := by
+      simp only [Nat.cast_mul, Nat.cast_ofNat]
+      ring
 
 end Chen

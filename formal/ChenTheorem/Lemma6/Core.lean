@@ -9,18 +9,16 @@ the remaining analytic work has the same boundaries as the paper.
 import ChenTheorem.Lemma6.Coefficients
 import ChenTheorem.Lemma6.Integration
 import ChenTheorem.Lemma6.Parameters
+import ChenTheorem.Lemma6.SmoothingMellin
+import ChenTheorem.Lemma6.ContourShift
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
 set_option warn.sorry false
 
-open Filter Real
+open Filter Real MeasureTheory ENNReal
 open scoped ArithmeticFunction.Moebius Classical
 
 namespace Chen
-
-/-- Complex-valued sum over primitive characters modulo `q`. -/
-noncomputable def primComplexSum
-    (q : ℕ) (F : DirichletCharacter ℂ q → ℂ) : ℂ :=
-  ∑' χ : DirichletCharacter ℂ q, if χ.IsPrimitive then F χ else 0
 
 /-- The primitive-character block of conductor `l` occurring in `N_m`.
 Here `m` is the original (possibly imprimitive) modulus, which remains in the
@@ -44,6 +42,1833 @@ noncomputable def lemma6PrimitivePairBlock
         ∑ n ∈ smoothedMIndices x q,
           (smoothedMKernel x q n : ℂ) *
             χ (q.1 * q.2 * n : ZMod l))
+
+/-- Mellin inversion inserted directly into one nonzero smoothed
+von-Mangoldt summand.  This is the termwise bridge from the finite model
+in `lemma6PrimitivePairBlock` to Chen's `α`-line contour integral. -/
+theorem lemma6_smoothedMKernel_eq_verticalIntegral
+    {x n : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime) (hn : 0 < n) :
+    (smoothedMKernel x q n : ℂ) =
+      (((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ArithmeticFunction.vonMangoldt n : ℝ) : ℂ) *
+        ((1 / (2 * Real.pi) : ℝ) •
+          ∫ ν : ℝ,
+            (((x : ℝ) / ((q.1 : ℝ) * q.2 * n) : ℝ) : ℂ) ^
+                (lemma6AlphaPoint x ν) *
+              lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)) := by
+  have hxreal : (1 : ℝ) < x := by exact_mod_cast (show 1 < x by omega)
+  have hlog : 0 < Real.log (x : ℝ) := Real.log_pos hxreal
+  have ha : 0 < lemma6SmoothingScale (x : ℝ) := by
+    unfold lemma6SmoothingScale
+    exact Real.rpow_pos_of_pos hlog _
+  have horder : 1 ≤ lemma6SmoothingOrder (x : ℝ) := by
+    unfold lemma6SmoothingOrder
+    rw [Nat.one_le_floor_iff]
+    exact hxlog
+  have hσ : 0 < 1 + 1 / Real.log (x : ℝ) := by positivity
+  have hy : 0 < (x : ℝ) / ((q.1 : ℝ) * q.2 * n) := by
+    have hxpos : 0 < (x : ℝ) := by positivity
+    have hq₁pos : 0 < (q.1 : ℝ) := by exact_mod_cast hq₁.pos
+    have hq₂pos : 0 < (q.2 : ℝ) := by exact_mod_cast hq₂.pos
+    have hnpos : 0 < (n : ℝ) := by exact_mod_cast hn
+    exact div_pos hxpos (mul_pos (mul_pos hq₁pos hq₂pos) hnpos)
+  have hphi := chenPhi_eq_smoothing_verticalIntegral
+    hxreal ha horder hσ hy
+  have hpoint (ν : ℝ) :
+      (((1 + 1 / Real.log (x : ℝ) : ℝ) : ℂ) +
+        (ν : ℂ) * Complex.I) = lemma6AlphaPoint x ν := by
+    unfold lemma6AlphaPoint
+    push_cast
+    ring
+  simp_rw [hpoint] at hphi
+  unfold smoothedMKernel
+  push_cast
+  rw [hphi]
+  push_cast
+  rfl
+
+/-- The exact finite Mellin integrand attached to one `(p₁,p₂,n)` term
+and one Dirichlet character.  At this stage the finite cutoff is retained;
+identification with the full logarithmic derivative is a separate, genuinely
+infinite interchange. -/
+noncomputable def lemma6FiniteMellinSummand
+    {l : ℕ} (x : ℕ) (q : ℕ × ℕ) (n : ℕ)
+    (χ : DirichletCharacter ℂ l) (ν : ℝ) : ℂ :=
+  (((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ArithmeticFunction.vonMangoldt n : ℝ) : ℂ) *
+    ((((x : ℝ) / ((q.1 : ℝ) * q.2 * n) : ℝ) : ℂ) ^
+        lemma6AlphaPoint x ν *
+      lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)) *
+    χ (q.1 * q.2 * n : ZMod l)
+
+/-- A positive-real quotient to a complex power splits into the natural
+number factors used by an L-series term. -/
+theorem lemma6_nat_quotient_cpow_factor
+    (x n : ℕ) (q : ℕ × ℕ) (s : ℂ) :
+    (((x : ℝ) / ((q.1 : ℝ) * q.2 * n) : ℝ) : ℂ) ^ s =
+      (x : ℂ) ^ s /
+        (((q.1 * q.2 : ℕ) : ℂ) ^ s * (n : ℂ) ^ s) := by
+  have hcast : (((x : ℝ) / ((q.1 : ℝ) * q.2 * n) : ℝ) : ℂ) =
+      (x : ℂ) * (((q.1 * q.2 * n : ℕ) : ℂ)⁻¹) := by
+    push_cast
+    field_simp
+  rw [hcast]
+  have hnatcast : (((q.1 * q.2 * n : ℕ) : ℂ)) =
+      ((((q.1 * q.2 * n : ℕ) : ℝ) : ℂ)) := by norm_cast
+  have hxcast : (x : ℂ) = (((x : ℝ) : ℂ)) := by norm_cast
+  rw [hnatcast, hxcast, ← Complex.ofReal_inv]
+  rw [Complex.mul_cpow_ofReal_nonneg (Nat.cast_nonneg x)
+      (inv_nonneg.mpr (Nat.cast_nonneg (q.1 * q.2 * n))) s,
+    Complex.ofReal_inv, Complex.inv_cpow]
+  · rw [← hnatcast]
+    rw [show ((q.1 * q.2 * n : ℕ) : ℂ) =
+      ((q.1 * q.2 : ℕ) : ℂ) * (n : ℂ) by norm_cast]
+    rw [Complex.natCast_mul_natCast_cpow]
+    ring
+  · rw [Complex.arg_ofReal_of_nonneg (Nat.cast_nonneg _)]
+    exact Real.pi_ne_zero.symm
+
+/-- One contour summand factors as a fixed prime-pair factor times the
+corresponding twisted von Mangoldt L-series term. -/
+theorem lemma6FiniteMellinSummand_eq_pairFactor_mul_LSeriesTerm
+    {x n l : ℕ} {q : ℕ × ℕ} (χ : DirichletCharacter ℂ l) (ν : ℝ) :
+    lemma6FiniteMellinSummand x q n χ ν =
+      (((x : ℂ) ^ lemma6AlphaPoint x ν) *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)) *
+        (χ (q.1 * q.2 : ZMod l) /
+          ((((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x ν) *
+            (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ))) *
+        LSeries.term
+          (fun r : ℕ => χ r *
+            (ArithmeticFunction.vonMangoldt r : ℂ))
+          (lemma6AlphaPoint x ν) n := by
+  by_cases hn0 : n = 0
+  · subst n
+    simp [lemma6FiniteMellinSummand, ArithmeticFunction.map_zero]
+  · have hχmul :
+        χ (q.1 * q.2 * n : ZMod l) =
+          χ (q.1 * q.2 : ZMod l) * χ (n : ZMod l) := by
+      simpa only [Nat.cast_mul] using
+        map_mul χ (q.1 * q.2 : ZMod l) (n : ZMod l)
+    unfold lemma6FiniteMellinSummand
+    rw [lemma6_nat_quotient_cpow_factor,
+      LSeries.term_of_ne_zero hn0, hχmul]
+    push_cast
+    simp only [div_eq_mul_inv]
+    ring
+
+/-- Summing the factored terms recovers the twisted von Mangoldt L-series. -/
+theorem tsum_lemma6FiniteMellinSummand_eq_pairFactor_mul_LSeries
+    {x l : ℕ} {q : ℕ × ℕ} (χ : DirichletCharacter ℂ l) (ν : ℝ) :
+    (∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) =
+      (((x : ℂ) ^ lemma6AlphaPoint x ν) *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)) *
+        (χ (q.1 * q.2 : ZMod l) /
+          ((((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x ν) *
+            (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ))) *
+        LSeries
+          (fun r : ℕ => χ r *
+            (ArithmeticFunction.vonMangoldt r : ℂ))
+          (lemma6AlphaPoint x ν) := by
+  let C : ℂ :=
+    (((x : ℂ) ^ lemma6AlphaPoint x ν) *
+        lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x ν)) *
+      (χ (q.1 * q.2 : ZMod l) /
+        ((((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x ν) *
+          (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ)))
+  calc
+    (∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) =
+        ∑' n : ℕ, C * LSeries.term
+          (fun r : ℕ => χ r *
+            (ArithmeticFunction.vonMangoldt r : ℂ))
+          (lemma6AlphaPoint x ν) n := by
+      apply tsum_congr
+      intro n
+      exact lemma6FiniteMellinSummand_eq_pairFactor_mul_LSeriesTerm χ ν
+    _ = C * ∑' n : ℕ, LSeries.term
+          (fun r : ℕ => χ r *
+            (ArithmeticFunction.vonMangoldt r : ℂ))
+          (lemma6AlphaPoint x ν) n := tsum_mul_left
+    _ = _ := rfl
+
+/-- The full twisted von Mangoldt L-series on the `α`-line is the negative
+logarithmic derivative of the Dirichlet L-function. -/
+theorem lemma6_LSeries_twist_vonMangoldt_eq_neg_logDeriv_at_alpha
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (χ : DirichletCharacter ℂ l) (ν : ℝ) :
+    LSeries
+        (fun r : ℕ => χ r *
+          (ArithmeticFunction.vonMangoldt r : ℂ))
+        (lemma6AlphaPoint x ν) =
+      -(deriv (DirichletCharacter.LFunction χ)
+          (lemma6AlphaPoint x ν) /
+        DirichletCharacter.LFunction χ (lemma6AlphaPoint x ν)) := by
+  have hs := one_lt_lemma6AlphaPoint_re hx ν
+  have h := DirichletCharacter.LSeries_twist_vonMangoldt_eq χ hs
+  have hseq :
+      (fun r : ℕ => χ r) *
+          (fun r : ℕ => (ArithmeticFunction.vonMangoldt r : ℂ)) =
+        (fun r : ℕ => χ r *
+          (ArithmeticFunction.vonMangoldt r : ℂ)) := by
+    funext r
+    rfl
+  rw [hseq] at h
+  have h' :
+      LSeries
+          (fun r : ℕ => χ r *
+            (ArithmeticFunction.vonMangoldt r : ℂ))
+          (lemma6AlphaPoint x ν) =
+        -deriv (LSeries (fun r : ℕ => χ r))
+            (lemma6AlphaPoint x ν) /
+          LSeries (fun r : ℕ => χ r) (lemma6AlphaPoint x ν) := by
+    exact h
+  exact h'.trans (by
+    rw [← DirichletCharacter.deriv_LFunction_eq_deriv_LSeries χ hs,
+      ← DirichletCharacter.LFunction_eq_LSeries χ hs]
+    ring)
+
+/-- Pointwise identification of the full `n`-series with the prime-pair
+factor times `-L'/L`. -/
+theorem tsum_lemma6FiniteMellinSummand_eq_neg_pairFactor_mul_logDeriv
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x) {q : ℕ × ℕ}
+    (χ : DirichletCharacter ℂ l) (ν : ℝ) :
+    (∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) =
+      -((((x : ℂ) ^ lemma6AlphaPoint x ν) *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)) *
+        (χ (q.1 * q.2 : ZMod l) /
+          ((((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x ν) *
+            (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) : ℂ))) *
+        (deriv (DirichletCharacter.LFunction χ)
+            (lemma6AlphaPoint x ν) /
+          DirichletCharacter.LFunction χ (lemma6AlphaPoint x ν))) := by
+  rw [tsum_lemma6FiniteMellinSummand_eq_pairFactor_mul_LSeries,
+    lemma6_LSeries_twist_vonMangoldt_eq_neg_logDeriv_at_alpha hx χ ν]
+  ring
+
+/-- Every nonzero finite Mellin summand is integrable on Chen's `α`-line. -/
+theorem integrable_lemma6FiniteMellinSummand_of_pos
+    {x n l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime) (hn : 0 < n)
+    (χ : DirichletCharacter ℂ l) :
+    Integrable (lemma6FiniteMellinSummand x q n χ) := by
+  have hxreal : (1 : ℝ) < x := by exact_mod_cast (show 1 < x by omega)
+  have hlog : 0 < Real.log (x : ℝ) := Real.log_pos hxreal
+  have ha : 0 < lemma6SmoothingScale (x : ℝ) := by
+    unfold lemma6SmoothingScale
+    exact Real.rpow_pos_of_pos hlog _
+  have horder : 1 ≤ lemma6SmoothingOrder (x : ℝ) := by
+    unfold lemma6SmoothingOrder
+    rw [Nat.one_le_floor_iff]
+    exact hxlog
+  have hσ : 0 < 1 + 1 / Real.log (x : ℝ) := by positivity
+  have hy : 0 < (x : ℝ) / ((q.1 : ℝ) * q.2 * n) := by
+    have hq₁pos : 0 < (q.1 : ℝ) := by exact_mod_cast hq₁.pos
+    have hq₂pos : 0 < (q.2 : ℝ) := by exact_mod_cast hq₂.pos
+    have hnpos : 0 < (n : ℝ) := by exact_mod_cast hn
+    positivity
+  have hbase := integrable_cpow_mul_lemma6SmoothingMellinKernel
+    hy ha horder hσ
+  have hpoint (ν : ℝ) :
+      (((1 + 1 / Real.log (x : ℝ) : ℝ) : ℂ) +
+        (ν : ℂ) * Complex.I) = lemma6AlphaPoint x ν := by
+    unfold lemma6AlphaPoint
+    push_cast
+    ring
+  simp_rw [hpoint] at hbase
+  exact (hbase.const_mul
+    (((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ArithmeticFunction.vonMangoldt n : ℝ) : ℂ)).mul_const
+        (χ (q.1 * q.2 * n : ZMod l))
+
+/-- The `n = 0` summand is identically zero and hence integrable. -/
+theorem integrable_lemma6FiniteMellinSummand_zero
+    {x l : ℕ} (q : ℕ × ℕ) (χ : DirichletCharacter ℂ l) :
+    Integrable (lemma6FiniteMellinSummand x q 0 χ) := by
+  have hzero : lemma6FiniteMellinSummand x q 0 χ = 0 := by
+    funext ν
+    unfold lemma6FiniteMellinSummand
+    rw [ArithmeticFunction.map_zero]
+    norm_num
+  rw [hzero]
+  exact integrable_zero ℝ ℂ volume
+
+/-- Uniform finite-summand integrability, including the harmless zero
+index. -/
+theorem integrable_lemma6FiniteMellinSummand
+    {x n l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    Integrable (lemma6FiniteMellinSummand x q n χ) := by
+  by_cases hn0 : n = 0
+  · subst n
+    exact integrable_lemma6FiniteMellinSummand_zero q χ
+  · exact integrable_lemma6FiniteMellinSummand_of_pos hx hxlog hq₁ hq₂
+      (Nat.pos_of_ne_zero hn0) χ
+
+/-- Outside the finite set `smoothedMIndices`, the smoothing argument is at
+most one and the corresponding kernel vanishes.  This is the arithmetic
+support fact needed to extend the finite sum only after integration. -/
+theorem smoothedMKernel_eq_zero_of_not_mem
+    {x n : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (hnmem : n ∉ smoothedMIndices x q) :
+    smoothedMKernel x q n = 0 := by
+  by_cases hn0 : n = 0
+  · subst n
+    unfold smoothedMKernel
+    rw [ArithmeticFunction.map_zero]
+    ring
+  have hnpos : 0 < n := Nat.pos_of_ne_zero hn0
+  have hq₁pos : 0 < (q.1 : ℝ) := by exact_mod_cast hq₁.pos
+  have hq₂pos : 0 < (q.2 : ℝ) := by exact_mod_cast hq₂.pos
+  have hqprod : 0 < (q.1 : ℝ) * q.2 := mul_pos hq₁pos hq₂pos
+  have hden : 0 < (q.1 : ℝ) * q.2 * n := by positivity
+  have hnoutside := hnmem
+  simp only [smoothedMIndices, Finset.mem_filter,
+    Finset.mem_range, not_and_or] at hnoutside
+  have hxprod : (x : ℝ) ≤ (q.1 : ℝ) * q.2 * n := by
+    rcases hnoutside with hnrange | hnineq
+    · have hxn : (x : ℝ) < n := by
+        exact_mod_cast (show x < n by omega)
+      have hqone : (1 : ℝ) ≤ (q.1 : ℝ) * q.2 := by
+        have hq₁one : (1 : ℝ) ≤ q.1 := by exact_mod_cast hq₁.one_le
+        have hq₂one : (1 : ℝ) ≤ q.2 := by exact_mod_cast hq₂.one_le
+        nlinarith [mul_nonneg (sub_nonneg.mpr hq₁one)
+          (sub_nonneg.mpr hq₂one)]
+      calc
+        (x : ℝ) ≤ n := hxn.le
+        _ ≤ (q.1 : ℝ) * q.2 * n := by
+          nlinarith [mul_nonneg (sub_nonneg.mpr hqone)
+            (Nat.cast_nonneg n)]
+    · have hlt : (x : ℝ) < (n : ℝ) * ((q.1 : ℝ) * q.2) :=
+        (div_lt_iff₀ hqprod).mp (lt_of_not_ge hnineq)
+      nlinarith
+  have hy0 : 0 ≤ (x : ℝ) / ((q.1 : ℝ) * q.2 * n) := by positivity
+  have hy1 : (x : ℝ) / ((q.1 : ℝ) * q.2 * n) ≤ 1 :=
+    (div_le_one hden).2 hxprod
+  have hxreal : (1 : ℝ) < x := by
+    exact_mod_cast (show 1 < x by omega)
+  unfold smoothedMKernel
+  rw [chenPhi_eq_zero hxreal hy0 hy1]
+  ring
+
+/-- Mellin inversion after multiplying by the character value.  This form
+is designed for direct finite summation and records the zero-index case
+explicitly. -/
+theorem lemma6_smoothedMKernel_mul_char_eq_verticalIntegral
+    {x n l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    (smoothedMKernel x q n : ℂ) *
+        χ (q.1 * q.2 * n : ZMod l) =
+      (1 / (2 * Real.pi) : ℝ) •
+        ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν := by
+  by_cases hn0 : n = 0
+  · subst n
+    simp [smoothedMKernel, lemma6FiniteMellinSummand]
+  · have hn : 0 < n := Nat.pos_of_ne_zero hn0
+    let c : ℂ :=
+      ((Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+        ArithmeticFunction.vonMangoldt n : ℝ)
+    let f : ℝ → ℂ := fun ν =>
+      (((x : ℝ) / ((q.1 : ℝ) * q.2 * n) : ℝ) : ℂ) ^
+          lemma6AlphaPoint x ν *
+        lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)
+    let z : ℂ := χ (q.1 * q.2 * n : ZMod l)
+    have h := congrArg
+      (fun w : ℂ => w * z)
+      (lemma6_smoothedMKernel_eq_verticalIntegral hx hxlog hq₁ hq₂ hn)
+    change (smoothedMKernel x q n : ℂ) * z =
+      (c * ((1 / (2 * Real.pi) : ℝ) • ∫ ν : ℝ, f ν)) * z at h
+    change (smoothedMKernel x q n : ℂ) * z =
+      (1 / (2 * Real.pi) : ℝ) • ∫ ν : ℝ, c * f ν * z
+    have hint : (∫ ν : ℝ, c * f ν * z) =
+        c * (∫ ν : ℝ, f ν) * z := by
+      calc
+        (∫ ν : ℝ, c * f ν * z) =
+            ∫ ν : ℝ, c * (f ν * z) := by
+              apply integral_congr_ae
+              filter_upwards with ν
+              ring
+        _ = c * ∫ ν : ℝ, f ν * z :=
+          MeasureTheory.integral_const_mul c _
+        _ = c * ((∫ ν : ℝ, f ν) * z) := by
+          rw [MeasureTheory.integral_mul_const]
+        _ = c * (∫ ν : ℝ, f ν) * z := by ring
+    rw [hint]
+    calc
+      (smoothedMKernel x q n : ℂ) * z =
+          (c * ((1 / (2 * Real.pi) : ℝ) •
+            ∫ ν : ℝ, f ν)) * z := h
+      _ = (1 / (2 * Real.pi) : ℝ) •
+          (c * (∫ ν : ℝ, f ν) * z) := by
+        simp only [smul_eq_mul, RCLike.real_smul_eq_coe_mul]
+        ring
+
+/-- Every integrated term outside the finite cutoff is zero.  Notice that
+the pointwise contour integrand itself need not vanish; this theorem is why
+the finite-to-infinite extension must occur after integration. -/
+theorem integral_lemma6FiniteMellinSummand_eq_zero_of_not_mem
+    {x n l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (χ : DirichletCharacter ℂ l)
+    (hnmem : n ∉ smoothedMIndices x q) :
+    (∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν) = 0 := by
+  have hterm := lemma6_smoothedMKernel_mul_char_eq_verticalIntegral
+    hx hxlog hq₁ hq₂ (n := n) χ
+  rw [smoothedMKernel_eq_zero_of_not_mem hx hq₁ hq₂ hnmem,
+    Complex.ofReal_zero, zero_mul] at hterm
+  have hscalar : (1 / (2 * Real.pi) : ℝ) ≠ 0 := by positivity
+  exact (smul_eq_zero.mp hterm.symm).resolve_left hscalar
+
+/-- The integrated norms of the full `n`-family are summable on the
+`α`-line.  This is the absolute-convergence input for the infinite
+sum/integral interchange; its summable majorant is the untwisted von
+Mangoldt L-series at `Re α > 1`. -/
+theorem summable_integral_norm_lemma6FiniteMellinSummand
+    {x l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    Summable (fun n : ℕ =>
+      ∫ ν : ℝ, ‖lemma6FiniteMellinSummand x q n χ ν‖) := by
+  let σ : ℝ := 1 + 1 / Real.log (x : ℝ)
+  let a : ℝ := lemma6SmoothingScale (x : ℝ)
+  let b : ℝ := (x : ℝ) / ((q.1 : ℝ) * q.2)
+  let Λ : ℕ → ℂ := fun n => (ArithmeticFunction.vonMangoldt n : ℂ)
+  let K : ℝ := ∫ ν : ℝ,
+    ‖lemma6SmoothingMellinKernel (x : ℝ)
+      ((σ : ℂ) + (ν : ℂ) * Complex.I)‖
+  have hxreal : (1 : ℝ) < x := by
+    exact_mod_cast (show 1 < x by omega)
+  have hlog : 0 < Real.log (x : ℝ) := Real.log_pos hxreal
+  have hσ : 0 < σ := by dsimp only [σ]; positivity
+  have hσone : (1 : ℝ) < σ := by
+    dsimp only [σ]
+    have hinv : 0 < (1 : ℝ) / Real.log (x : ℝ) :=
+      div_pos zero_lt_one hlog
+    linarith
+  have ha : 0 < a := by
+    dsimp only [a, lemma6SmoothingScale]
+    exact Real.rpow_pos_of_pos hlog _
+  have horder : 1 ≤ lemma6SmoothingOrder (x : ℝ) := by
+    unfold lemma6SmoothingOrder
+    rw [Nat.one_le_floor_iff]
+    exact hxlog
+  have hqprod : 0 < (q.1 : ℝ) * q.2 := by
+    exact mul_pos (by exact_mod_cast hq₁.pos) (by exact_mod_cast hq₂.pos)
+  have hb : 0 < b := by dsimp only [b]; positivity
+  have hk : Integrable (fun ν : ℝ =>
+      lemma6SmoothingMellinKernel (x : ℝ)
+        ((σ : ℂ) + (ν : ℂ) * Complex.I)) := by
+    have := verticalIntegrable_lemma6SmoothingMellinKernel ha horder hσ
+    simpa only [Complex.VerticalIntegrable] using this
+  have hKnonneg : 0 ≤ K := by
+    dsimp only [K]
+    exact integral_nonneg fun _ => norm_nonneg _
+  have hΛsum : Summable (fun n : ℕ =>
+      ‖LSeries.term Λ (σ : ℂ) n‖) := by
+    rw [summable_norm_iff]
+    simpa only [Λ, LSeriesSummable] using
+      (ArithmeticFunction.LSeriesSummable_vonMangoldt
+        (s := (σ : ℂ)) (by simpa using hσone))
+  let D : ℝ :=
+    |(Real.log b)⁻¹| * b ^ σ * K
+  have hmajor : Summable (fun n : ℕ =>
+      D * ‖LSeries.term Λ (σ : ℂ) n‖) :=
+    hΛsum.mul_left D
+  apply hmajor.of_norm_bounded
+  intro n
+  rw [Real.norm_of_nonneg (integral_nonneg fun _ => norm_nonneg _)]
+  by_cases hn0 : n = 0
+  · subst n
+    have hfunzero : lemma6FiniteMellinSummand x q 0 χ = 0 := by
+      funext ν
+      unfold lemma6FiniteMellinSummand
+      rw [ArithmeticFunction.map_zero]
+      norm_num
+    simp only [hfunzero, Pi.zero_apply, norm_zero, integral_zero,
+      LSeries.term_zero, mul_zero]
+    exact le_rfl
+  · have hnpos : 0 < n := Nat.pos_of_ne_zero hn0
+    have hnreal : 0 < (n : ℝ) := by exact_mod_cast hnpos
+    have hy : 0 < (x : ℝ) / ((q.1 : ℝ) * q.2 * n) := by positivity
+    have hpoint (ν : ℝ) :
+        lemma6AlphaPoint x ν =
+          (σ : ℂ) + (ν : ℂ) * Complex.I := by
+      unfold lemma6AlphaPoint
+      dsimp only [σ]
+    have hnormfun : (fun ν : ℝ =>
+        ‖lemma6FiniteMellinSummand x q n χ ν‖) =
+      fun ν : ℝ =>
+        (|(Real.log b)⁻¹| * ArithmeticFunction.vonMangoldt n *
+            (((x : ℝ) / ((q.1 : ℝ) * q.2 * n)) ^ σ) *
+            ‖χ (q.1 * q.2 * n : ZMod l)‖) *
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+            ((σ : ℂ) + (ν : ℂ) * Complex.I)‖ := by
+      funext ν
+      unfold lemma6FiniteMellinSummand
+      simp only [norm_mul]
+      rw [
+        Complex.norm_cpow_eq_rpow_re_of_pos hy,
+        lemma6AlphaPoint_re]
+      simp only [Complex.norm_real, Real.norm_eq_abs, abs_mul,
+        abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg, hpoint]
+      dsimp only [b, σ]
+      ring
+    rw [hnormfun, MeasureTheory.integral_const_mul]
+    have hyfactor :
+        ((x : ℝ) / ((q.1 : ℝ) * q.2 * n)) ^ σ =
+          b ^ σ / (n : ℝ) ^ σ := by
+      rw [show (x : ℝ) / ((q.1 : ℝ) * q.2 * n) = b / n by
+        dsimp only [b]
+        field_simp]
+      exact Real.div_rpow hb.le hnreal.le σ
+    have htermnorm :
+        ‖LSeries.term Λ (σ : ℂ) n‖ =
+          ArithmeticFunction.vonMangoldt n / (n : ℝ) ^ σ := by
+      rw [LSeries.norm_term_eq]
+      simp only [hn0, if_false, Λ, Complex.norm_real,
+        Real.norm_eq_abs,
+        abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg,
+        Complex.ofReal_re]
+    rw [hyfactor, htermnorm]
+    dsimp only [D]
+    have hχnorm := χ.norm_le_one (q.1 * q.2 * n)
+    have hΛnonneg := ArithmeticFunction.vonMangoldt_nonneg (n := n)
+    have hnpow : 0 < (n : ℝ) ^ σ :=
+      Real.rpow_pos_of_pos hnreal σ
+    let A : ℝ := |(Real.log b)⁻¹| * ArithmeticFunction.vonMangoldt n *
+      (b ^ σ / (n : ℝ) ^ σ)
+    have hA : 0 ≤ A := by
+      dsimp only [A]
+      positivity
+    calc
+      (|(Real.log b)⁻¹| * ArithmeticFunction.vonMangoldt n *
+            (b ^ σ / (n : ℝ) ^ σ) *
+            ‖χ (q.1 * q.2 * n : ZMod l)‖) * K =
+          (A * K) * ‖χ (q.1 * q.2 * n : ZMod l)‖ := by
+        dsimp only [A]
+        ring
+      _ ≤ (A * K) * 1 :=
+        mul_le_mul_of_nonneg_left hχnorm (mul_nonneg hA hKnonneg)
+      _ = (|(Real.log b)⁻¹| * ArithmeticFunction.vonMangoldt n *
+            (b ^ σ / (n : ℝ) ^ σ)) * K := by
+        dsimp only [A]
+        ring
+      _ = (|(Real.log b)⁻¹| * b ^ σ * K) *
+          (ArithmeticFunction.vonMangoldt n / (n : ℝ) ^ σ) := by ring
+
+/-- A Bochner-series integrability criterion in the exact form needed
+below.  Mathlib's `integral_tsum_of_summable_integral_norm` identifies the
+integral, while this companion records that the pointwise sum itself is
+integrable. -/
+theorem integrable_tsum_of_summable_integral_norm_complex
+    {F : ℕ → ℝ → ℂ}
+    (hF_int : ∀ n, Integrable (F n))
+    (hF_sum : Summable (fun n => ∫ a, ‖F n a‖)) :
+    Integrable (fun a => ∑' n, F n a) := by
+  refine ⟨MeasureTheory.AEStronglyMeasurable.tsum
+    (fun n => (hF_int n).aestronglyMeasurable), ?_⟩
+  rw [hasFiniteIntegral_iff_enorm]
+  have hlin (n : ℕ) :
+      ∫⁻ a : ℝ, ‖F n a‖ₑ =
+        ‖∫ a : ℝ, ‖F n a‖‖ₑ := by
+    dsimp [enorm]
+    rw [lintegral_coe_eq_integral _ (hF_int n).norm,
+      coe_nnreal_eq, coe_nnnorm,
+      Real.norm_of_nonneg (integral_nonneg (fun a => norm_nonneg (F n a)))]
+    simp only [coe_nnnorm]
+  have hsum_enorm :
+      ∑' n : ℕ, ∫⁻ a : ℝ, ‖F n a‖ₑ ≠ ⊤ := by
+    rw [funext hlin]
+    exact ENNReal.tsum_coe_ne_top_iff_summable.2
+      (NNReal.summable_coe.1 hF_sum.abs)
+  calc
+    ∫⁻ a : ℝ, ‖∑' n, F n a‖ₑ ≤
+        ∫⁻ a : ℝ, ∑' n, ‖F n a‖ₑ :=
+      lintegral_mono fun _ => enorm_tsum_le_tsum_enorm
+    _ = ∑' n : ℕ, ∫⁻ a : ℝ, ‖F n a‖ₑ :=
+      lintegral_tsum (fun n => (hF_int n).aestronglyMeasurable.enorm)
+    _ < ⊤ := lt_top_iff_ne_top.mpr hsum_enorm
+
+/-- For a finite set of prime pairs, the full von Mangoldt series
+aggregates pointwise to the prime-pair Dirichlet polynomial times
+`-L'/L`.  Keeping the pair sum inside the polynomial is essential for the
+subsequent pair large-sieve estimate. -/
+theorem sum_tsum_lemma6FiniteMellinSummand_eq_pairPolynomial_logDeriv
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (pairs : Finset (ℕ × ℕ))
+    (χ : DirichletCharacter ℂ l) (ν : ℝ) :
+    (∑ q ∈ pairs,
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) =
+      -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)) *
+        lemma6PairDirichletPolynomial x pairs
+          (lemma6AlphaPoint x ν) χ *
+        (deriv (DirichletCharacter.LFunction χ)
+            (lemma6AlphaPoint x ν) /
+          DirichletCharacter.LFunction χ
+            (lemma6AlphaPoint x ν))) := by
+  simp_rw [tsum_lemma6FiniteMellinSummand_eq_neg_pairFactor_mul_logDeriv
+    hx χ ν]
+  unfold lemma6PairDirichletPolynomial
+  simp_rw [Finset.mul_sum, Finset.sum_mul, Finset.sum_neg_distrib]
+  simp only [Nat.cast_mul]
+
+/-- For one fixed prime pair, the finite cutoff may be replaced by the full
+von Mangoldt series inside the contour integral.  Absolute convergence is
+used for the sum/integral interchange, while vanishing of the inverse
+Mellin integrals outside `smoothedMIndices` identifies the resulting tsum
+of integrals with the original finite sum. -/
+theorem integral_finset_lemma6FiniteMellinSummand_eq_integral_tsum
+    {x l : ℕ} {q : ℕ × ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (hq₁ : q.1.Prime) (hq₂ : q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    (∫ ν : ℝ,
+        ∑ n ∈ smoothedMIndices x q,
+          lemma6FiniteMellinSummand x q n χ ν) =
+      ∫ ν : ℝ,
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν := by
+  have hint (n : ℕ) :
+      Integrable (lemma6FiniteMellinSummand x q n χ) :=
+    integrable_lemma6FiniteMellinSummand hx hxlog hq₁ hq₂ χ
+  have hsum := summable_integral_norm_lemma6FiniteMellinSummand
+    hx hxlog hq₁ hq₂ χ
+  calc
+    (∫ ν : ℝ,
+        ∑ n ∈ smoothedMIndices x q,
+          lemma6FiniteMellinSummand x q n χ ν) =
+        ∑ n ∈ smoothedMIndices x q,
+          ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν :=
+      MeasureTheory.integral_finsetSum (smoothedMIndices x q)
+        (fun n _ => hint n)
+    _ = ∑' n : ℕ,
+        ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν :=
+      (tsum_eq_sum (s := smoothedMIndices x q) (fun n hn =>
+        integral_lemma6FiniteMellinSummand_eq_zero_of_not_mem
+          hx hxlog hq₁ hq₂ χ hn)).symm
+    _ = ∫ ν : ℝ,
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν :=
+      MeasureTheory.integral_tsum_of_summable_integral_norm hint hsum
+
+/-- After summing a finite prime-pair block, the exact finite Mellin
+integral is the single `α`-line integral containing the pair Dirichlet
+polynomial and `-L'/L`. -/
+theorem integral_sum_finset_lemma6FiniteMellinSummand_eq_logDeriv
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (pairs : Finset (ℕ × ℕ))
+    (hpairs : ∀ q ∈ pairs, q.1.Prime ∧ q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    (∫ ν : ℝ,
+        ∑ q ∈ pairs,
+          ∑ n ∈ smoothedMIndices x q,
+            lemma6FiniteMellinSummand x q n χ ν) =
+      ∫ ν : ℝ,
+        -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)) *
+          lemma6PairDirichletPolynomial x pairs
+            (lemma6AlphaPoint x ν) χ *
+          (deriv (DirichletCharacter.LFunction χ)
+              (lemma6AlphaPoint x ν) /
+            DirichletCharacter.LFunction χ
+              (lemma6AlphaPoint x ν))) := by
+  have hfinite (q : ℕ × ℕ) (hq : q ∈ pairs) :
+      Integrable (fun ν : ℝ =>
+        ∑ n ∈ smoothedMIndices x q,
+          lemma6FiniteMellinSummand x q n χ ν) :=
+    MeasureTheory.integrable_finsetSum (smoothedMIndices x q)
+      (fun n _ => integrable_lemma6FiniteMellinSummand hx hxlog
+        (hpairs q hq).1 (hpairs q hq).2 χ)
+  have hfull (q : ℕ × ℕ) (hq : q ∈ pairs) :
+      Integrable (fun ν : ℝ =>
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) :=
+    integrable_tsum_of_summable_integral_norm_complex
+      (fun n => integrable_lemma6FiniteMellinSummand hx hxlog
+        (hpairs q hq).1 (hpairs q hq).2 χ)
+      (summable_integral_norm_lemma6FiniteMellinSummand
+        hx hxlog (hpairs q hq).1 (hpairs q hq).2 χ)
+  calc
+    (∫ ν : ℝ,
+        ∑ q ∈ pairs,
+          ∑ n ∈ smoothedMIndices x q,
+            lemma6FiniteMellinSummand x q n χ ν) =
+        ∑ q ∈ pairs,
+          ∫ ν : ℝ,
+            ∑ n ∈ smoothedMIndices x q,
+              lemma6FiniteMellinSummand x q n χ ν :=
+      MeasureTheory.integral_finsetSum pairs hfinite
+    _ = ∑ q ∈ pairs,
+          ∫ ν : ℝ,
+            ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν := by
+      apply Finset.sum_congr rfl
+      intro q hq
+      exact integral_finset_lemma6FiniteMellinSummand_eq_integral_tsum
+        hx hxlog (hpairs q hq).1 (hpairs q hq).2 χ
+    _ = ∫ ν : ℝ,
+          ∑ q ∈ pairs,
+            ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν :=
+      (MeasureTheory.integral_finsetSum pairs hfull).symm
+    _ = ∫ ν : ℝ,
+        -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)) *
+          lemma6PairDirichletPolynomial x pairs
+            (lemma6AlphaPoint x ν) χ *
+          (deriv (DirichletCharacter.LFunction χ)
+              (lemma6AlphaPoint x ν) /
+            DirichletCharacter.LFunction χ
+              (lemma6AlphaPoint x ν))) := by
+      apply integral_congr_ae
+      filter_upwards with ν
+      exact sum_tsum_lemma6FiniteMellinSummand_eq_pairPolynomial_logDeriv
+        hx pairs χ ν
+
+/-- Exact finite `(p₁,p₂,n)` block after moving both finite sums through
+the Mellin integral.  No full Dirichlet series, tail extension, or
+logarithmic derivative is used in this theorem. -/
+theorem lemma6_finiteMellin_sum_eq_verticalIntegral
+    {x l : ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (pairs : Finset (ℕ × ℕ))
+    (hpairs : ∀ q ∈ pairs, q.1.Prime ∧ q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    (∑ q ∈ pairs,
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod l)) =
+      (1 / (2 * Real.pi) : ℝ) •
+        ∫ ν : ℝ,
+          ∑ q ∈ pairs,
+            ∑ n ∈ smoothedMIndices x q,
+              lemma6FiniteMellinSummand x q n χ ν := by
+  have hterm (q : ℕ × ℕ) (hq : q ∈ pairs) (n : ℕ)
+      (_hn : n ∈ smoothedMIndices x q) :
+      Integrable (lemma6FiniteMellinSummand x q n χ) :=
+    integrable_lemma6FiniteMellinSummand hx hxlog
+      (hpairs q hq).1 (hpairs q hq).2 χ
+  have hinner (q : ℕ × ℕ) (hq : q ∈ pairs) :
+      Integrable (fun ν : ℝ =>
+        ∑ n ∈ smoothedMIndices x q,
+          lemma6FiniteMellinSummand x q n χ ν) :=
+    MeasureTheory.integrable_finsetSum (smoothedMIndices x q) (hterm q hq)
+  have hsumint :
+      (∫ ν : ℝ,
+          ∑ q ∈ pairs,
+            ∑ n ∈ smoothedMIndices x q,
+              lemma6FiniteMellinSummand x q n χ ν) =
+        ∑ q ∈ pairs,
+          ∑ n ∈ smoothedMIndices x q,
+            ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν := by
+    rw [MeasureTheory.integral_finsetSum pairs hinner]
+    apply Finset.sum_congr rfl
+    intro q hq
+    exact MeasureTheory.integral_finsetSum
+      (smoothedMIndices x q) (hterm q hq)
+  calc
+    (∑ q ∈ pairs,
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod l)) =
+        ∑ q ∈ pairs,
+          ∑ n ∈ smoothedMIndices x q,
+            (1 / (2 * Real.pi) : ℝ) •
+              ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν := by
+      apply Finset.sum_congr rfl
+      intro q hq
+      apply Finset.sum_congr rfl
+      intro n hn
+      exact lemma6_smoothedMKernel_mul_char_eq_verticalIntegral
+        hx hxlog (hpairs q hq).1 (hpairs q hq).2 χ
+    _ = (1 / (2 * Real.pi) : ℝ) •
+        ∑ q ∈ pairs,
+          ∑ n ∈ smoothedMIndices x q,
+            ∫ ν : ℝ, lemma6FiniteMellinSummand x q n χ ν := by
+      simp only [Finset.smul_sum]
+    _ = (1 / (2 * Real.pi) : ℝ) •
+        ∫ ν : ℝ,
+          ∑ q ∈ pairs,
+            ∑ n ∈ smoothedMIndices x q,
+              lemma6FiniteMellinSummand x q n χ ν := by
+      rw [hsumint]
+
+/-- Exact contour formula for a finite prime-pair block after identifying
+the full von Mangoldt series with `-L'/L`. -/
+theorem lemma6_finiteMellin_sum_eq_logDeriv_verticalIntegral
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (pairs : Finset (ℕ × ℕ))
+    (hpairs : ∀ q ∈ pairs, q.1.Prime ∧ q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    (∑ q ∈ pairs,
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod l)) =
+      (1 / (2 * Real.pi) : ℝ) •
+        ∫ ν : ℝ,
+          -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)) *
+            lemma6PairDirichletPolynomial x pairs
+              (lemma6AlphaPoint x ν) χ *
+            (deriv (DirichletCharacter.LFunction χ)
+                (lemma6AlphaPoint x ν) /
+              DirichletCharacter.LFunction χ
+                (lemma6AlphaPoint x ν))) := by
+  rw [lemma6_finiteMellin_sum_eq_verticalIntegral
+    hx hxlog pairs hpairs χ]
+  rw [integral_sum_finset_lemma6FiniteMellinSummand_eq_logDeriv
+    hx hxlog pairs hpairs χ]
+
+/-- The exact finite contour formula specialized to Chen's actual
+`(k,m)` prime-pair block. -/
+theorem lemma6_pairBlock_finiteMellin_sum_eq_verticalIntegral
+    {x l : ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ)
+    (χ : DirichletCharacter ℂ l) :
+    (∑ q ∈ lemma6AdmissiblePairBlock x m k,
+        ∑ n ∈ smoothedMIndices x q,
+          (smoothedMKernel x q n : ℂ) *
+            χ (q.1 * q.2 * n : ZMod l)) =
+      (1 / (2 * Real.pi) : ℝ) •
+        ∫ ν : ℝ,
+          ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+            ∑ n ∈ smoothedMIndices x q,
+              lemma6FiniteMellinSummand x q n χ ν := by
+  exact lemma6_finiteMellin_sum_eq_verticalIntegral hx hxlog
+    (lemma6AdmissiblePairBlock x m k)
+    (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ
+
+/-- Complete finite-level bridge from `lemma6PrimitivePairBlock` to its
+exact `α`-line contour representation, before the infinite-series
+identification with `L'/L`. -/
+theorem lemma6PrimitivePairBlock_eq_finiteMellin_verticalIntegral
+    {x l : ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ) :
+    lemma6PrimitivePairBlock x m l k =
+      primComplexSum l (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod l)) *
+          ((1 / (2 * Real.pi) : ℝ) •
+            ∫ ν : ℝ,
+              ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+                ∑ n ∈ smoothedMIndices x q,
+                  lemma6FiniteMellinSummand x q n χ ν)) := by
+  unfold lemma6PrimitivePairBlock
+  apply congrArg (primComplexSum l)
+  funext χ
+  rw [show
+    (lemma6AdmissiblePairs x m).filter
+        (fun q => q ∈ lemma6PairBlock x k) =
+      lemma6AdmissiblePairBlock x m k by rfl]
+  rw [lemma6_pairBlock_finiteMellin_sum_eq_verticalIntegral
+    hx hxlog m k χ]
+
+/-- Complete bridge from one primitive pair block to Chen's unsplit
+logarithmic-derivative integral on the `α`-line. -/
+theorem lemma6PrimitivePairBlock_eq_logDeriv_verticalIntegral
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ) :
+    lemma6PrimitivePairBlock x m l k =
+      primComplexSum l (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod l)) *
+          ((1 / (2 * Real.pi) : ℝ) •
+            ∫ ν : ℝ,
+              -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+                  lemma6SmoothingMellinKernel (x : ℝ)
+                    (lemma6AlphaPoint x ν)) *
+                lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))))) := by
+  unfold lemma6PrimitivePairBlock
+  apply congrArg (primComplexSum l)
+  funext χ
+  rw [show
+    (lemma6AdmissiblePairs x m).filter
+        (fun q => q ∈ lemma6PairBlock x k) =
+      lemma6AdmissiblePairBlock x m k by rfl]
+  rw [lemma6_finiteMellin_sum_eq_logDeriv_verticalIntegral
+    hx hxlog (lemma6AdmissiblePairBlock x m k)
+      (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ]
+  rfl
+
+/-- The explicit pair-polynomial logarithmic-derivative integrand is
+integrable on the `α`-line.  This is inherited from the absolutely
+convergent von Mangoldt series, rather than asserted from a meromorphic
+formula. -/
+theorem integrable_lemma6PairLogDerivIntegrand
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ))
+    (pairs : Finset (ℕ × ℕ))
+    (hpairs : ∀ q ∈ pairs, q.1.Prime ∧ q.2.Prime)
+    (χ : DirichletCharacter ℂ l) :
+    Integrable (fun ν : ℝ =>
+      -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)) *
+        lemma6PairDirichletPolynomial x pairs
+          (lemma6AlphaPoint x ν) χ *
+        (deriv (DirichletCharacter.LFunction χ)
+            (lemma6AlphaPoint x ν) /
+          DirichletCharacter.LFunction χ
+            (lemma6AlphaPoint x ν)))) := by
+  have hfull (q : ℕ × ℕ) (hq : q ∈ pairs) :
+      Integrable (fun ν : ℝ =>
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) :=
+    integrable_tsum_of_summable_integral_norm_complex
+      (fun n => integrable_lemma6FiniteMellinSummand hx hxlog
+        (hpairs q hq).1 (hpairs q hq).2 χ)
+      (summable_integral_norm_lemma6FiniteMellinSummand
+        hx hxlog (hpairs q hq).1 (hpairs q hq).2 χ)
+  have hsum : Integrable (fun ν : ℝ =>
+      ∑ q ∈ pairs,
+        ∑' n : ℕ, lemma6FiniteMellinSummand x q n χ ν) :=
+    MeasureTheory.integrable_finsetSum pairs hfull
+  exact hsum.congr (ae_of_all _ fun ν =>
+    sum_tsum_lemma6FiniteMellinSummand_eq_pairPolynomial_logDeriv
+      hx pairs χ ν)
+
+/-- On `α`, integrability of the `B` summand and of the original Mellin
+integrand implies integrability of the exact complex `A` summand. -/
+theorem integrable_lemma6AContourIntegrand_alpha_of_B
+    {x d : ℕ} [NeZero d] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k H : ℕ)
+    (χ : DirichletCharacter ℂ d)
+    (hB : Integrable (fun ν : ℝ =>
+      lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν))) :
+    Integrable (fun ν : ℝ =>
+      lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)) := by
+  let U : ℝ → ℂ := fun ν =>
+    lemma6LogDerivContourIntegrand x m k χ (lemma6AlphaPoint x ν)
+  let A : ℝ → ℂ := fun ν =>
+    lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)
+  let B : ℝ → ℂ := fun ν =>
+    lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)
+  have hU : Integrable U := by
+    simpa only [U, lemma6LogDerivContourIntegrand,
+      lemma6PairBlockPolynomial] using
+      integrable_lemma6PairLogDerivIntegrand hx hxlog
+        (lemma6AdmissiblePairBlock x m k)
+        (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ
+  have hBe : Integrable B := by simpa only [B] using hB
+  have hAeq : A = fun ν => U ν - B ν := by
+    funext ν
+    have hpoint := lemma6LogDerivContourIntegrand_alpha_eq_A_add_B
+      hx m k H χ ν
+    change U ν = A ν + B ν at hpoint
+    rw [hpoint]
+    abel
+  change Integrable A
+  rw [hAeq]
+  exact hU.sub hBe
+
+/-- The `B` integrand is automatically integrable on Chen's original
+`alpha`-line.  This uses only absolute convergence in `Re s > 1`: the
+pair polynomial and mollifier have height-independent finite bounds, while
+`L'` is bounded by the differentiated untwisted Dirichlet series. -/
+theorem integrable_lemma6BContourIntegrand_alpha
+    {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k H : ℕ)
+    (chi : DirichletCharacter ℂ d) (hchi : chi.IsPrimitive) :
+    Integrable (fun nu : ℝ =>
+      lemma6BContourIntegrand x m k H chi (lemma6AlphaPoint x nu)) := by
+  let sigma : ℝ := 1 + 1 / Real.log (x : ℝ)
+  let Cpair : ℝ :=
+    ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+      ‖chi (q.1 * q.2 : ZMod d) /
+        (((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x 0 *
+          (Real.log ((x : ℝ) / ((q.1 * q.2 : ℕ) : ℝ)) : ℂ))‖
+  let C : ℝ := Cpair * lemma6LDerivMajorant sigma * (harmonic H : ℝ)
+  have hxreal : (1 : ℝ) < x := by
+    exact_mod_cast (show 1 < x by omega)
+  have hlog : 0 < Real.log (x : ℝ) := Real.log_pos hxreal
+  have hsigma : 0 < sigma := by
+    dsimp only [sigma]
+    positivity
+  have hsigmaOne : (1 : ℝ) < sigma := by
+    dsimp only [sigma]
+    have : 0 < (1 : ℝ) / Real.log (x : ℝ) := by positivity
+    linarith
+  have ha : 0 < lemma6SmoothingScale (x : ℝ) := by
+    unfold lemma6SmoothingScale
+    exact Real.rpow_pos_of_pos hlog _
+  have horder : 1 ≤ lemma6SmoothingOrder (x : ℝ) := by
+    unfold lemma6SmoothingOrder
+    rw [Nat.one_le_floor_iff]
+    exact hxlog
+  have hpoint (nu : ℝ) :
+      lemma6AlphaPoint x nu =
+        (sigma : ℂ) + (nu : ℂ) * Complex.I := by
+    unfold lemma6AlphaPoint
+    dsimp only [sigma]
+  have hbase : Integrable (fun nu : ℝ =>
+      (x : ℂ) ^ lemma6AlphaPoint x nu *
+        lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x nu)) := by
+    have h := integrable_cpow_mul_lemma6SmoothingMellinKernel
+      (x := (x : ℝ)) (y := (x : ℝ))
+      (by positivity) ha horder hsigma
+    rw [show ((x : ℝ) : ℂ) = (x : ℂ) by norm_cast] at h
+    simpa only [hpoint] using h
+  have hpair (nu : ℝ) :
+      ‖lemma6PairBlockPolynomial x m k (lemma6AlphaPoint x nu) chi‖ ≤
+        Cpair := by
+    unfold lemma6PairBlockPolynomial lemma6PairDirichletPolynomial Cpair
+    calc
+      ‖∑ q ∈ lemma6AdmissiblePairBlock x m k,
+          chi (q.1 * q.2 : ZMod d) /
+            (((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x nu *
+              (Real.log ((x : ℝ) / ((q.1 * q.2 : ℕ) : ℝ)) : ℂ))‖ ≤
+          ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+            ‖chi (q.1 * q.2 : ZMod d) /
+              (((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x nu *
+                (Real.log ((x : ℝ) / ((q.1 * q.2 : ℕ) : ℝ)) : ℂ))‖ :=
+        norm_sum_le _ _
+      _ = ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+            ‖chi (q.1 * q.2 : ZMod d) /
+              (((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x 0 *
+                (Real.log ((x : ℝ) / ((q.1 * q.2 : ℕ) : ℝ)) : ℂ))‖ := by
+        apply Finset.sum_congr rfl
+        intro q hq
+        obtain ⟨hq1, hq2⟩ := primes_of_mem_lemma6AdmissiblePairBlock hq
+        have hqpos : 0 < q.1 * q.2 := Nat.mul_pos hq1.pos hq2.pos
+        simp only [norm_div, norm_mul]
+        rw [Complex.norm_natCast_cpow_of_pos hqpos,
+          Complex.norm_natCast_cpow_of_pos hqpos,
+          lemma6AlphaPoint_re, lemma6AlphaPoint_re]
+      _ ≤ ∑ q ∈ lemma6AdmissiblePairBlock x m k,
+            ‖chi (q.1 * q.2 : ZMod d) /
+              (((q.1 * q.2 : ℕ) : ℂ) ^ lemma6AlphaPoint x 0 *
+                (Real.log ((x : ℝ) / ((q.1 * q.2 : ℕ) : ℝ)) : ℂ))‖ := le_rfl
+  have hL (nu : ℝ) :
+      ‖deriv (DirichletCharacter.LFunction chi) (lemma6AlphaPoint x nu)‖ ≤
+        lemma6LDerivMajorant sigma := by
+    have h := lemma6_norm_deriv_LFunction_le_majorant chi
+      (one_lt_lemma6AlphaPoint_re hx nu)
+    simpa only [lemma6AlphaPoint_re, sigma] using h
+  have hM (nu : ℝ) :
+      ‖lemma6MollifierAt H (lemma6AlphaPoint x nu) chi‖ ≤
+        (harmonic H : ℝ) := by
+    apply norm_lemma6MollifierAt_le_harmonic
+    rw [lemma6AlphaPoint_re]
+    linarith [hsigmaOne]
+  have hCpair : 0 ≤ Cpair := by
+    dsimp only [Cpair]
+    positivity
+  have hLnonneg : 0 ≤ lemma6LDerivMajorant sigma := by
+    unfold lemma6LDerivMajorant
+    exact tsum_nonneg fun _ => norm_nonneg _
+  have hHnonneg : 0 ≤ (harmonic H : ℝ) := by
+    rw [← lemma6_sum_Icc_inv_eq_harmonic]
+    positivity
+  have hmajor : Integrable (fun nu : ℝ =>
+      C * ‖(x : ℂ) ^ lemma6AlphaPoint x nu *
+        lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x nu)‖) := by
+    exact hbase.norm.const_mul C
+  have hmeas : AEStronglyMeasurable (fun nu : ℝ =>
+      lemma6BContourIntegrand x m k H chi (lemma6AlphaPoint x nu)) := by
+    have halpha : Continuous (lemma6AlphaPoint x) := by
+      unfold lemma6AlphaPoint
+      fun_prop
+    have hrange : ∀ nu : ℝ, lemma6AlphaPoint x nu ∈
+        {s : ℂ | 0 < s.re} := by
+      intro nu
+      exact one_lt_lemma6AlphaPoint_re hx nu |>.trans' zero_lt_one
+    have hcontOn :=
+      (differentiableOn_lemma6BContourIntegrand hd hx m k H hchi).continuousOn
+    exact (hcontOn.comp_continuous halpha hrange).aestronglyMeasurable
+  apply hmajor.mono' hmeas
+  filter_upwards [] with nu
+  unfold lemma6BContourIntegrand
+  simp only [norm_neg, norm_mul]
+  dsimp only [C]
+  have hp := hpair nu
+  have hl := hL nu
+  have hmoll := hM nu
+  let B0 : ℝ := ‖(x : ℂ) ^ lemma6AlphaPoint x nu‖ *
+    ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x nu)‖
+  change B0 *
+      ‖lemma6PairBlockPolynomial x m k (lemma6AlphaPoint x nu) chi‖ *
+      ‖deriv (DirichletCharacter.LFunction chi) (lemma6AlphaPoint x nu)‖ *
+      ‖lemma6MollifierAt H (lemma6AlphaPoint x nu) chi‖ ≤
+    Cpair * lemma6LDerivMajorant sigma * (harmonic H : ℝ) * B0
+  calc
+    B0 * ‖lemma6PairBlockPolynomial x m k (lemma6AlphaPoint x nu) chi‖ *
+        ‖deriv (DirichletCharacter.LFunction chi) (lemma6AlphaPoint x nu)‖ *
+        ‖lemma6MollifierAt H (lemma6AlphaPoint x nu) chi‖ ≤
+      B0 * Cpair * lemma6LDerivMajorant sigma * (harmonic H : ℝ) := by
+        gcongr
+    _ = Cpair * lemma6LDerivMajorant sigma * (harmonic H : ℝ) * B0 := by ring
+
+/-- Exact equation-(17) contour decomposition for one primitive-conductor
+pair block.  The original logarithmic-derivative integral is replaced by an
+`A` integral on `α` plus a `B` integral on `β`, before taking norms or
+summing moment majorants.  The three remaining analytic limit hypotheses
+are stated explicitly for each primitive character. -/
+theorem lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
+    {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ)
+    (hhor : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Lemma6BHorizontalEdgesVanish x m k H χ)
+    (hα : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)))
+    (hβ : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))) :
+    lemma6PrimitivePairBlock x m d k =
+      primComplexSum d (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod d)) *
+          ((1 / (2 * Real.pi) : ℝ) •
+            ((∫ ν : ℝ,
+                lemma6AContourIntegrand x m k H χ
+                  (lemma6AlphaPoint x ν)) +
+              ∫ ν : ℝ,
+                lemma6BContourIntegrand x m k H χ
+                  (lemma6BetaPoint x ν)))) := by
+  have hrepr := lemma6PrimitivePairBlock_eq_logDeriv_verticalIntegral
+    (x := x) (l := d) hx (by linarith) m k
+  rw [hrepr]
+  unfold primComplexSum
+  simp only [tsum_fintype]
+  apply Finset.sum_congr rfl
+  intro χ hχmem
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true]
+    let U : ℝ → ℂ := fun ν =>
+      lemma6LogDerivContourIntegrand x m k χ (lemma6AlphaPoint x ν)
+    let A : ℝ → ℂ := fun ν =>
+      lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)
+    let Ba : ℝ → ℂ := fun ν =>
+      lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)
+    let Bb : ℝ → ℂ := fun ν =>
+      lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν)
+    have hU : Integrable U := by
+      simpa only [U, lemma6LogDerivContourIntegrand,
+        lemma6PairBlockPolynomial] using
+        integrable_lemma6PairLogDerivIntegrand hx (by linarith)
+          (lemma6AdmissiblePairBlock x m k)
+          (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ
+    have hBa : Integrable Ba := by simpa only [Ba] using hα χ hp
+    have hpoint : ∀ ν : ℝ, U ν = A ν + Ba ν := by
+      intro ν
+      exact lemma6LogDerivContourIntegrand_alpha_eq_A_add_B
+        hx m k H χ ν
+    have hAeq : A = fun ν => U ν - Ba ν := by
+      funext ν
+      rw [hpoint ν]
+      abel
+    have hA : Integrable A := by
+      rw [hAeq]
+      exact hU.sub hBa
+    have hshift : (∫ ν : ℝ, Ba ν) = ∫ ν : ℝ, Bb ν := by
+      simpa only [Ba, Bb] using
+        lemma6BContour_verticalIntegral_eq hd hx hxlog m k H hp
+          (hhor χ hp) (hα χ hp) (hβ χ hp)
+    have hint : (∫ ν : ℝ, U ν) =
+        (∫ ν : ℝ, A ν) + ∫ ν : ℝ, Bb ν := by
+      calc
+        (∫ ν : ℝ, U ν) = ∫ ν : ℝ, A ν + Ba ν := by
+          apply integral_congr_ae
+          exact ae_of_all _ hpoint
+        _ = (∫ ν : ℝ, A ν) + ∫ ν : ℝ, Ba ν :=
+          MeasureTheory.integral_add hA hBa
+        _ = (∫ ν : ℝ, A ν) + ∫ ν : ℝ, Bb ν := by rw [hshift]
+    change starRingEnd ℂ (χ (x : ZMod d)) *
+        ((1 / (2 * Real.pi) : ℝ) • ∫ ν : ℝ, U ν) =
+      starRingEnd ℂ (χ (x : ZMod d)) *
+        ((1 / (2 * Real.pi) : ℝ) •
+          ((∫ ν : ℝ, A ν) + ∫ ν : ℝ, Bb ν))
+    rw [hint]
+  · simp [hp]
+
+/-- The horizontal factor on Chen's `α`-line has constant modulus
+`e x`, independently of the height. -/
+theorem norm_nat_cpow_lemma6AlphaPoint
+    {x : ℕ} (hx : 2 ≤ x) (ν : ℝ) :
+    ‖(x : ℂ) ^ lemma6AlphaPoint x ν‖ =
+      Real.exp 1 * (x : ℝ) := by
+  have hxpos : (0 : ℝ) < x := by positivity
+  have hxne : (x : ℝ) ≠ 1 := by
+    exact_mod_cast (show x ≠ 1 by omega)
+  change ‖((x : ℝ) : ℂ) ^ lemma6AlphaPoint x ν‖ =
+    Real.exp 1 * (x : ℝ)
+  rw [Complex.norm_cpow_eq_rpow_re_of_pos hxpos,
+    lemma6AlphaPoint_re, Real.rpow_add hxpos]
+  rw [Real.rpow_one]
+  have hinv : (1 : ℝ) / Real.log (x : ℝ) =
+      (Real.log (x : ℝ))⁻¹ := one_div _
+  rw [hinv, Real.rpow_inv_log hxpos hxne]
+  ring
+
+/-- The exact smoothing kernel on Chen's `α`-line has a quartic tail with
+the natural smoothing scale as numerator. -/
+theorem norm_lemma6SmoothingMellinKernel_alpha_le_scale_four
+    {x : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ)) (ν : ℝ) :
+    ‖lemma6SmoothingMellinKernel (x : ℝ)
+        (lemma6AlphaPoint x ν)‖ ≤
+      lemma6SmoothingScale (x : ℝ) ^ 4 / (1 + ν ^ 4) := by
+  let L : ℝ := Real.log (x : ℝ)
+  let a : ℝ := lemma6SmoothingScale (x : ℝ)
+  let σ : ℝ := 1 + 1 / L
+  have hL : 0 < L := by dsimp only [L]; linarith
+  have ha : 0 < a := by
+    dsimp only [a, lemma6SmoothingScale]
+    exact Real.rpow_pos_of_pos hL _
+  have ha1 : 1 ≤ a := by
+    dsimp only [a, lemma6SmoothingScale, L]
+    exact Real.one_le_rpow (by linarith) (by norm_num)
+  have hn : 3 ≤ lemma6SmoothingOrder (x : ℝ) := by
+    unfold lemma6SmoothingOrder
+    exact Nat.le_floor hxlog
+  have hσ : 0 < σ := by dsimp only [σ]; positivity
+  have hpoint : lemma6AlphaPoint x ν =
+      (σ : ℂ) + (ν : ℂ) * Complex.I := by
+    unfold lemma6AlphaPoint
+    dsimp only [σ, L]
+  have hk := norm_lemma6SmoothingMellinKernel_le_quartic
+    ha hn hσ ν
+  rw [← hpoint] at hk
+  apply hk.trans
+  have hσinv : σ⁻¹ ≤ 1 := by
+    apply inv_le_one_of_one_le₀
+    dsimp only [σ]
+    have : 0 ≤ (1 : ℝ) / L := by positivity
+    linarith
+  have hdenpos : 0 < (1 + (ν / a) ^ 2) ^ 2 := by positivity
+  have htargetpos : 0 < 1 + ν ^ 4 := by positivity
+  have hscale :
+      ((1 + (ν / a) ^ 2) ^ 2)⁻¹ ≤
+        a ^ 4 / (1 + ν ^ 4) := by
+    rw [le_div_iff₀ htargetpos]
+    rw [inv_mul_eq_div]
+    apply (div_le_iff₀ hdenpos).2
+    field_simp [ha.ne']
+    nlinarith [sq_nonneg ν, sq_nonneg (ν ^ 2),
+      sq_nonneg (a ^ 2 - 1)]
+  calc
+    σ⁻¹ * ((1 + (ν / a) ^ 2) ^ 2)⁻¹ ≤
+        1 * ((1 + (ν / a) ^ 2) ^ 2)⁻¹ := by gcongr
+    _ ≤ a ^ 4 / (1 + ν ^ 4) := by simpa using hscale
+
+/-- A convenient integer-log version of the rigorous equation-(17)
+kernel majorant. -/
+theorem norm_lemma6SmoothingMellinKernel_alpha_le_log_five
+    {x : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ)) (ν : ℝ) :
+    ‖lemma6SmoothingMellinKernel (x : ℝ)
+        (lemma6AlphaPoint x ν)‖ ≤
+      Real.log (x : ℝ) ^ 5 / (1 + ν ^ 4) := by
+  exact (norm_lemma6SmoothingMellinKernel_alpha_le_scale_four hxlog ν).trans
+    (div_le_div_of_nonneg_right
+      (lemma6SmoothingScale_four_le_log_five (by linarith)) (by positivity))
+
+/-- After the complex `B` contour has been shifted, the norm of the finite
+primitive-character sum is bounded by the exact `β`-line block integrand.
+The triangle inequality is applied only after the contour move. -/
+theorem norm_primComplexSum_lemma6BContour_beta_integral_le
+    {d x : ℕ} [NeZero d] (m k H : ℕ)
+    (hβ : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))) :
+    ‖primComplexSum d (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod d)) *
+          ∫ ν : ℝ,
+            lemma6BContourIntegrand x m k H χ
+              (lemma6BetaPoint x ν))‖ ≤
+      ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6BetaPoint x ν)‖ *
+          lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν) := by
+  let G : DirichletCharacter ℂ d → ℝ → ℂ := fun χ ν =>
+    lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν)
+  let R : DirichletCharacter ℂ d → ℝ → ℝ := fun χ ν =>
+    if χ.IsPrimitive then ‖G χ ν‖ else 0
+  have hint (χ : DirichletCharacter ℂ d) : Integrable (R χ) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [R, hp, if_true]
+      exact (hβ χ hp).norm
+    · simp [R, hp]
+  unfold primComplexSum
+  simp only [tsum_fintype]
+  calc
+    ‖∑ χ : DirichletCharacter ℂ d,
+        if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod d)) * ∫ ν : ℝ, G χ ν
+        else 0‖ ≤
+      ∑ χ : DirichletCharacter ℂ d,
+        ‖if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod d)) * ∫ ν : ℝ, G χ ν
+        else 0‖ := norm_sum_le _ _
+    _ ≤ ∑ χ : DirichletCharacter ℂ d, ∫ ν : ℝ, R χ ν := by
+      apply Finset.sum_le_sum
+      intro χ hχmem
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_mul, RCLike.norm_conj]
+        calc
+          ‖χ (x : ZMod d)‖ * ‖∫ ν : ℝ, G χ ν‖ ≤
+              1 * ∫ ν : ℝ, ‖G χ ν‖ := by
+            gcongr
+            · exact χ.norm_le_one x
+            · exact norm_integral_le_integral_norm _
+          _ = ∫ ν : ℝ, R χ ν := by simp [R, hp]
+      · simp [R, hp]
+    _ = ∫ ν : ℝ,
+        ∑ χ : DirichletCharacter ℂ d, R χ ν := by
+      rw [MeasureTheory.integral_finsetSum Finset.univ
+        (fun χ _ => hint χ)]
+    _ = ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6BetaPoint x ν)‖ *
+          lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν) := by
+      apply integral_congr_ae
+      filter_upwards with ν
+      unfold R G lemma6BContourIntegrand lemma6BModulusTotal
+      simp only [dif_neg (NeZero.ne d), lemma6BModulus,
+        lemma6PairBlockPolynomial, primSum, tsum_fintype]
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro χ hχmem
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_neg, norm_mul]
+        ring
+      · simp [hp]
+
+/-- Companion estimate for the complex `A` term which stays on `α`. -/
+theorem norm_primComplexSum_lemma6AContour_alpha_integral_le
+    {d x : ℕ} [NeZero d] (m k H : ℕ)
+    (hA : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν))) :
+    ‖primComplexSum d (fun χ =>
+        starRingEnd ℂ (χ (x : ZMod d)) *
+          ∫ ν : ℝ,
+            lemma6AContourIntegrand x m k H χ
+              (lemma6AlphaPoint x ν))‖ ≤
+      ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+          lemma6RawAModulus (d := d) x H
+            (lemma6AdmissiblePairBlock x m k)
+            (lemma6AlphaPoint x ν) := by
+  let G : DirichletCharacter ℂ d → ℝ → ℂ := fun χ ν =>
+    lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)
+  let R : DirichletCharacter ℂ d → ℝ → ℝ := fun χ ν =>
+    if χ.IsPrimitive then ‖G χ ν‖ else 0
+  have hint (χ : DirichletCharacter ℂ d) : Integrable (R χ) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [R, hp, if_true]
+      exact (hA χ hp).norm
+    · simp [R, hp]
+  unfold primComplexSum
+  simp only [tsum_fintype]
+  calc
+    ‖∑ χ : DirichletCharacter ℂ d,
+        if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod d)) * ∫ ν : ℝ, G χ ν
+        else 0‖ ≤
+      ∑ χ : DirichletCharacter ℂ d,
+        ‖if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod d)) * ∫ ν : ℝ, G χ ν
+        else 0‖ := norm_sum_le _ _
+    _ ≤ ∑ χ : DirichletCharacter ℂ d, ∫ ν : ℝ, R χ ν := by
+      apply Finset.sum_le_sum
+      intro χ hχmem
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_mul, RCLike.norm_conj]
+        calc
+          ‖χ (x : ZMod d)‖ * ‖∫ ν : ℝ, G χ ν‖ ≤
+              1 * ∫ ν : ℝ, ‖G χ ν‖ := by
+            gcongr
+            · exact χ.norm_le_one x
+            · exact norm_integral_le_integral_norm _
+          _ = ∫ ν : ℝ, R χ ν := by simp [R, hp]
+      · simp [R, hp]
+    _ = ∫ ν : ℝ,
+        ∑ χ : DirichletCharacter ℂ d, R χ ν := by
+      rw [MeasureTheory.integral_finsetSum Finset.univ
+        (fun χ _ => hint χ)]
+    _ = ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+          lemma6RawAModulus (d := d) x H
+            (lemma6AdmissiblePairBlock x m k)
+            (lemma6AlphaPoint x ν) := by
+      apply integral_congr_ae
+      filter_upwards with ν
+      unfold R G lemma6AContourIntegrand lemma6RawAModulus
+      simp only [lemma6PairBlockPolynomial, primSum, tsum_fintype]
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro χ hχmem
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_neg, norm_mul]
+        ring
+      · simp [hp]
+
+/-- Norm form of the rigorously shifted equation (17) for one conductor.
+The right side is now exactly the raw `A` moment on `α` plus the `B` moment
+on `β`; no norm of the `B` term is taken before shifting. -/
+theorem norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
+    {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ)
+    (hhor : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Lemma6BHorizontalEdgesVanish x m k H χ)
+    (hα : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)))
+    (hβ : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))) :
+    ‖lemma6PrimitivePairBlock x m d k‖ ≤
+      (1 / (2 * Real.pi) : ℝ) *
+        ((∫ ν : ℝ,
+            ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+                lemma6SmoothingMellinKernel (x : ℝ)
+                  (lemma6AlphaPoint x ν)‖ *
+              lemma6RawAModulus (d := d) x H
+                (lemma6AdmissiblePairBlock x m k)
+                (lemma6AlphaPoint x ν)) +
+          ∫ ν : ℝ,
+            ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+                lemma6SmoothingMellinKernel (x : ℝ)
+                  (lemma6BetaPoint x ν)‖ *
+              lemma6BModulusTotal d x m k H
+                (lemma6BetaPoint x ν)) := by
+  let c : ℝ := 1 / (2 * Real.pi)
+  let PA : ℂ := primComplexSum d (fun χ =>
+    starRingEnd ℂ (χ (x : ZMod d)) *
+      ∫ ν : ℝ,
+        lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν))
+  let PB : ℂ := primComplexSum d (fun χ =>
+    starRingEnd ℂ (χ (x : ZMod d)) *
+      ∫ ν : ℝ,
+        lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))
+  have hAint : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
+      Integrable (fun ν : ℝ =>
+        lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)) := by
+    intro χ hp
+    exact integrable_lemma6AContourIntegrand_alpha_of_B
+      hx (by linarith) m k H χ (hα χ hp)
+  have hPA : ‖PA‖ ≤
+      ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+          lemma6RawAModulus (d := d) x H
+            (lemma6AdmissiblePairBlock x m k)
+            (lemma6AlphaPoint x ν) := by
+    exact norm_primComplexSum_lemma6AContour_alpha_integral_le
+      m k H hAint
+  have hPB : ‖PB‖ ≤
+      ∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6BetaPoint x ν)‖ *
+          lemma6BModulusTotal d x m k H
+            (lemma6BetaPoint x ν) := by
+    exact norm_primComplexSum_lemma6BContour_beta_integral_le m k H hβ
+  have hdecomp := lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
+    hd hx hxlog m k H hhor hα hβ
+  have hlinear : lemma6PrimitivePairBlock x m d k =
+      (c : ℂ) * (PA + PB) := by
+    rw [hdecomp]
+    unfold PA PB primComplexSum
+    simp only [tsum_fintype]
+    rw [mul_add, Finset.mul_sum, Finset.mul_sum,
+      ← Finset.sum_add_distrib]
+    apply Finset.sum_congr rfl
+    intro χ hχmem
+    by_cases hp : χ.IsPrimitive
+    · simp only [hp, if_true, smul_eq_mul,
+        RCLike.real_smul_eq_coe_mul]
+      dsimp only [c]
+      simp only [mul_add, add_mul, mul_assoc, mul_comm]
+      rfl
+    · simp [hp]
+  rw [hlinear, norm_mul]
+  have hc : ‖(c : ℂ)‖ = c := by
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg]
+    dsimp only [c]
+    positivity
+  rw [hc]
+  apply mul_le_mul_of_nonneg_left _ (by dsimp only [c]; positivity)
+  exact (norm_add_le PA PB).trans (add_le_add hPA hPB)
+
+/-- The norm of one primitive prime-pair block is controlled by the
+unsplit equation-(16) logarithmic-derivative integral.  The character sum
+is kept inside the integral, in precisely the form consumed by
+`lemma6LogDerivModulusAtAlpha`. -/
+theorem norm_lemma6PrimitivePairBlock_le_logDeriv_integral
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ) :
+    ‖lemma6PrimitivePairBlock x m l k‖ ≤
+      (1 / (2 * Real.pi) : ℝ) *
+        ∫ ν : ℝ,
+          ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)‖ *
+            primSum l (fun χ =>
+              ‖lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))‖) := by
+  let c : ℝ := 1 / (2 * Real.pi)
+  let G : DirichletCharacter ℂ l → ℝ → ℂ := fun χ ν =>
+    -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+        lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x ν)) *
+      lemma6PairBlockPolynomial x m k
+        (lemma6AlphaPoint x ν) χ *
+      (deriv (DirichletCharacter.LFunction χ)
+          (lemma6AlphaPoint x ν) /
+        DirichletCharacter.LFunction χ
+          (lemma6AlphaPoint x ν)))
+  let R : DirichletCharacter ℂ l → ℝ → ℝ := fun χ ν =>
+    if χ.IsPrimitive then ‖G χ ν‖ else 0
+  have hrepr := lemma6PrimitivePairBlock_eq_logDeriv_verticalIntegral
+    (x := x) (l := l) hx hxlog m k
+  change lemma6PrimitivePairBlock x m l k =
+    primComplexSum l (fun χ =>
+      starRingEnd ℂ (χ (x : ZMod l)) *
+        (c • ∫ ν : ℝ, G χ ν)) at hrepr
+  rw [hrepr]
+  unfold primComplexSum
+  simp only [tsum_fintype]
+  have hint (χ : DirichletCharacter ℂ l) : Integrable (R χ) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [R, hp, if_true]
+      exact (integrable_lemma6PairLogDerivIntegrand hx hxlog
+        (lemma6AdmissiblePairBlock x m k)
+        (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ).norm
+    · simp [R, hp]
+  calc
+    ‖∑ χ : DirichletCharacter ℂ l,
+        if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod l)) *
+            (c • ∫ ν : ℝ, G χ ν)
+        else 0‖ ≤
+      ∑ χ : DirichletCharacter ℂ l,
+        ‖if χ.IsPrimitive then
+          starRingEnd ℂ (χ (x : ZMod l)) *
+            (c • ∫ ν : ℝ, G χ ν)
+        else 0‖ := norm_sum_le _ _
+    _ ≤ ∑ χ : DirichletCharacter ℂ l,
+        c * ∫ ν : ℝ, R χ ν := by
+      apply Finset.sum_le_sum
+      intro χ hχ
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_mul, norm_smul]
+        have hc : ‖c‖ = c := Real.norm_of_nonneg (by
+          dsimp only [c]
+          positivity)
+        rw [RCLike.norm_conj, hc]
+        calc
+          ‖χ (x : ZMod l)‖ * (c * ‖∫ ν : ℝ, G χ ν‖) ≤
+              1 * (c * ∫ ν : ℝ, ‖G χ ν‖) := by
+            gcongr
+            · exact χ.norm_le_one x
+            · exact norm_integral_le_integral_norm _
+          _ = c * ∫ ν : ℝ, R χ ν := by simp [R, hp]
+      · simp [R, hp]
+    _ = c * ∫ ν : ℝ,
+        ∑ χ : DirichletCharacter ℂ l, R χ ν := by
+      rw [← Finset.mul_sum]
+      rw [MeasureTheory.integral_finsetSum Finset.univ
+        (fun χ _ => hint χ)]
+    _ = (1 / (2 * Real.pi) : ℝ) *
+        ∫ ν : ℝ,
+          ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)‖ *
+            primSum l (fun χ =>
+              ‖lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))‖) := by
+      dsimp only [c]
+      congr 1
+      apply integral_congr_ae
+      filter_upwards with ν
+      unfold R G primSum
+      simp only [tsum_fintype]
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro χ hχ
+      by_cases hp : χ.IsPrimitive
+      · simp only [hp, if_true, norm_neg, norm_mul]
+        ring
+      · simp [hp]
+
+/-- The preceding contour bound with the height-independent factor
+`‖x^α‖ = e x` pulled outside the integral. -/
+theorem norm_lemma6PrimitivePairBlock_le_exp_mul_x_mul_logDeriv_integral
+    {x l : ℕ} [NeZero l] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ) :
+    ‖lemma6PrimitivePairBlock x m l k‖ ≤
+      (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+        ∫ ν : ℝ,
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            primSum l (fun χ =>
+              ‖lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))‖) := by
+  apply (norm_lemma6PrimitivePairBlock_le_logDeriv_integral
+    hx hxlog m k).trans_eq
+  have hint :
+      (∫ ν : ℝ,
+          ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)‖ *
+            primSum l (fun χ =>
+              ‖lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))‖)) =
+        (Real.exp 1 * (x : ℝ)) *
+          ∫ ν : ℝ,
+            ‖lemma6SmoothingMellinKernel (x : ℝ)
+                (lemma6AlphaPoint x ν)‖ *
+              primSum l (fun χ =>
+                ‖lemma6PairBlockPolynomial x m k
+                    (lemma6AlphaPoint x ν) χ *
+                  (deriv (DirichletCharacter.LFunction χ)
+                      (lemma6AlphaPoint x ν) /
+                    DirichletCharacter.LFunction χ
+                      (lemma6AlphaPoint x ν))‖) := by
+    rw [← MeasureTheory.integral_const_mul]
+    apply integral_congr_ae
+    filter_upwards with ν
+    rw [norm_mul, norm_nat_cpow_lemma6AlphaPoint hx ν]
+    ring
+  rw [hint]
+  ring
+
+/-- The scalar kernel times one totalized logarithmic-derivative modulus
+is integrable.  This permits the conductor sum to be moved through the
+`ν`-integral without adding a new analytic assumption. -/
+theorem integrable_lemma6KernelNorm_mul_logDerivModulusAtAlpha
+    {x d : ℕ} [NeZero d] (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m k : ℕ) :
+    Integrable (fun ν : ℝ =>
+      ‖lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x ν)‖ *
+        lemma6LogDerivModulusAtAlpha d x m k ν) := by
+  let G : DirichletCharacter ℂ d → ℝ → ℂ := fun χ ν =>
+    -(((x : ℂ) ^ lemma6AlphaPoint x ν *
+        lemma6SmoothingMellinKernel (x : ℝ)
+          (lemma6AlphaPoint x ν)) *
+      lemma6PairBlockPolynomial x m k
+        (lemma6AlphaPoint x ν) χ *
+      (deriv (DirichletCharacter.LFunction χ)
+          (lemma6AlphaPoint x ν) /
+        DirichletCharacter.LFunction χ
+          (lemma6AlphaPoint x ν)))
+  let R : DirichletCharacter ℂ d → ℝ → ℝ := fun χ ν =>
+    if χ.IsPrimitive then ‖G χ ν‖ else 0
+  have hint (χ : DirichletCharacter ℂ d) : Integrable (R χ) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [R, hp, if_true]
+      exact (integrable_lemma6PairLogDerivIntegrand hx hxlog
+        (lemma6AdmissiblePairBlock x m k)
+        (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ).norm
+    · simp [R, hp]
+  have hsum : Integrable (fun ν : ℝ =>
+      ∑ χ : DirichletCharacter ℂ d, R χ ν) :=
+    MeasureTheory.integrable_finsetSum Finset.univ (fun χ _ => hint χ)
+  have hAKS : Integrable (fun ν : ℝ =>
+      ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ)
+            (lemma6AlphaPoint x ν)‖ *
+        primSum d (fun χ =>
+          ‖lemma6PairBlockPolynomial x m k
+              (lemma6AlphaPoint x ν) χ *
+            (deriv (DirichletCharacter.LFunction χ)
+                (lemma6AlphaPoint x ν) /
+              DirichletCharacter.LFunction χ
+                (lemma6AlphaPoint x ν))‖)) := by
+    apply hsum.congr
+    filter_upwards with ν
+    unfold R G primSum
+    simp only [tsum_fintype]
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro χ hχ
+    by_cases hp : χ.IsPrimitive
+    · simp only [hp, if_true, norm_neg, norm_mul]
+      ring
+    · simp [hp]
+  have hcpos : 0 < Real.exp 1 * (x : ℝ) := by positivity
+  have hscaled := hAKS.const_mul (Real.exp 1 * (x : ℝ))⁻¹
+  apply hscaled.congr
+  filter_upwards with ν
+  simp only [lemma6LogDerivModulusAtAlpha,
+    dif_neg (NeZero.ne d)]
+  rw [norm_mul, norm_nat_cpow_lemma6AlphaPoint hx ν]
+  field_simp
+
+/-- Summing the exact contour bound over a dyadic conductor block gives
+the unsplit logarithmic-derivative block under one integral. -/
+theorem sum_modulusBlock_norm_pairBlock_le_logDerivBlock_integral
+    {x : ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (m l k : ℕ) :
+    (∑ d ∈ lemma6ModulusBlock x l,
+        lemma6LinearWeight d *
+          ‖lemma6PrimitivePairBlock x m d k‖) ≤
+      (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+        ∫ ν : ℝ,
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            lemma6LogDerivBlockAtAlpha x m l k ν := by
+  let Cx : ℝ := (Real.exp 1 / (2 * Real.pi)) * (x : ℝ)
+  let F : ℕ → ℝ → ℝ := fun d ν =>
+    ‖lemma6SmoothingMellinKernel (x : ℝ)
+        (lemma6AlphaPoint x ν)‖ *
+      (lemma6LinearWeight d *
+        lemma6LogDerivModulusAtAlpha d x m k ν)
+  have hd2 (d : ℕ) (hd : d ∈ lemma6ModulusBlock x l) : 2 ≤ d :=
+    (Finset.mem_Icc.mp (lemma6ModulusBlock_subset_Icc hxlog hd)).1
+  have hint (d : ℕ) (hd : d ∈ lemma6ModulusBlock x l) :
+      Integrable (F d) := by
+    letI : NeZero d := ⟨(show d ≠ 0 by
+      have := hd2 d hd
+      omega)⟩
+    have hbase := integrable_lemma6KernelNorm_mul_logDerivModulusAtAlpha
+      (d := d) hx hxlog m k
+    have hmul := hbase.const_mul (lemma6LinearWeight d)
+    apply hmul.congr
+    filter_upwards with ν
+    dsimp only [F]
+    ring
+  have hterm (d : ℕ) (hd : d ∈ lemma6ModulusBlock x l) :
+      lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖ ≤
+        Cx * ∫ ν : ℝ, F d ν := by
+    letI : NeZero d := ⟨(show d ≠ 0 by
+      have := hd2 d hd
+      omega)⟩
+    have hnorm :=
+      norm_lemma6PrimitivePairBlock_le_exp_mul_x_mul_logDeriv_integral
+        (l := d) hx hxlog m k
+    have hw0 := lemma6LinearWeight_nonneg d
+    calc
+      lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖ ≤
+          lemma6LinearWeight d *
+            ((Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+              ∫ ν : ℝ,
+                ‖lemma6SmoothingMellinKernel (x : ℝ)
+                    (lemma6AlphaPoint x ν)‖ *
+                  primSum d (fun χ =>
+                    ‖lemma6PairBlockPolynomial x m k
+                        (lemma6AlphaPoint x ν) χ *
+                      (deriv (DirichletCharacter.LFunction χ)
+                          (lemma6AlphaPoint x ν) /
+                        DirichletCharacter.LFunction χ
+                          (lemma6AlphaPoint x ν))‖)) :=
+        mul_le_mul_of_nonneg_left hnorm hw0
+      _ = Cx * ∫ ν : ℝ, F d ν := by
+        dsimp only [Cx, F]
+        simp only [lemma6LogDerivModulusAtAlpha,
+          dif_neg (NeZero.ne d)]
+        let J : ℝ → ℝ := fun ν =>
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            primSum d (fun χ =>
+              ‖lemma6PairBlockPolynomial x m k
+                  (lemma6AlphaPoint x ν) χ *
+                (deriv (DirichletCharacter.LFunction χ)
+                    (lemma6AlphaPoint x ν) /
+                  DirichletCharacter.LFunction χ
+                    (lemma6AlphaPoint x ν))‖)
+        have hwmove : lemma6LinearWeight d * (∫ ν : ℝ, J ν) =
+            ∫ ν : ℝ, lemma6LinearWeight d * J ν :=
+          (MeasureTheory.integral_const_mul
+            (lemma6LinearWeight d) J).symm
+        calc
+          lemma6LinearWeight d *
+              ((Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+                ∫ ν : ℝ, J ν) =
+            (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+              (lemma6LinearWeight d * ∫ ν : ℝ, J ν) := by ring
+          _ = (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+              ∫ ν : ℝ, lemma6LinearWeight d * J ν := by rw [hwmove]
+          _ = (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+              ∫ ν : ℝ,
+                ‖lemma6SmoothingMellinKernel (x : ℝ)
+                    (lemma6AlphaPoint x ν)‖ *
+                  (lemma6LinearWeight d *
+                    primSum d (fun χ =>
+                      ‖lemma6PairBlockPolynomial x m k
+                          (lemma6AlphaPoint x ν) χ *
+                        (deriv (DirichletCharacter.LFunction χ)
+                            (lemma6AlphaPoint x ν) /
+                          DirichletCharacter.LFunction χ
+                            (lemma6AlphaPoint x ν))‖)) := by
+            congr 1
+            apply integral_congr_ae
+            filter_upwards with ν
+            dsimp only [J]
+            ring
+  calc
+    (∑ d ∈ lemma6ModulusBlock x l,
+        lemma6LinearWeight d *
+          ‖lemma6PrimitivePairBlock x m d k‖) ≤
+      ∑ d ∈ lemma6ModulusBlock x l,
+        Cx * ∫ ν : ℝ, F d ν := by
+      apply Finset.sum_le_sum
+      intro d hd
+      exact hterm d hd
+    _ = Cx * ∑ d ∈ lemma6ModulusBlock x l,
+        ∫ ν : ℝ, F d ν := by rw [Finset.mul_sum]
+    _ = Cx * ∫ ν : ℝ,
+        ∑ d ∈ lemma6ModulusBlock x l, F d ν := by
+      rw [MeasureTheory.integral_finsetSum
+        (lemma6ModulusBlock x l) hint]
+    _ = Cx * ∫ ν : ℝ,
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            lemma6LogDerivBlockAtAlpha x m l k ν := by
+      congr 1
+      apply integral_congr_ae
+      filter_upwards with ν
+      unfold lemma6LogDerivBlockAtAlpha
+      dsimp only [F]
+      rw [Finset.mul_sum]
+    _ = (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+        ∫ ν : ℝ,
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            lemma6LogDerivBlockAtAlpha x m l k ν := by rfl
 
 /-- Exact prime-pair half of equation (13). -/
 theorem lemma6PrimitiveBlock_eq_sum_pairBlocks
@@ -675,6 +2500,40 @@ theorem lemma6NmPairTerm_nonneg (x m d k : ℕ) :
     0 ≤ lemma6NmPairTerm x m d k := by
   unfold lemma6NmPairTerm
   exact mul_nonneg (lemma6LinearWeight_nonneg d) (norm_nonneg _)
+
+/-- The conductors actually occupied in one large block form a subset of
+the full paper dyadic modulus block. -/
+theorem sum_largeConductor_pairTerm_le_modulusBlock_sum
+    (x : ℕ) (ε : ℝ) (m l k : ℕ) :
+    (∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+          (fun d => d ∈ lemma6ModulusBlock x l),
+        lemma6NmPairTerm x m d k) ≤
+      ∑ d ∈ lemma6ModulusBlock x l,
+        lemma6NmPairTerm x m d k := by
+  apply Finset.sum_le_sum_of_subset_of_nonneg
+  · intro d hd
+    exact (Finset.mem_filter.mp hd).2
+  · intro d hd hnot
+    exact lemma6NmPairTerm_nonneg x m d k
+
+/-- The exact Mellin bridge specialized to the occupied conductors in one
+`(l,k)` block. -/
+theorem sum_largeConductor_pairTerm_le_logDerivBlock_integral
+    {x : ℕ} (hx : 2 ≤ x)
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (ε : ℝ) (m l k : ℕ) :
+    (∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+          (fun d => d ∈ lemma6ModulusBlock x l),
+        lemma6NmPairTerm x m d k) ≤
+      (Real.exp 1 / (2 * Real.pi)) * (x : ℝ) *
+        ∫ ν : ℝ,
+          ‖lemma6SmoothingMellinKernel (x : ℝ)
+              (lemma6AlphaPoint x ν)‖ *
+            lemma6LogDerivBlockAtAlpha x m l k ν := by
+  apply (sum_largeConductor_pairTerm_le_modulusBlock_sum
+    x ε m l k).trans
+  simpa only [lemma6NmPairTerm] using
+    sum_modulusBlock_norm_pairBlock_le_logDerivBlock_integral
+      hx hxlog m l k
 
 /-- Equation (13) in the finite model: the large-conductor part is bounded
 by the sum over the occupied conductor and prime-pair dyadic blocks. -/

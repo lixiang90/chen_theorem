@@ -3,6 +3,7 @@ Assembly of equation (14): combine the exact `L`-series truncation with
 the dyadic large-sieve estimate for the finite `C_H` polynomial.
 -/
 import ChenTheorem.Lemma6.RemainderDyadic
+import ChenTheorem.Lemma6.LFunctionTruncation
 import Mathlib.NumberTheory.DirichletCharacter.Orthogonality
 
 open scoped Classical
@@ -241,8 +242,7 @@ theorem lemma6_equation14_of_truncation
 Chen's displayed estimate before replacing harmonic and dyadic logarithms
 by powers of `log x`. -/
 theorem lemma6_equation14
-    (htrunc : Lemma6LFunctionTruncation) :
-    ∃ Cp Ct : ℝ, 0 < Cp ∧ 0 < Ct ∧
+    : ∃ Cp Ct : ℝ, 0 < Cp ∧ 0 < Ct ∧
       ∀ (D Q H : ℕ) (s : ℂ),
         1 ≤ D → D ≤ Q → 1 ≤ H → 1 < s.re →
         ∑ q ∈ Finset.Ioc D Q, (q.totient : ℝ)⁻¹ *
@@ -254,7 +254,7 @@ theorem lemma6_equation14
           (Q : ℝ) *
             (2 * ((Ct * ‖s‖ * Real.sqrt Q * Real.log (2 * Q) / H) ^ 2 *
               (harmonic H : ℝ) ^ 2)) := by
-  rcases lemma6_equation14_of_truncation htrunc with
+  rcases lemma6_equation14_of_truncation lemma6LFunctionTruncation with
     ⟨Cp, Ct, hCp, hCt, hbound⟩
   refine ⟨Cp, Ct, hCp, hCt, ?_⟩
   intro D Q H s hD hDQ hH hs

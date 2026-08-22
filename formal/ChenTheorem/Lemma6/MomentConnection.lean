@@ -316,7 +316,8 @@ theorem lemma6_mollifierFourth_characterBlock_le_inv_totient
           (by exact_mod_cast Nat.totient_le d :
             (Nat.totient d : ℝ) ≤ d))
 
-theorem lemma6_deriv_fourth_moment_characterBlock :
+theorem lemma6_deriv_fourth_moment_characterBlock_of
+    (hfourth : Lemma6DerivativeFourthMoment) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in Filter.atTop,
       ∀ (l : ℕ) (ν : ℝ), 1 ≤ l →
         (∑ i ∈ lemma6CharacterBlock x l,
@@ -324,7 +325,7 @@ theorem lemma6_deriv_fourth_moment_characterBlock :
             lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4) ≤
           C * (2 : ℝ) ^ l * (Real.log x) ^ 110 *
             ‖lemma6BetaPoint x ν‖ ^ 2 := by
-  rcases lemma6_deriv_fourth_moment with ⟨C, hC, hbound⟩
+  rcases hfourth with ⟨C, hC, hbound⟩
   refine ⟨C, hC, ?_⟩
   have hlogReal : ∀ᶠ y : ℝ in Filter.atTop, 1 ≤ Real.log y :=
     Real.tendsto_log_atTop.eventually (Filter.eventually_ge_atTop 1)
@@ -334,6 +335,17 @@ theorem lemma6_deriv_fourth_moment_characterBlock :
   intro l ν hl
   exact (lemma6_lDerivFourth_characterBlock_le_inv_totient hxl ν).trans
     (hx l ν hl)
+
+theorem lemma6_deriv_fourth_moment_characterBlock :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in Filter.atTop,
+      ∀ (l : ℕ) (ν : ℝ), 1 ≤ l →
+        (∑ i ∈ lemma6CharacterBlock x l,
+          lemma6PrimitiveBaseWeight i *
+            lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4) ≤
+          C * (2 : ℝ) ^ l * (Real.log x) ^ 110 *
+            ‖lemma6BetaPoint x ν‖ ^ 2 :=
+  lemma6_deriv_fourth_moment_characterBlock_of
+    lemma6_deriv_fourth_moment
 
 noncomputable def lemma6ModulusLowerCutoff (x l : ℕ) : ℕ :=
   ⌊(2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100⌋₊

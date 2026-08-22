@@ -338,6 +338,79 @@ theorem norm_lemma6PairCoefficient_beta_sq_le_inv
       abs_of_nonneg (zero_le_one.trans hlog)]
     simpa only [one_div, inv_pow] using hinv
 
+/-- On Chen's `α`-line the same argument gains a full extra factor of
+`1/n`: `|a_n|² ≤ 1/n²`.  This is the coefficient estimate actually used
+in the `A` part of equation (19). -/
+theorem norm_lemma6PairCoefficient_alpha_sq_le_inv_sq
+    (x m k : ℕ) (ν : ℝ) (hxlog : 3 ≤ Real.log (x : ℝ)) (n : ℕ) :
+    ‖lemma6PairCoefficient x (lemma6AdmissiblePairBlock x m k)
+        (lemma6AlphaPoint x ν) n‖ ^ 2 ≤ ((n : ℝ) ^ 2)⁻¹ := by
+  let fiber := (lemma6AdmissiblePairBlock x m k).filter
+    (fun q => q.1 * q.2 = n)
+  have hcard := card_lemma6AdmissiblePairBlock_productFiber_le_one x m k n
+  have hcases : fiber.card = 0 ∨ fiber.card = 1 := by
+    dsimp only [fiber]
+    omega
+  rcases hcases with hzero | hone
+  · have hfiber : fiber = ∅ := Finset.card_eq_zero.mp hzero
+    simp [lemma6PairCoefficient, fiber, hfiber]
+  · obtain ⟨q, hfiber⟩ := Finset.card_eq_one.mp hone
+    have hqfiber : q ∈ fiber := by simp [hfiber]
+    have hqmem := Finset.mem_filter.mp hqfiber
+    have hqchen : q ∈ chenPairs x :=
+      (Finset.mem_filter.mp
+        (Finset.mem_filter.mp hqmem.1).1).1
+    have hqdata := (Finset.mem_filter.mp hqchen).2
+    have hnposNat : 0 < n := by
+      rw [← hqmem.2]
+      exact Nat.mul_pos hqdata.1.pos hqdata.2.1.pos
+    have hnpos : (0 : ℝ) < n := by exact_mod_cast hnposNat
+    have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast hnposNat
+    have halpha :
+        (1 : ℝ) ≤ (lemma6AlphaPoint x ν).re := by
+      rw [lemma6AlphaPoint_re]
+      have hlogx : 0 < Real.log (x : ℝ) :=
+        lt_of_lt_of_le (by norm_num) hxlog
+      have : 0 ≤ (1 : ℝ) / Real.log x := by positivity
+      linarith
+    have hpow :
+        (n : ℝ) ≤ (n : ℝ) ^ (lemma6AlphaPoint x ν).re := by
+      calc
+        (n : ℝ) = (n : ℝ) ^ (1 : ℝ) :=
+          (Real.rpow_one (n : ℝ)).symm
+        _ ≤ (n : ℝ) ^ (lemma6AlphaPoint x ν).re :=
+          Real.rpow_le_rpow_of_exponent_le hn1 halpha
+    have hlog :
+        1 ≤ Real.log ((x : ℝ) / (n : ℝ)) := by
+      rw [← hqmem.2]
+      simpa only [Nat.cast_mul] using
+        (lemma6_one_le_pairLog hxlog hqchen)
+    have hden :
+        (n : ℝ) ≤
+          (n : ℝ) ^ (lemma6AlphaPoint x ν).re *
+            Real.log ((x : ℝ) / (n : ℝ)) :=
+      hpow.trans (le_mul_of_one_le_right
+        (Real.rpow_nonneg hnpos.le _) hlog)
+    have hden0 :
+        0 ≤ (n : ℝ) ^ (lemma6AlphaPoint x ν).re *
+          Real.log ((x : ℝ) / (n : ℝ)) := by positivity
+    have hdenSq :
+        (n : ℝ) ^ 2 ≤
+          ((n : ℝ) ^ (lemma6AlphaPoint x ν).re *
+            Real.log ((x : ℝ) / (n : ℝ))) ^ 2 :=
+      pow_le_pow_left₀ hnpos.le hden 2
+    have hinv := one_div_le_one_div_of_le (sq_pos_of_pos hnpos) hdenSq
+    have hset :
+        (lemma6AdmissiblePairBlock x m k).filter
+            (fun q => q.1 * q.2 = n) = {q} := by
+      simpa only [fiber] using hfiber
+    simp only [lemma6PairCoefficient, hset, Finset.sum_singleton]
+    rw [norm_div, norm_one, norm_mul,
+      Complex.norm_natCast_cpow_of_pos hnposNat]
+    simp only [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (zero_le_one.trans hlog)]
+    simpa only [one_div, inv_pow] using hinv
+
 /-- The coefficient square sum in equation (19) has at most a harmless
 harmonic loss.  A later dyadic endpoint simplification can sharpen this to
 an absolute constant, as in the printed proof. -/

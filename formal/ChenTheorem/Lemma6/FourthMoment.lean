@@ -134,6 +134,15 @@ theorem primitiveCharacter_differentiable_LFunction
   DirichletCharacter.differentiable_LFunction
     (primitiveCharacter_ne_one hq hχ)
 
+/-- The derivative of a primitive nonprincipal Dirichlet L-function is
+again entire.  This is the analytic input needed by the `B` contour shift. -/
+theorem primitiveCharacter_differentiable_LFunction_deriv
+    {q : ℕ} [NeZero q] (hq : 2 ≤ q)
+    {χ : DirichletCharacter ℂ q} (hχ : χ.IsPrimitive) :
+    Differentiable ℂ (fun s => deriv (DirichletCharacter.LFunction χ) s) := by
+  intro s
+  exact ((primitiveCharacter_differentiable_LFunction hq hχ).analyticAt s).deriv.differentiableAt
+
 theorem lFourthTerm_nonneg (q : ℕ) (s : ℂ) :
     0 ≤ lFourthTerm q s := by
   unfold lFourthTerm

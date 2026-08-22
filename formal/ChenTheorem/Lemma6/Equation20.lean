@@ -133,7 +133,8 @@ theorem lemma6PairFourthMajorant_beta_le_log_four :
 paper-specific work is to simplify the two coefficient majorants under the
 third regime returned by `lemma6_occupied_pair_modulus_regime_split` and
 to perform the `ν` integral. -/
-theorem lemma6_equation20_B_with_large_sieve_moments :
+theorem lemma6_equation20_B_with_large_sieve_moments_of_deriv_fourth_moment
+    (hfourth : Lemma6DerivativeFourthMoment) :
     ∃ Cs Cd Cp : ℝ, 0 < Cs ∧ 0 < Cd ∧ 0 < Cp ∧
       ∀ᶠ x : ℕ in atTop,
         ∀ (l m k H : ℕ) (ν : ℝ), 1 ≤ l →
@@ -150,7 +151,7 @@ theorem lemma6_equation20_B_with_large_sieve_moments :
                   (lemma6BetaPoint x ν)) := by
   rcases lemma6_mollifier_second_moment_characterBlock with
     ⟨Cs, hCs, hmollifier⟩
-  rcases lemma6_deriv_fourth_moment_characterBlock with
+  rcases lemma6_deriv_fourth_moment_characterBlock_of hfourth with
     ⟨Cd, hCd, hderiv⟩
   rcases lemma6_pair_fourth_moment_characterBlock with
     ⟨Cp, hCp, hpair⟩
@@ -172,5 +173,23 @@ theorem lemma6_equation20_B_with_large_sieve_moments :
       hxderiv l ν hl
   · simpa only [lemma6PairFourthMajorant, mul_assoc] using
       hpair x l m k (lemma6BetaPoint x ν) hxlog
+
+theorem lemma6_equation20_B_with_large_sieve_moments :
+    ∃ Cs Cd Cp : ℝ, 0 < Cs ∧ 0 < Cd ∧ 0 < Cp ∧
+      ∀ᶠ x : ℕ in atTop,
+        ∀ (l m k H : ℕ) (ν : ℝ), 1 ≤ l →
+          (∑ i ∈ lemma6CharacterBlock x l,
+              lemma6PrimitiveBaseWeight i *
+                (3 : ℝ) ^ distinctPrimeFactors i.1 *
+                lemma6PairBlockNorm x m k (lemma6BetaPoint x ν) i *
+                lemma6MollifierNorm H (lemma6BetaPoint x ν) i *
+                lemma6LDerivNorm (lemma6BetaPoint x ν) i) ^ 4 ≤
+            (lemma6ExceptionalFactorAt x l *
+              (Cs * lemma6MollifierSecondMajorant x l H)) ^ 2 *
+              (Cd * lemma6DerivativeFourthMajorant x l ν) *
+                (Cp * lemma6PairFourthMajorant x l m k
+                  (lemma6BetaPoint x ν)) :=
+  lemma6_equation20_B_with_large_sieve_moments_of_deriv_fourth_moment
+    lemma6_deriv_fourth_moment
 
 end Chen
