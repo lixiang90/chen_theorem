@@ -177,7 +177,7 @@ theorem continuousAt_chenPhi_of_pos (x : ℝ) {y : ℝ} (hy : 0 < y) :
 /-- On positive inputs, the reciprocal form is the gamma CDF with upper
 endpoint `-a log u`. -/
 theorem lemma6PhiReciprocal_eq_gamma
-    (x : ℝ) {u : ℝ} (hu : 0 < u) :
+    (x : ℝ) {u : ℝ} (_hu : 0 < u) :
     lemma6PhiReciprocal x u =
       (((lemma6SmoothingOrder x).factorial : ℝ)⁻¹ *
         ∫ t in Ioc (0 : ℝ)
@@ -190,7 +190,7 @@ theorem lemma6PhiReciprocal_eq_gamma
         lemma6GammaIntegrand ⌊Real.log x⌋₊ t)) = _
   rw [Real.log_inv]
   congr 2
-  ring
+  ring_nf
 
 /-- The reciprocal smoothing function vanishes on `[1,∞)`. -/
 theorem lemma6PhiReciprocal_eq_zero_of_one_le
@@ -292,15 +292,15 @@ theorem norm_lemma6SmoothingMellinKernel_le_cauchy
   have hzre : z.re = 1 + σ / a := by
     dsimp only [z]
     rw [Complex.add_re, Complex.one_re, Complex.div_re]
-    simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim, zero_mul,
-      add_zero, Complex.normSq_ofReal, sq_abs, abs_of_pos ha']
+    simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim,
+      Complex.normSq_ofReal]
     field_simp
     ring
   have hzim : z.im = ν / a := by
     dsimp only [z]
     rw [Complex.add_im, Complex.one_im, Complex.div_im]
     simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim, mul_zero,
-      sub_zero, zero_add, Complex.normSq_ofReal, sq_abs, abs_of_pos ha']
+      zero_add, Complex.normSq_ofReal]
     field_simp
     ring
   have hzsq : ‖z‖ ^ 2 = (1 + σ / a) ^ 2 + (ν / a) ^ 2 := by
@@ -361,15 +361,15 @@ theorem norm_lemma6SmoothingMellinKernel_le_quartic
   have hzre : z.re = 1 + σ / a := by
     dsimp only [z]
     rw [Complex.add_re, Complex.one_re, Complex.div_re]
-    simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim, zero_mul,
-      add_zero, Complex.normSq_ofReal, sq_abs, abs_of_pos ha']
+    simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim,
+      Complex.normSq_ofReal]
     field_simp
     ring
   have hzim : z.im = ν / a := by
     dsimp only [z]
     rw [Complex.add_im, Complex.one_im, Complex.div_im]
     simp only [Complex.ofReal_re, Complex.ofReal_im, hsre, hsim, mul_zero,
-      sub_zero, zero_add, Complex.normSq_ofReal, sq_abs, abs_of_pos ha']
+      zero_add, Complex.normSq_ofReal]
     field_simp
     ring
   have hzsq : ‖z‖ ^ 2 = (1 + σ / a) ^ 2 + (ν / a) ^ 2 := by
@@ -579,7 +579,7 @@ private theorem integral_complex_exp_moment_Ioi
   have hc0 : c ≠ 0 := by
     intro h
     rw [h] at hc
-    simpa using hc
+    simp at hc
   induction n with
   | zero =>
       simpa [hc0, div_eq_mul_inv] using
@@ -709,7 +709,7 @@ theorem mellin_lemma6PhiReciprocal_eq_kernel
   have hs0 : s ≠ 0 := by
     intro h
     rw [h] at hs
-    simpa using hs
+    simp at hs
   have hu : ∀ r ∈ Ioi (0 : ℝ), HasDerivAt u (u' r) r := by
     intro r hr
     have hreal := hasDerivAt_chenPhi_exp hx hr
@@ -723,7 +723,7 @@ theorem mellin_lemma6PhiReciprocal_eq_kernel
     unfold lemma6GammaIntegrand
     push_cast
     rw [mul_pow]
-    ring
+    ring_nf
   have hv : ∀ r ∈ Ioi (0 : ℝ), HasDerivAt v (v' r) r := by
     intro r _
     have hexp : HasDerivAt

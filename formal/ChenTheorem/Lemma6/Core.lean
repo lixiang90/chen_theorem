@@ -11,6 +11,8 @@ import ChenTheorem.Lemma6.Integration
 import ChenTheorem.Lemma6.Parameters
 import ChenTheorem.Lemma6.SmoothingMellin
 import ChenTheorem.Lemma6.ContourShift
+import ChenTheorem.Lemma6.BIntegrability
+import ChenTheorem.Lemma6.Equation20
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
 set_option warn.sorry false
@@ -412,7 +414,7 @@ theorem lemma6_smoothedMKernel_mul_char_eq_verticalIntegral
             ∫ ν : ℝ, f ν)) * z := h
       _ = (1 / (2 * Real.pi) : ℝ) •
           (c * (∫ ν : ℝ, f ν) * z) := by
-        simp only [smul_eq_mul, RCLike.real_smul_eq_coe_mul]
+        simp only [RCLike.real_smul_eq_coe_mul]
         ring
 
 /-- Every integrated term outside the finite cutoff is zero.  Notice that
@@ -1121,16 +1123,14 @@ theorem integrable_lemma6BContourIntegrand_alpha
 /-- Exact equation-(17) contour decomposition for one primitive-conductor
 pair block.  The original logarithmic-derivative integral is replaced by an
 `A` integral on `α` plus a `B` integral on `β`, before taking norms or
-summing moment majorants.  The three remaining analytic limit hypotheses
-are stated explicitly for each primitive character. -/
+summing moment majorants.  Absolute convergence supplies the original-line
+integrability automatically; only horizontal decay and shifted-line
+integrability remain as analytic limit hypotheses. -/
 theorem lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
     {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
     (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ)
     (hhor : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
       Lemma6BHorizontalEdgesVanish x m k H χ)
-    (hα : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
-      Integrable (fun ν : ℝ =>
-        lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)))
     (hβ : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
       Integrable (fun ν : ℝ =>
         lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))) :
@@ -1167,7 +1167,10 @@ theorem lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
         integrable_lemma6PairLogDerivIntegrand hx (by linarith)
           (lemma6AdmissiblePairBlock x m k)
           (fun q hq => primes_of_mem_lemma6AdmissiblePairBlock hq) χ
-    have hBa : Integrable Ba := by simpa only [Ba] using hα χ hp
+    have hBa : Integrable Ba := by
+      simpa only [Ba] using
+        integrable_lemma6BContourIntegrand_alpha
+          hd hx (by linarith) m k H χ hp
     have hpoint : ∀ ν : ℝ, U ν = A ν + Ba ν := by
       intro ν
       exact lemma6LogDerivContourIntegrand_alpha_eq_A_add_B
@@ -1182,7 +1185,7 @@ theorem lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
     have hshift : (∫ ν : ℝ, Ba ν) = ∫ ν : ℝ, Bb ν := by
       simpa only [Ba, Bb] using
         lemma6BContour_verticalIntegral_eq hd hx hxlog m k H hp
-          (hhor χ hp) (hα χ hp) (hβ χ hp)
+          (hhor χ hp) hBa (hβ χ hp)
     have hint : (∫ ν : ℝ, U ν) =
         (∫ ν : ℝ, A ν) + ∫ ν : ℝ, Bb ν := by
       calc
@@ -1435,9 +1438,6 @@ theorem norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
     (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ)
     (hhor : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
       Lemma6BHorizontalEdgesVanish x m k H χ)
-    (hα : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
-      Integrable (fun ν : ℝ =>
-        lemma6BContourIntegrand x m k H χ (lemma6AlphaPoint x ν)))
     (hβ : ∀ χ : DirichletCharacter ℂ d, χ.IsPrimitive →
       Integrable (fun ν : ℝ =>
         lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν))) :
@@ -1470,7 +1470,9 @@ theorem norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
         lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)) := by
     intro χ hp
     exact integrable_lemma6AContourIntegrand_alpha_of_B
-      hx (by linarith) m k H χ (hα χ hp)
+      hx (by linarith) m k H χ
+        (integrable_lemma6BContourIntegrand_alpha
+          hd hx (by linarith) m k H χ hp)
   have hPA : ‖PA‖ ≤
       ∫ ν : ℝ,
         ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
@@ -1490,7 +1492,7 @@ theorem norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
             (lemma6BetaPoint x ν) := by
     exact norm_primComplexSum_lemma6BContour_beta_integral_le m k H hβ
   have hdecomp := lemma6PrimitivePairBlock_eq_A_alpha_add_B_beta
-    hd hx hxlog m k H hhor hα hβ
+    hd hx hxlog m k H hhor hβ
   have hlinear : lemma6PrimitivePairBlock x m d k =
       (c : ℂ) * (PA + PB) := by
     rw [hdecomp]
@@ -1501,8 +1503,7 @@ theorem norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
     apply Finset.sum_congr rfl
     intro χ hχmem
     by_cases hp : χ.IsPrimitive
-    · simp only [hp, if_true, smul_eq_mul,
-        RCLike.real_smul_eq_coe_mul]
+    · simp only [hp, if_true, RCLike.real_smul_eq_coe_mul]
       dsimp only [c]
       simp only [mul_add, add_mul, mul_assoc, mul_comm]
       rfl
@@ -3038,6 +3039,1469 @@ theorem lemma6_occupied_pair_modulus_regime_split
         lemma6PairDyadicScale x k
     · exact Or.inl ⟨hthreshold, hpair⟩
     · exact Or.inr ⟨le_of_not_gt hpair, hmod⟩
+
+/-! ### Equations (14)--(20): the occupied `(l,k)` block estimate -/
+
+/-- Integrability of the per-conductor `A` integrand on the `α`-line,
+obtained from the complex `A = U - B` decomposition. -/
+theorem integrable_kernelNorm_mul_rawAModulus_alpha
+    {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ) :
+    Integrable (fun ν : ℝ =>
+      ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+        lemma6RawAModulus (d := d) x H (lemma6AdmissiblePairBlock x m k)
+          (lemma6AlphaPoint x ν)) := by
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  have hA (χ : DirichletCharacter ℂ d) :
+      Integrable (fun ν : ℝ =>
+        (if χ.IsPrimitive then
+          ‖lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)‖
+        else 0 : ℝ)) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [hp, if_true]
+      exact (integrable_lemma6AContourIntegrand_alpha_of_B hx hlog1 m k H χ
+        (integrable_lemma6BContourIntegrand_alpha hd hx hlog1 m k H χ hp)).norm
+    · simp only [hp, if_false]
+      exact integrable_zero _ _ _
+  have hsum : Integrable (fun ν : ℝ =>
+      ∑ χ : DirichletCharacter ℂ d,
+        if χ.IsPrimitive then
+          ‖lemma6AContourIntegrand x m k H χ (lemma6AlphaPoint x ν)‖
+        else 0) :=
+    MeasureTheory.integrable_finsetSum Finset.univ (fun χ _ => hA χ)
+  apply hsum.congr
+  filter_upwards with ν
+  simp only [lemma6RawAModulus, primSum, tsum_fintype]
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro χ hχmem
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true, lemma6AContourIntegrand, lemma6PairBlockPolynomial,
+      norm_neg, norm_mul]
+    ring
+  · simp [hp]
+
+/-- Integrability of the per-conductor `B` integrand on the shifted
+`β`-line, directly from the characterwise contour integrability. -/
+theorem integrable_kernelNorm_mul_BModulusTotal_beta
+    {x d : ℕ} [NeZero d] (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ) :
+    Integrable (fun ν : ℝ =>
+      ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+        lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν)) := by
+  have hB (χ : DirichletCharacter ℂ d) :
+      Integrable (fun ν : ℝ =>
+        (if χ.IsPrimitive then
+          ‖lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν)‖
+        else 0 : ℝ)) := by
+    by_cases hp : χ.IsPrimitive
+    · simp only [hp, if_true]
+      exact (integrable_lemma6BContourIntegrand_beta
+        hd hx hxlog m k H hp).norm
+    · simp only [hp, if_false]
+      exact integrable_zero _ _ _
+  have hsum : Integrable (fun ν : ℝ =>
+      ∑ χ : DirichletCharacter ℂ d,
+        if χ.IsPrimitive then
+          ‖lemma6BContourIntegrand x m k H χ (lemma6BetaPoint x ν)‖
+        else 0) :=
+    MeasureTheory.integrable_finsetSum Finset.univ (fun χ _ => hB χ)
+  apply hsum.congr
+  filter_upwards with ν
+  unfold lemma6BModulusTotal
+  simp only [dif_neg (NeZero.ne d), lemma6BModulus,
+    primSum, tsum_fintype]
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro χ hχmem
+  by_cases hp : χ.IsPrimitive
+  · simp only [hp, if_true, lemma6BContourIntegrand, lemma6PairBlockPolynomial,
+      norm_neg, norm_mul]
+    ring
+  · simp [hp]
+
+/-- The raw `A` summand, totalized at modulus zero so that conductor sums
+can range over an unrestricted finite set of moduli. -/
+noncomputable def lemma6RawAModulusTotal
+    (d x m k H : ℕ) (s : ℂ) : ℝ :=
+  if hd : d = 0 then 0
+  else
+    letI : NeZero d := ⟨hd⟩
+    lemma6RawAModulus (d := d) x H (lemma6AdmissiblePairBlock x m k) s
+
+theorem lemma6RawAModulusTotal_eq
+    {d : ℕ} [NeZero d] (x m k H : ℕ) (s : ℂ) :
+    lemma6RawAModulusTotal d x m k H s =
+      lemma6RawAModulus (d := d) x H (lemma6AdmissiblePairBlock x m k) s := by
+  unfold lemma6RawAModulusTotal
+  rw [dif_neg (NeZero.ne d)]
+
+theorem lemma6RawAModulusTotal_nonneg (d x m k H : ℕ) (s : ℂ) :
+    0 ≤ lemma6RawAModulusTotal d x m k H s := by
+  unfold lemma6RawAModulusTotal
+  split_ifs
+  · exact le_rfl
+  · unfold lemma6RawAModulus primSum
+    exact tsum_nonneg fun χ => by split_ifs <;> positivity
+
+theorem lemma6AModulusTotal_nonneg (d x m k H : ℕ) (s : ℂ) :
+    0 ≤ lemma6AModulusTotal d x m k H s := by
+  unfold lemma6AModulusTotal
+  split_ifs
+  · exact le_rfl
+  · unfold lemma6AModulus primSum
+    exact tsum_nonneg fun χ => by split_ifs <;> positivity
+
+/-- The equation-(17) `A` block is nonnegative. -/
+theorem lemma6ABlockAtAlpha_nonneg (x m l k H : ℕ) (ν : ℝ) :
+    0 ≤ lemma6ABlockAtAlpha x m l k H ν := by
+  unfold lemma6ABlockAtAlpha
+  exact Finset.sum_nonneg fun d _ =>
+    mul_nonneg (lemma6LinearWeight_nonneg d)
+      (lemma6AModulusTotal_nonneg _ _ _ _ _ _)
+
+/-- The per-conductor `α`-line `A` integrand in norm form, totalized over
+all natural moduli. -/
+noncomputable def lemma6BlockAContourNorm
+    (x m k H d : ℕ) (ν : ℝ) : ℝ :=
+  ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+      lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+    lemma6RawAModulusTotal d x m k H (lemma6AlphaPoint x ν)
+
+/-- The per-conductor shifted `β`-line `B` integrand in norm form,
+totalized over all natural moduli. -/
+noncomputable def lemma6BlockBContourNorm
+    (x m k H d : ℕ) (ν : ℝ) : ℝ :=
+  ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+      lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+    lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν)
+
+theorem integrable_lemma6BlockAContourNorm
+    {x d : ℕ} (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ) :
+    Integrable (lemma6BlockAContourNorm x m k H d) := by
+  have hd0 : d ≠ 0 := by omega
+  letI : NeZero d := ⟨hd0⟩
+  apply (integrable_kernelNorm_mul_rawAModulus_alpha hd hx hxlog m k H).congr
+  filter_upwards with ν
+  unfold lemma6BlockAContourNorm
+  rw [lemma6RawAModulusTotal_eq x m k H _]
+
+theorem integrable_lemma6BlockBContourNorm
+    {x d : ℕ} (hd : 2 ≤ d) (hx : 2 ≤ x)
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (m k H : ℕ) :
+    Integrable (lemma6BlockBContourNorm x m k H d) := by
+  have hd0 : d ≠ 0 := by omega
+  letI : NeZero d := ⟨hd0⟩
+  apply (integrable_kernelNorm_mul_BModulusTotal_beta hd hx hxlog m k H).congr
+  filter_upwards with ν
+  rw [lemma6BlockBContourNorm]
+
+/-- The contour-split block estimate underlying equations (19) and (20):
+the conductor sum over one occupied dyadic block is bounded by the `α`-line
+`A` integral and the shifted `β`-line `B` integral. -/
+theorem sum_largeConductor_pairTerm_le_alpha_beta_integrals
+    {x : ℕ} (hx : 2 ≤ x) (hxlog : 3 ≤ Real.log (x : ℝ))
+    (ε : ℝ) (m l k H : ℕ)
+    (hintA : Integrable (fun ν : ℝ =>
+      ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+        lemma6ABlockAtAlpha x m l k H ν))
+    (hintB : Integrable (fun ν : ℝ =>
+      ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+        lemma6BBlockAtBeta x m l k H ν)) :
+    (∑ d ∈ (lemma6LargeSquarefreeConductors x ε).filter
+        (fun d => d ∈ lemma6ModulusBlock x l),
+      lemma6NmPairTerm x m d k) ≤
+      (1 / (2 * Real.pi)) *
+        (4 * Real.log (x : ℝ) ^ 2 * (Real.exp 1 * (x : ℝ)) *
+            (∫ ν : ℝ,
+              ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+                lemma6ABlockAtAlpha x m l k H ν) +
+          (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2)) *
+            (∫ ν : ℝ,
+              ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+                lemma6BBlockAtBeta x m l k H ν)) := by
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  apply (sum_largeConductor_pairTerm_le_modulusBlock_sum x ε m l k).trans
+  have hd2 : ∀ d ∈ lemma6ModulusBlock x l, 2 ≤ d := fun d hd =>
+    (Finset.mem_Icc.mp (lemma6ModulusBlock_subset_Icc hlog1 hd)).1
+  -- per-conductor norm bound, with the linear weight moved inside
+  have hper : ∀ d ∈ lemma6ModulusBlock x l,
+      lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖ ≤
+        (1 / (2 * Real.pi)) *
+          ((∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockAContourNorm x m k H d ν) +
+            ∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockBContourNorm x m k H d ν) := by
+    intro d hd
+    have hd2d := hd2 d hd
+    have hd0 : d ≠ 0 := by omega
+    letI : NeZero d := ⟨hd0⟩
+    have hnorm := norm_lemma6PrimitivePairBlock_le_A_alpha_add_B_beta
+      hd2d hx hxlog m k H
+      (fun χ hχ => lemma6BHorizontalEdgesVanish_primitive
+        hd2d hx hxlog m k H hχ)
+      (fun χ hχ => integrable_lemma6BContourIntegrand_beta
+        hd2d hx hxlog m k H hχ)
+    have hw0 := lemma6LinearWeight_nonneg d
+    have hcongA : (∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+          lemma6RawAModulus (d := d) x H (lemma6AdmissiblePairBlock x m k)
+            (lemma6AlphaPoint x ν)) =
+        ∫ ν : ℝ, lemma6BlockAContourNorm x m k H d ν := by
+      apply integral_congr_ae
+      filter_upwards with ν
+      unfold lemma6BlockAContourNorm
+      rw [lemma6RawAModulusTotal_eq x m k H _]
+    have hcongB : (∫ ν : ℝ,
+        ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+          lemma6BModulusTotal d x m k H (lemma6BetaPoint x ν)) =
+        ∫ ν : ℝ, lemma6BlockBContourNorm x m k H d ν := by
+      apply integral_congr_ae
+      filter_upwards with ν
+      rfl
+    rw [hcongA, hcongB] at hnorm
+    calc
+      lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖ ≤
+          lemma6LinearWeight d *
+            ((1 / (2 * Real.pi)) *
+              ((∫ ν : ℝ, lemma6BlockAContourNorm x m k H d ν) +
+                ∫ ν : ℝ, lemma6BlockBContourNorm x m k H d ν)) :=
+        mul_le_mul_of_nonneg_left hnorm hw0
+      _ = (1 / (2 * Real.pi)) *
+          ((∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockAContourNorm x m k H d ν) +
+            ∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockBContourNorm x m k H d ν) := by
+        simp only [MeasureTheory.integral_const_mul]
+        ring
+  have hintA' : ∀ d ∈ lemma6ModulusBlock x l,
+      Integrable (fun ν : ℝ => lemma6LinearWeight d *
+        lemma6BlockAContourNorm x m k H d ν) := fun d hd =>
+    (integrable_lemma6BlockAContourNorm (hd2 d hd) hx hxlog m k H).const_mul
+      (lemma6LinearWeight d)
+  have hintB' : ∀ d ∈ lemma6ModulusBlock x l,
+      Integrable (fun ν : ℝ => lemma6LinearWeight d *
+        lemma6BlockBContourNorm x m k H d ν) := fun d hd =>
+    (integrable_lemma6BlockBContourNorm (hd2 d hd) hx hxlog m k H).const_mul
+      (lemma6LinearWeight d)
+  -- pointwise majorization of the two block sums
+  have hpointA : ∀ ν : ℝ,
+      (∑ d ∈ lemma6ModulusBlock x l, lemma6LinearWeight d *
+          lemma6BlockAContourNorm x m k H d ν) ≤
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+          (4 * Real.log (x : ℝ) ^ 2 * lemma6ABlockAtAlpha x m l k H ν) := by
+    intro ν
+    have hAB : 4 * Real.log (x : ℝ) ^ 2 * lemma6ABlockAtAlpha x m l k H ν =
+        ∑ d ∈ lemma6ModulusBlock x l, lemma6LinearWeight d *
+          (4 * Real.log (x : ℝ) ^ 2 *
+            lemma6AModulusTotal d x m k H (lemma6AlphaPoint x ν)) := by
+      unfold lemma6ABlockAtAlpha
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun d _ => by ring
+    rw [hAB, Finset.mul_sum]
+    apply Finset.sum_le_sum
+    intro d hd
+    have hd0 : d ≠ 0 := by have := hd2 d hd; omega
+    letI : NeZero d := ⟨hd0⟩
+    have hraw : lemma6RawAModulusTotal d x m k H (lemma6AlphaPoint x ν) ≤
+        4 * Real.log (x : ℝ) ^ 2 *
+          lemma6AModulusTotal d x m k H (lemma6AlphaPoint x ν) := by
+      rw [lemma6RawAModulusTotal_eq x m k H _]
+      have htotal : lemma6AModulusTotal d x m k H (lemma6AlphaPoint x ν) =
+          lemma6AModulus (d := d) x H (lemma6AdmissiblePairBlock x m k)
+            (lemma6AlphaPoint x ν) := by
+        unfold lemma6AModulusTotal
+        rw [dif_neg hd0]
+      rw [htotal]
+      exact lemma6RawAModulus_le_four_log_sq_mul_AModulus_at_alpha
+        (d := d) (H := H) hx (lemma6AdmissiblePairBlock x m k) ν
+    have h1 : lemma6LinearWeight d * lemma6BlockAContourNorm x m k H d ν =
+        ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+          (lemma6LinearWeight d *
+            lemma6RawAModulusTotal d x m k H (lemma6AlphaPoint x ν)) := by
+      unfold lemma6BlockAContourNorm
+      ring
+    rw [h1]
+    exact mul_le_mul_of_nonneg_left
+      (mul_le_mul_of_nonneg_left hraw (lemma6LinearWeight_nonneg d))
+      (norm_nonneg _)
+  have hpointB : ∀ ν : ℝ,
+      (∑ d ∈ lemma6ModulusBlock x l, lemma6LinearWeight d *
+          lemma6BlockBContourNorm x m k H d ν) =
+        ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+            lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+          lemma6BBlockAtBeta x m l k H ν := by
+    intro ν
+    unfold lemma6BBlockAtBeta
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro d hd
+    unfold lemma6BlockBContourNorm
+    ring
+  -- norms of the horizontal factors are ν-independent
+  have hKαeq : ∀ ν : ℝ,
+      ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ =
+        (Real.exp 1 * (x : ℝ)) *
+          ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ := by
+    intro ν
+    rw [norm_mul, norm_nat_cpow_lemma6AlphaPoint hx]
+  have hKβeq : ∀ ν : ℝ,
+      ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ =
+        (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2)) *
+          ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ := by
+    intro ν
+    rw [norm_mul, norm_nat_cpow_lemma6BetaPoint hx]
+  have hintAmaj : Integrable (fun ν : ℝ =>
+      ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+        (4 * Real.log (x : ℝ) ^ 2 * lemma6ABlockAtAlpha x m l k H ν)) := by
+    apply (hintA.const_mul
+      (4 * Real.log (x : ℝ) ^ 2 * (Real.exp 1 * (x : ℝ)))).congr
+    filter_upwards with ν
+    rw [hKαeq]
+    ring
+  have hintBmaj : Integrable (fun ν : ℝ =>
+      ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+          lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+        lemma6BBlockAtBeta x m l k H ν) := by
+    apply (hintB.const_mul (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2))).congr
+    filter_upwards with ν
+    rw [hKβeq]
+    ring
+  calc
+    (∑ d ∈ lemma6ModulusBlock x l,
+        lemma6LinearWeight d * ‖lemma6PrimitivePairBlock x m d k‖) ≤
+      ∑ d ∈ lemma6ModulusBlock x l,
+        (1 / (2 * Real.pi)) *
+          ((∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockAContourNorm x m k H d ν) +
+            ∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockBContourNorm x m k H d ν) :=
+      Finset.sum_le_sum fun d hd => hper d hd
+    _ = (1 / (2 * Real.pi)) *
+          ((∫ ν : ℝ, ∑ d ∈ lemma6ModulusBlock x l, lemma6LinearWeight d *
+              lemma6BlockAContourNorm x m k H d ν) +
+            ∫ ν : ℝ, ∑ d ∈ lemma6ModulusBlock x l, lemma6LinearWeight d *
+              lemma6BlockBContourNorm x m k H d ν) := by
+      have hsplit : ∀ d ∈ lemma6ModulusBlock x l,
+          (1 / (2 * Real.pi)) *
+            ((∫ ν : ℝ, lemma6LinearWeight d *
+                lemma6BlockAContourNorm x m k H d ν) +
+              ∫ ν : ℝ, lemma6LinearWeight d *
+                lemma6BlockBContourNorm x m k H d ν) =
+          (1 / (2 * Real.pi)) * (∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockAContourNorm x m k H d ν) +
+            (1 / (2 * Real.pi)) * (∫ ν : ℝ, lemma6LinearWeight d *
+              lemma6BlockBContourNorm x m k H d ν) :=
+        fun d _ => by ring
+      rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib,
+        ← Finset.mul_sum, ← Finset.mul_sum,
+        MeasureTheory.integral_finsetSum _ (fun d hd => hintA' d hd),
+        MeasureTheory.integral_finsetSum _ (fun d hd => hintB' d hd)]
+      ring
+    _ ≤ (1 / (2 * Real.pi)) *
+          ((∫ ν : ℝ,
+              ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+                  lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+                (4 * Real.log (x : ℝ) ^ 2 *
+                  lemma6ABlockAtAlpha x m l k H ν)) +
+            ∫ ν : ℝ,
+              ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+                  lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+                lemma6BBlockAtBeta x m l k H ν) := by
+      apply mul_le_mul_of_nonneg_left _ (by positivity)
+      apply add_le_add
+      · exact MeasureTheory.integral_mono
+          (MeasureTheory.integrable_finsetSum _ fun d hd => hintA' d hd)
+          hintAmaj hpointA
+      · exact le_of_eq (integral_congr_ae (ae_of_all _ hpointB))
+    _ = (1 / (2 * Real.pi)) *
+          (4 * Real.log (x : ℝ) ^ 2 * (Real.exp 1 * (x : ℝ)) *
+              (∫ ν : ℝ,
+                ‖lemma6SmoothingMellinKernel (x : ℝ)
+                    (lemma6AlphaPoint x ν)‖ *
+                  lemma6ABlockAtAlpha x m l k H ν) +
+            (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2)) *
+              (∫ ν : ℝ,
+                ‖lemma6SmoothingMellinKernel (x : ℝ)
+                    (lemma6BetaPoint x ν)‖ *
+                  lemma6BBlockAtBeta x m l k H ν)) := by
+      have hfunA : (fun ν : ℝ =>
+          ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+            (4 * Real.log (x : ℝ) ^ 2 *
+              lemma6ABlockAtAlpha x m l k H ν)) =
+          fun ν : ℝ =>
+            (4 * Real.log (x : ℝ) ^ 2 * (Real.exp 1 * (x : ℝ))) *
+              (‖lemma6SmoothingMellinKernel (x : ℝ)
+                  (lemma6AlphaPoint x ν)‖ *
+                lemma6ABlockAtAlpha x m l k H ν) := by
+        funext ν
+        rw [hKαeq]
+        ring
+      have hfunB : (fun ν : ℝ =>
+          ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+            lemma6BBlockAtBeta x m l k H ν) =
+          fun ν : ℝ =>
+            (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2)) *
+              (‖lemma6SmoothingMellinKernel (x : ℝ)
+                  (lemma6BetaPoint x ν)‖ *
+                lemma6BBlockAtBeta x m l k H ν) := by
+        funext ν
+        rw [hKβeq]
+        ring
+      have hAint : (∫ ν : ℝ,
+          ‖(x : ℂ) ^ lemma6AlphaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+            (4 * Real.log (x : ℝ) ^ 2 *
+              lemma6ABlockAtAlpha x m l k H ν)) =
+        4 * Real.log (x : ℝ) ^ 2 * (Real.exp 1 * (x : ℝ)) *
+          ∫ ν : ℝ,
+            ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6AlphaPoint x ν)‖ *
+              lemma6ABlockAtAlpha x m l k H ν := by
+        rw [hfunA, MeasureTheory.integral_const_mul]
+      have hBint : (∫ ν : ℝ,
+          ‖(x : ℂ) ^ lemma6BetaPoint x ν *
+              lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+            lemma6BBlockAtBeta x m l k H ν) =
+        (Real.exp 1 * (x : ℝ) ^ ((1 : ℝ) / 2)) *
+          ∫ ν : ℝ,
+            ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x ν)‖ *
+              lemma6BBlockAtBeta x m l k H ν := by
+        rw [hfunB, MeasureTheory.integral_const_mul]
+      rw [hAint, hBint]
+
+/-- The squared norm of Chen's `α`-line point. -/
+theorem norm_sq_lemma6AlphaPoint_le
+    {x : ℕ} (hxlog : 1 ≤ Real.log (x : ℝ)) (ν : ℝ) :
+    ‖lemma6AlphaPoint x ν‖ ^ 2 ≤ 4 * (1 + ν ^ 2) := by
+  have hlog : 0 < Real.log (x : ℝ) := zero_lt_one.trans_le hxlog
+  have him : (lemma6AlphaPoint x ν).im = ν := by
+    change 0 + (ν * 1 + 0 * 0) = ν
+    ring
+  rw [Complex.sq_norm, Complex.normSq_apply, lemma6AlphaPoint_re, him]
+  have h1 : 1 / Real.log (x : ℝ) ≤ 1 := by
+    rw [div_le_one hlog]
+    exact hxlog
+  have h2 : 0 < 1 / Real.log (x : ℝ) := by positivity
+  have hu2 : (1 / Real.log (x : ℝ)) ^ 2 ≤ 1 := pow_le_one₀ h2.le h1
+  nlinarith [sq_nonneg ν, h2, hu2]
+
+/-- The integer dyadic logarithm against the real logarithm. -/
+theorem natLog_two_add_one_le_three_mul_log
+    {H : ℕ} (hH : 1 ≤ H) (hlogH : 1 ≤ Real.log (H : ℝ)) :
+    (Nat.log 2 H : ℝ) + 1 ≤ 3 * Real.log (H : ℝ) := by
+  have h := natLog_two_cast_le hH
+  have hlog2pos : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog2 : (1 : ℝ) / 2 ≤ Real.log 2 := by
+    have h1 := Real.log_two_gt_d9
+    linarith
+  have hkey : Real.log (H : ℝ) ≤ 2 * Real.log (H : ℝ) * Real.log 2 := by
+    have h2 := mul_le_mul_of_nonneg_right hlog2
+      (show (0 : ℝ) ≤ Real.log (H : ℝ) by linarith)
+    nlinarith [h2]
+  calc
+    (Nat.log 2 H : ℝ) + 1 ≤ Real.log (H : ℝ) / Real.log 2 + 1 := by linarith
+    _ ≤ 2 * Real.log (H : ℝ) + 1 := by
+      have h3 : Real.log (H : ℝ) / Real.log 2 ≤ 2 * Real.log (H : ℝ) := by
+        rw [div_le_iff₀ hlog2pos]
+        linarith
+      linarith
+    _ ≤ 3 * Real.log (H : ℝ) := by linarith
+
+/-- Crude scale bound for the equation-(14) remainder majorant: all
+logarithmic factors are collected into `(log x)^3 (log H)^2` and the
+dyadic dependence into the three displayed terms. -/
+theorem lemma6RemainderSecondMajorant_le_crude
+    {Cp Ct : ℝ} (hCp : 0 < Cp) (hCt : 0 < Ct)
+    {x l H : ℕ} (hxlog : 1 ≤ Real.log (x : ℝ)) (hl : 1 ≤ l) (hH : 1 ≤ H)
+    (hD4 : 4 ≤ lemma6DyadicModulusScale x l)
+    (hlogH : 1 ≤ Real.log (H : ℝ))
+    (hlogHH : Real.log ((2 * H * H : ℕ) : ℝ) ≤ 8 * Real.log (x : ℝ))
+    (hlogQ : Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ≤
+      2 * Real.log (x : ℝ))
+    (ν : ℝ) :
+    lemma6RemainderSecondMajorant Cp Ct x l H ν ≤
+      (36864 * Cp + 200 * Ct ^ 2) * Real.log (x : ℝ) ^ 3 *
+        Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+  have hP0 : (0 : ℝ) < Real.log (x : ℝ) := zero_lt_one.trans_le hxlog
+  have hP : 1 ≤ Real.log (x : ℝ) := hxlog
+  have hHpos : (0 : ℝ) < (H : ℝ) := by exact_mod_cast hH
+  have hlogH0 : (0 : ℝ) < Real.log (H : ℝ) := zero_lt_one.trans_le hlogH
+  have hDpos : 0 < lemma6DyadicModulusScale x l := by
+    unfold lemma6DyadicModulusScale
+    positivity
+  have hQge : lemma6DyadicModulusScale x l ≤ (lemma6ModulusCutoff x l : ℝ) :=
+    lemma6DyadicModulusScale_le_modulusCutoff x l
+  have hQ54 : (lemma6ModulusCutoff x l : ℝ) ≤
+      5 / 4 * lemma6DyadicModulusScale x l :=
+    lemma6ModulusCutoff_cast_le_five_quarters_scale hD4
+  have hR : lemma6DyadicModulusScale x l / 4 ≤
+      (lemma6ModulusLowerCutoff x l : ℝ) :=
+    lemma6_quarter_scale_le_modulusLowerCutoff hl hD4
+  have hRpos : (0 : ℝ) < (lemma6ModulusLowerCutoff x l : ℝ) :=
+    (div_pos hDpos (by norm_num)).trans_le hR
+  have hRinv : (lemma6ModulusLowerCutoff x l : ℝ)⁻¹ ≤
+      4 / lemma6DyadicModulusScale x l := by
+    have h := one_div_le_one_div_of_le (div_pos hDpos (by norm_num)) hR
+    rw [one_div, one_div, inv_div] at h
+    exact h
+  have hnl : (Nat.log 2 H : ℝ) + 1 ≤ 3 * Real.log (H : ℝ) :=
+    natLog_two_add_one_le_three_mul_log hH hlogH
+  have hL20 : 0 ≤ Real.log ((2 * H * H : ℕ) : ℝ) :=
+    Real.log_nonneg (by exact_mod_cast (show 1 ≤ 2 * H * H by nlinarith [hH]))
+  have hL2pow : Real.log ((2 * H * H : ℕ) : ℝ) ^ 3 ≤
+      (8 * Real.log (x : ℝ)) ^ 3 :=
+    pow_le_pow_left₀ hL20 hlogHH 3
+  have hL30 : 0 ≤ Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) :=
+    Real.log_nonneg (by linarith [hQge, hD4])
+  have hL3pow : Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ^ 2 ≤
+      (2 * Real.log (x : ℝ)) ^ 2 :=
+    pow_le_pow_left₀ hL30 hlogQ 2
+  have hnormsq : ‖lemma6AlphaPoint x ν‖ ^ 2 ≤ 4 * (1 + ν ^ 2) :=
+    norm_sq_lemma6AlphaPoint_le hxlog ν
+  have hharm0 : (0 : ℝ) ≤ (harmonic H : ℝ) := by
+    have h : (0 : ℚ) ≤ harmonic H := by
+      rw [harmonic_eq_sum_Icc]
+      exact Finset.sum_nonneg fun i _ => by positivity
+    exact_mod_cast h
+  have hharm : (harmonic H : ℝ) ≤ 2 * Real.log (H : ℝ) := by
+    have h := harmonic_le_one_add_log H
+    linarith
+  have hinner0 : 0 ≤ 2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+      ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹ := by
+    positivity
+  have hinner : 2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+        ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹ ≤
+      (5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+        12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l := by
+    have e1 : 2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) ≤
+        (5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) := by
+      rw [show (5 / 2 : ℝ) * (lemma6DyadicModulusScale x l / (H : ℝ)) =
+          (5 / 2 * lemma6DyadicModulusScale x l) / (H : ℝ) by ring]
+      rw [div_le_div_iff_of_pos_right hHpos]
+      nlinarith [hQ54]
+    have e2 : ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹ ≤
+        12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l := by
+      have h2 := mul_le_mul hnl hRinv (inv_nonneg.mpr hRpos.le)
+        (by linarith : (0 : ℝ) ≤ 3 * Real.log (H : ℝ))
+      calc ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹ ≤
+          (3 * Real.log (H : ℝ)) * (4 / lemma6DyadicModulusScale x l) := h2
+        _ = 12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l := by ring
+    exact add_le_add e1 e2
+  have hpart1 :
+      2 * (Cp * ((Nat.log 2 H : ℝ) + 1) *
+          (2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+            ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹) *
+          Real.log ((2 * H * H : ℕ) : ℝ) ^ 3) ≤
+        36864 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+    have hcore : Cp * ((Nat.log 2 H : ℝ) + 1) *
+          (2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+            ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹) *
+          Real.log ((2 * H * H : ℕ) : ℝ) ^ 3 ≤
+        Cp * (3 * Real.log (H : ℝ)) *
+          ((5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+            12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l) *
+          (8 * Real.log (x : ℝ)) ^ 3 := by
+      have s1 : Cp * ((Nat.log 2 H : ℝ) + 1) ≤ Cp * (3 * Real.log (H : ℝ)) :=
+        mul_le_mul_of_nonneg_left hnl hCp.le
+      have s2 : Cp * ((Nat.log 2 H : ℝ) + 1) *
+            (2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+              ((Nat.log 2 H : ℝ) + 1) *
+                (lemma6ModulusLowerCutoff x l : ℝ)⁻¹) ≤
+          Cp * (3 * Real.log (H : ℝ)) *
+            ((5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+              12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l) :=
+        mul_le_mul s1 hinner hinner0 (by positivity)
+      exact mul_le_mul s2 hL2pow (pow_nonneg hL20 3) (by positivity)
+    calc 2 * (Cp * ((Nat.log 2 H : ℝ) + 1) *
+          (2 * (lemma6ModulusCutoff x l : ℝ) / (H : ℝ) +
+            ((Nat.log 2 H : ℝ) + 1) * (lemma6ModulusLowerCutoff x l : ℝ)⁻¹) *
+          Real.log ((2 * H * H : ℕ) : ℝ) ^ 3)
+        ≤ 2 * (Cp * (3 * Real.log (H : ℝ)) *
+            ((5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+              12 * Real.log (H : ℝ) / lemma6DyadicModulusScale x l) *
+            (8 * Real.log (x : ℝ)) ^ 3) := by
+          apply mul_le_mul_of_nonneg_left _ (by norm_num)
+          exact hcore
+      _ = 3072 * Cp * Real.log (x : ℝ) ^ 3 *
+            (Real.log (H : ℝ) * ((5 / 2) *
+                (lemma6DyadicModulusScale x l / (H : ℝ))) +
+              12 * Real.log (H : ℝ) ^ 2 / lemma6DyadicModulusScale x l) := by
+          field_simp [hDpos.ne', hHpos.ne']
+          ring
+      _ ≤ 3072 * Cp * Real.log (x : ℝ) ^ 3 *
+            (Real.log (H : ℝ) ^ 2 * ((5 / 2) *
+                (lemma6DyadicModulusScale x l / (H : ℝ))) +
+              12 * Real.log (H : ℝ) ^ 2 / lemma6DyadicModulusScale x l) := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          have hLHsq : Real.log (H : ℝ) ≤ Real.log (H : ℝ) ^ 2 := by
+            have hsq : Real.log (H : ℝ) * 1 ≤
+                Real.log (H : ℝ) * Real.log (H : ℝ) :=
+              mul_le_mul_of_nonneg_left hlogH hlogH0.le
+            simpa only [pow_two, mul_one] using hsq
+          exact add_le_add
+            (mul_le_mul_of_nonneg_right hLHsq (by positivity)) le_rfl
+      _ = 3072 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            ((5 / 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+              12 / lemma6DyadicModulusScale x l) := by ring
+      _ ≤ 3072 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            (12 * (lemma6DyadicModulusScale x l / (H : ℝ)) +
+              12 * (1 / lemma6DyadicModulusScale x l)) := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          apply add_le_add
+          · exact mul_le_mul_of_nonneg_right (by norm_num) (by positivity)
+          · exact le_of_eq (by ring)
+      _ = 36864 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l) := by ring
+      _ ≤ 36864 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          exact le_add_of_nonneg_right (by positivity)
+  have hsq : (Ct * ‖lemma6AlphaPoint x ν‖ *
+        Real.sqrt (lemma6ModulusCutoff x l : ℝ) *
+        Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) / (H : ℝ)) ^ 2 ≤
+      Ct ^ 2 * (4 * (1 + ν ^ 2)) * (lemma6ModulusCutoff x l : ℝ) *
+        (2 * Real.log (x : ℝ)) ^ 2 / (H : ℝ) ^ 2 := by
+    rw [div_pow, mul_pow, mul_pow, mul_pow,
+      Real.sq_sqrt (show (0 : ℝ) ≤ (lemma6ModulusCutoff x l : ℝ) by positivity)]
+    have h2 : Ct ^ 2 * ‖lemma6AlphaPoint x ν‖ ^ 2 *
+          (lemma6ModulusCutoff x l : ℝ) *
+          Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ^ 2 ≤
+        Ct ^ 2 * (4 * (1 + ν ^ 2)) * (lemma6ModulusCutoff x l : ℝ) *
+          (2 * Real.log (x : ℝ)) ^ 2 := by
+      have t1 : ‖lemma6AlphaPoint x ν‖ ^ 2 *
+            Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ^ 2 ≤
+          (4 * (1 + ν ^ 2)) * (2 * Real.log (x : ℝ)) ^ 2 :=
+        mul_le_mul hnormsq hL3pow (sq_nonneg _) (by positivity)
+      calc Ct ^ 2 * ‖lemma6AlphaPoint x ν‖ ^ 2 *
+              (lemma6ModulusCutoff x l : ℝ) *
+              Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ^ 2
+          = Ct ^ 2 * (lemma6ModulusCutoff x l : ℝ) *
+              (‖lemma6AlphaPoint x ν‖ ^ 2 *
+                Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ^ 2) := by ring
+        _ ≤ Ct ^ 2 * (lemma6ModulusCutoff x l : ℝ) *
+              ((4 * (1 + ν ^ 2)) * (2 * Real.log (x : ℝ)) ^ 2) :=
+            mul_le_mul_of_nonneg_left t1 (by positivity)
+        _ = Ct ^ 2 * (4 * (1 + ν ^ 2)) * (lemma6ModulusCutoff x l : ℝ) *
+              (2 * Real.log (x : ℝ)) ^ 2 := by ring
+    exact (div_le_div_iff_of_pos_right
+      (by positivity : (0 : ℝ) < (H : ℝ) ^ 2)).2 h2
+  have hpart2 : (lemma6ModulusCutoff x l : ℝ) *
+        (2 * ((Ct * ‖lemma6AlphaPoint x ν‖ *
+            Real.sqrt (lemma6ModulusCutoff x l : ℝ) *
+            Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) / (H : ℝ)) ^ 2 *
+          (harmonic H : ℝ) ^ 2)) ≤
+        200 * Ct ^ 2 * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+    have h1 : (harmonic H : ℝ) ^ 2 ≤ (2 * Real.log (H : ℝ)) ^ 2 :=
+      pow_le_pow_left₀ hharm0 hharm 2
+    calc (lemma6ModulusCutoff x l : ℝ) *
+          (2 * ((Ct * ‖lemma6AlphaPoint x ν‖ *
+              Real.sqrt (lemma6ModulusCutoff x l : ℝ) *
+              Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) / (H : ℝ)) ^ 2 *
+            (harmonic H : ℝ) ^ 2))
+        ≤ (5 / 4 * lemma6DyadicModulusScale x l) *
+            (2 * ((Ct ^ 2 * (4 * (1 + ν ^ 2)) *
+                (lemma6ModulusCutoff x l : ℝ) *
+                (2 * Real.log (x : ℝ)) ^ 2 / (H : ℝ) ^ 2) *
+              (2 * Real.log (H : ℝ)) ^ 2)) := by
+          apply mul_le_mul hQ54 _ (by positivity) (by positivity)
+          apply mul_le_mul_of_nonneg_left _ (by norm_num)
+          exact mul_le_mul hsq h1 (by positivity) (by positivity)
+      _ = 160 * Ct ^ 2 *
+            (lemma6DyadicModulusScale x l * (lemma6ModulusCutoff x l : ℝ)) *
+            (Real.log (x : ℝ) ^ 2 * Real.log (H : ℝ) ^ 2 *
+              (1 + ν ^ 2) / (H : ℝ) ^ 2) := by
+          field_simp [hHpos.ne']
+          ring
+      _ ≤ 160 * Ct ^ 2 *
+            (lemma6DyadicModulusScale x l *
+              (5 / 4 * lemma6DyadicModulusScale x l)) *
+            (Real.log (x : ℝ) ^ 2 * Real.log (H : ℝ) ^ 2 *
+              (1 + ν ^ 2) / (H : ℝ) ^ 2) := by
+          apply mul_le_mul_of_nonneg_right _ (by positivity)
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          exact mul_le_mul_of_nonneg_left hQ54 hDpos.le
+      _ = 200 * Ct ^ 2 * lemma6DyadicModulusScale x l ^ 2 *
+            (Real.log (x : ℝ) ^ 2 * Real.log (H : ℝ) ^ 2 *
+              (1 + ν ^ 2) / (H : ℝ) ^ 2) := by ring
+      _ ≤ 200 * Ct ^ 2 * lemma6DyadicModulusScale x l ^ 2 *
+            (Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+              (1 + ν ^ 2) / (H : ℝ) ^ 2) := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          have hP23 : Real.log (x : ℝ) ^ 2 ≤ Real.log (x : ℝ) ^ 3 :=
+            pow_le_pow_right₀ hP (by norm_num)
+          rw [show Real.log (x : ℝ) ^ 2 * Real.log (H : ℝ) ^ 2 *
+                (1 + ν ^ 2) / (H : ℝ) ^ 2 =
+              Real.log (x : ℝ) ^ 2 *
+                (Real.log (H : ℝ) ^ 2 * (1 + ν ^ 2) / (H : ℝ) ^ 2) by ring,
+            show Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+                (1 + ν ^ 2) / (H : ℝ) ^ 2 =
+              Real.log (x : ℝ) ^ 3 *
+                (Real.log (H : ℝ) ^ 2 * (1 + ν ^ 2) / (H : ℝ) ^ 2) by ring]
+          exact mul_le_mul_of_nonneg_right hP23 (by positivity)
+      _ = 200 * Ct ^ 2 * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            ((1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+          ring
+      _ ≤ 200 * Ct ^ 2 * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          exact le_add_of_nonneg_left (by positivity)
+  unfold lemma6RemainderSecondMajorant
+  rw [show (36864 * Cp + 200 * Ct ^ 2) * Real.log (x : ℝ) ^ 3 *
+        Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) =
+      36864 * Cp * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) +
+        200 * Ct ^ 2 * Real.log (x : ℝ) ^ 3 * Real.log (H : ℝ) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 / (H : ℝ) ^ 2) by
+      ring]
+  exact add_le_add hpart1 hpart2
+
+/-- An occupied large-conductor dyadic index is positive. -/
+theorem lemma6_one_le_of_mem_largeBlockIndices {x l : ℕ} {ε : ℝ}
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (hl : l ∈ lemma6LargeBlockIndices x ε) :
+    1 ≤ l := by
+  rw [lemma6LargeBlockIndices, Finset.mem_image] at hl
+  obtain ⟨d, hd, hdl⟩ := hl
+  obtain ⟨j, hj1, hj⟩ := lemma6LargeSquarefreeConductor_exists_block hxlog hd
+  have hindex : lemma6ModulusBlockIndex x d = j := lemma6ModulusBlockIndex_eq hj
+  have hjl : j = l := hindex ▸ hdl
+  have hmem : d ∈ lemma6ModulusBlock x l := hjl ▸ hj
+  by_contra h
+  push Not at h
+  interval_cases l
+  rw [lemma6ModulusBlock, Finset.mem_filter] at hmem
+  have hdsq : (d : ℝ) ≤ (Real.log (x : ℝ)) ^ 100 := by
+    have h2 := hmem.2.2.2
+    simpa using h2
+  have hdd := hd
+  rw [lemma6LargeSquarefreeConductors, Finset.mem_filter] at hdd
+  have hdlarge := hdd.1
+  rw [lemma6LargeConductors, Finset.mem_filter] at hdlarge
+  exact hdlarge.2 hdsq
+
+/-- On an occupied block the dyadic scale beats `(log x)^100`. -/
+theorem lemma6_log_pow_hundred_lt_dyadicScale {x l : ℕ} {ε : ℝ}
+    (hxlog : 1 ≤ Real.log (x : ℝ)) (hl : l ∈ lemma6LargeBlockIndices x ε) :
+    (Real.log (x : ℝ)) ^ 100 < lemma6DyadicModulusScale x l := by
+  rw [lemma6LargeBlockIndices, Finset.mem_image] at hl
+  obtain ⟨d, hd, hdl⟩ := hl
+  obtain ⟨j, hj1, hj⟩ := lemma6LargeSquarefreeConductor_exists_block hxlog hd
+  have hindex : lemma6ModulusBlockIndex x d = j := lemma6ModulusBlockIndex_eq hj
+  have hjl : j = l := hindex ▸ hdl
+  have hmem : d ∈ lemma6ModulusBlock x l := hjl ▸ hj
+  rw [lemma6ModulusBlock, Finset.mem_filter] at hmem
+  have hdlt : (Real.log (x : ℝ)) ^ 100 < (d : ℝ) := by
+    have hdd := hd
+    rw [lemma6LargeSquarefreeConductors, Finset.mem_filter] at hdd
+    have hdlarge := hdd.1
+    rw [lemma6LargeConductors, Finset.mem_filter] at hdlarge
+    exact lt_of_not_ge hdlarge.2
+  exact hdlt.trans_le hmem.2.2.2
+
+/-- On an occupied block with `log x ≥ 3`, the dyadic scale is at least
+`54`. -/
+theorem lemma6_fiftyfour_le_dyadicScale {x l : ℕ} {ε : ℝ}
+    (hxlog : 3 ≤ Real.log (x : ℝ)) (hl : l ∈ lemma6LargeBlockIndices x ε) :
+    54 ≤ lemma6DyadicModulusScale x l := by
+  have h := lemma6_log_pow_hundred_lt_dyadicScale (by linarith) hl
+  have h3 : (3 : ℝ) ^ 100 ≤ (Real.log (x : ℝ)) ^ 100 :=
+    pow_le_pow_left₀ (by norm_num) hxlog 100
+  have h4 : (54 : ℝ) ≤ (3 : ℝ) ^ 100 := by norm_num
+  linarith
+
+/-- The product of a Chen prime pair is at most `x^(2/3)`. -/
+theorem chenPairs_product_le_rpow {x : ℕ} (hx : 1 ≤ x) {q : ℕ × ℕ}
+    (hq : q ∈ chenPairs x) :
+    ((q.1 * q.2 : ℕ) : ℝ) ≤ (x : ℝ) ^ ((2 : ℝ) / 3) := by
+  have hqdata := (Finset.mem_filter.mp hq).2
+  obtain ⟨hprime1, hprime2, hlo1, hup1, hlo2, hup2⟩ := hqdata
+  have hxpos : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hp1pos : (0 : ℝ) < q.1 := by exact_mod_cast hprime1.pos
+  have hsqhalf : (((x : ℝ) / q.1) ^ ((1 : ℝ) / 2)) ^ 2 = x / q.1 := by
+    have h1 : (((x : ℝ) / q.1) ^ ((1 : ℝ) / 2)) ^ 2 =
+        ((x : ℝ) / q.1) ^ (((1 : ℝ) / 2) * 2) := by
+      rw [← Real.rpow_two, ← Real.rpow_mul (by positivity)]
+    rw [h1, show ((1 : ℝ) / 2) * 2 = 1 by norm_num, Real.rpow_one]
+  have hp2sq : (q.2 : ℝ) ^ 2 ≤ x / q.1 := by
+    calc (q.2 : ℝ) ^ 2 ≤ (((x : ℝ) / q.1) ^ ((1 : ℝ) / 2)) ^ 2 :=
+        pow_le_pow_left₀ (by positivity) hup2 2
+      _ = x / q.1 := hsqhalf
+  have hsq : ((q.1 * q.2 : ℕ) : ℝ) ^ 2 ≤ (x : ℝ) ^ ((4 : ℝ) / 3) := by
+    have h3 : ((q.1 * q.2 : ℕ) : ℝ) ^ 2 = (q.1 : ℝ) ^ 2 * (q.2 : ℝ) ^ 2 := by
+      rw [Nat.cast_mul]
+      ring
+    have h4 : (q.1 : ℝ) ^ 2 * (q.2 : ℝ) ^ 2 ≤ (q.1 : ℝ) ^ 2 * (x / q.1) :=
+      mul_le_mul_of_nonneg_left hp2sq (by positivity)
+    have h5 : (q.1 : ℝ) ^ 2 * (x / q.1) = q.1 * x := by
+      field_simp [hp1pos.ne']
+    have hup1x : (q.1 : ℝ) * x ≤ (x : ℝ) ^ ((1 : ℝ) / 3) * x :=
+      mul_le_mul_of_nonneg_right hup1 hxpos.le
+    have h6 : (x : ℝ) ^ ((1 : ℝ) / 3) * x = (x : ℝ) ^ ((4 : ℝ) / 3) := by
+      have e : (x : ℝ) ^ ((1 : ℝ) / 3) * (x : ℝ) ^ (1 : ℝ) =
+          (x : ℝ) ^ ((4 : ℝ) / 3) := by
+        rw [← Real.rpow_add hxpos]
+        congr 1
+        norm_num
+      rwa [Real.rpow_one] at e
+    calc ((q.1 * q.2 : ℕ) : ℝ) ^ 2 = (q.1 : ℝ) ^ 2 * (q.2 : ℝ) ^ 2 := h3
+      _ ≤ q.1 * x := h4.trans_eq h5
+      _ ≤ (x : ℝ) ^ ((1 : ℝ) / 3) * x := hup1x
+      _ = (x : ℝ) ^ ((4 : ℝ) / 3) := h6
+  have hbase : (0 : ℝ) ≤ ((q.1 * q.2 : ℕ) : ℝ) := by positivity
+  calc ((q.1 * q.2 : ℕ) : ℝ) = Real.sqrt (((q.1 * q.2 : ℕ) : ℝ) ^ 2) :=
+      (Real.sqrt_sq hbase).symm
+    _ ≤ Real.sqrt ((x : ℝ) ^ ((4 : ℝ) / 3)) := Real.sqrt_le_sqrt hsq
+    _ = (x : ℝ) ^ ((2 : ℝ) / 3) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hxpos.le]
+      congr 1
+      norm_num
+
+/-- On an occupied pair block, the dyadic pair scale is at most
+`x^(2/3)`. -/
+theorem lemma6_pairScale_le_of_mem_pairBlockIndices {x m k : ℕ} (hx : 1 ≤ x)
+    (hk : k ∈ lemma6PairBlockIndices x m) :
+    lemma6PairDyadicScale x k ≤ (x : ℝ) ^ ((2 : ℝ) / 3) := by
+  rw [lemma6PairBlockIndices, Finset.mem_image] at hk
+  obtain ⟨q, hqP, hqk⟩ := hk
+  have hqchen : q ∈ chenPairs x := (Finset.mem_filter.mp hqP).1
+  have hmem : q ∈ lemma6PairBlock x k := by
+    obtain ⟨j, hj⟩ := exists_mem_lemma6PairBlock hx hqchen
+    have h := lemma6PairBlockIndex_mem ⟨j, hj⟩
+    rwa [hqk] at h
+  rw [lemma6PairBlock, Finset.mem_filter] at hmem
+  exact hmem.2.1.le.trans (chenPairs_product_le_rpow hx hmem.1)
+
+/-- The pair dyadic scale always dominates `x^(13/30)`. -/
+theorem lemma6_rpow_thirteen_thirty_le_pairScale (x k : ℕ) :
+    (x : ℝ) ^ ((13 : ℝ) / 30) ≤ lemma6PairDyadicScale x k := by
+  unfold lemma6PairDyadicScale
+  calc (x : ℝ) ^ ((13 : ℝ) / 30) = 1 * (x : ℝ) ^ ((13 : ℝ) / 30) := by ring
+    _ ≤ (2 : ℝ) ^ k * (x : ℝ) ^ ((13 : ℝ) / 30) :=
+      mul_le_mul_of_nonneg_right (one_le_pow₀ (by norm_num))
+        (Real.rpow_nonneg (by positivity) _)
+
+/-- Eventually `x^(13/30)` is at least `2`. -/
+theorem eventually_two_le_rpow_thirteen_thirty :
+    ∀ᶠ x : ℕ in atTop, (2 : ℝ) ≤ (x : ℝ) ^ ((13 : ℝ) / 30) := by
+  filter_upwards [eventually_ge_atTop 5] with x hx
+  have h5 : (5 : ℝ) ≤ x := by exact_mod_cast hx
+  have h2 : (2 : ℝ) = ((2 : ℝ) ^ 30) ^ ((1 : ℝ) / 30) := by
+    have e1 : ((2 : ℝ) ^ 30) ^ ((1 : ℝ) / 30) =
+        (2 : ℝ) ^ (((30 : ℕ) : ℝ) * (1 / 30)) := by
+      rw [← Real.rpow_natCast _ 30, ← Real.rpow_mul (by norm_num)]
+    rw [e1, show ((30 : ℕ) : ℝ) * (1 / 30) = 1 by norm_num, Real.rpow_one]
+  have h3 : (5 : ℝ) ^ ((13 : ℝ) / 30) = ((5 : ℝ) ^ 13) ^ ((1 : ℝ) / 30) := by
+    have e1 : ((5 : ℝ) ^ 13) ^ ((1 : ℝ) / 30) =
+        (5 : ℝ) ^ (((13 : ℕ) : ℝ) * (1 / 30)) := by
+      rw [← Real.rpow_natCast _ 13, ← Real.rpow_mul (by norm_num)]
+    rw [e1, show ((13 : ℕ) : ℝ) * (1 / 30) = 13 / 30 by norm_num]
+  calc (2 : ℝ) = ((2 : ℝ) ^ 30) ^ ((1 : ℝ) / 30) := h2
+    _ ≤ ((5 : ℝ) ^ 13) ^ ((1 : ℝ) / 30) := by
+      apply Real.rpow_le_rpow (by positivity) _ (by norm_num)
+      norm_num
+    _ = (5 : ℝ) ^ ((13 : ℝ) / 30) := h3.symm
+    _ ≤ (x : ℝ) ^ ((13 : ℝ) / 30) :=
+      Real.rpow_le_rpow (by norm_num) h5 (by norm_num)
+
+/-- For `log x ≥ 3`, the exceptional factor is at least one. -/
+theorem one_le_lemma6ExceptionalFactorAt {x l : ℕ}
+    (hxlog : 3 ≤ Real.log (x : ℝ)) :
+    1 ≤ lemma6ExceptionalFactorAt x l := by
+  have hlogx0 : (0 : ℝ) < Real.log (x : ℝ) := by linarith
+  have hloglog : (1 : ℝ) ≤ Real.log (Real.log (x : ℝ)) :=
+    (Real.le_log_iff_exp_le hlogx0).2
+      (Real.exp_one_lt_d9.le.trans (by linarith))
+  have hD : (Real.log (x : ℝ)) ^ 100 ≤ lemma6DyadicModulusScale x l := by
+    unfold lemma6DyadicModulusScale
+    calc (Real.log (x : ℝ)) ^ 100 = 1 * (Real.log (x : ℝ)) ^ 100 := by ring
+      _ ≤ (2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 100 :=
+        mul_le_mul_of_nonneg_right (one_le_pow₀ (by norm_num)) (by positivity)
+  have hlogD : (1 : ℝ) ≤ Real.log (lemma6DyadicModulusScale x l) := by
+    have h1 := Real.log_le_log (by positivity) hD
+    rw [Real.log_pow] at h1
+    have h2 : (100 : ℝ) ≤ 100 * Real.log (Real.log (x : ℝ)) := by
+      nlinarith [hloglog]
+    linarith [h2.trans h1]
+  have hloglogD : (0 : ℝ) ≤ Real.log (Real.log (lemma6DyadicModulusScale x l)) :=
+    Real.log_nonneg hlogD
+  have hratio : (0 : ℝ) ≤ 6 * logLogRatio (lemma6DyadicModulusScale x l) := by
+    unfold logLogRatio
+    exact mul_nonneg (by norm_num)
+      (div_nonneg (by linarith) hloglogD)
+  unfold lemma6ExceptionalFactorAt lemma6ExceptionalFactor
+  exact Real.one_le_exp hratio
+
+/-- A constant times a fixed log power is eventually absorbed by any
+positive power of `x`. -/
+theorem eventually_const_mul_log_pow_le_rpow (C : ℝ) (N : ℕ) {δ : ℝ}
+    (hδ : 0 < δ) :
+    ∀ᶠ x : ℕ in atTop, C * (Real.log (x : ℝ)) ^ N ≤ (x : ℝ) ^ δ := by
+  have hδ2 : (0 : ℝ) < δ / 2 := by linarith
+  have htend : Tendsto (fun x : ℕ => (x : ℝ) ^ (δ / 2)) atTop atTop :=
+    (tendsto_rpow_atTop hδ2).comp tendsto_natCast_atTop_atTop
+  filter_upwards [eventually_log_pow_nat_le_rpow N hδ2,
+    htend.eventually_ge_atTop (max C 1), eventually_ge_atTop 1] with
+    x hx1 hx2 hx
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast hx
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := Real.log_nonneg hx1'
+  have hlog0 : 0 ≤ (Real.log (x : ℝ)) ^ N := by positivity
+  calc
+    C * (Real.log (x : ℝ)) ^ N ≤ max C 1 * (x : ℝ) ^ (δ / 2) := by
+      exact mul_le_mul (le_max_left C 1) hx1 hlog0
+        (zero_le_one.trans (le_max_right C 1))
+    _ ≤ (x : ℝ) ^ (δ / 2) * (x : ℝ) ^ (δ / 2) := by
+      exact mul_le_mul_of_nonneg_right hx2 (Real.rpow_nonneg hx0.le _)
+    _ = (x : ℝ) ^ δ := by
+      rw [← Real.rpow_add hx0]
+      congr 1
+      ring
+
+/-- A constant times a smaller power is eventually dominated by a larger
+power. -/
+theorem eventually_const_mul_rpow_le_rpow (C : ℝ) {a b : ℝ} (hab : a < b) :
+    ∀ᶠ x : ℕ in atTop, C * (x : ℝ) ^ a ≤ (x : ℝ) ^ b := by
+  have h2 : 0 < (b - a) / 2 := by linarith
+  have htend : Tendsto (fun x : ℕ => (x : ℝ) ^ ((b - a) / 2)) atTop atTop :=
+    (tendsto_rpow_atTop h2).comp tendsto_natCast_atTop_atTop
+  filter_upwards [htend.eventually_ge_atTop (max C 1),
+    eventually_ge_atTop 1] with x hx hx1
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  calc
+    C * (x : ℝ) ^ a ≤ (x : ℝ) ^ ((b - a) / 2) * (x : ℝ) ^ a := by
+      exact mul_le_mul_of_nonneg_right ((le_max_left C 1).trans hx)
+        (Real.rpow_nonneg hx0.le _)
+    _ = (x : ℝ) ^ ((b - a) / 2 + a) := by rw [← Real.rpow_add hx0]
+    _ ≤ (x : ℝ) ^ b := Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+
+/-- Eventually `log x ≥ 3`. -/
+theorem eventually_three_le_log_nat :
+    ∀ᶠ x : ℕ in atTop, (3 : ℝ) ≤ Real.log (x : ℝ) := by
+  filter_upwards [eventually_ge_atTop 22] with x hx
+  have hx22 : (22 : ℝ) ≤ x := by exact_mod_cast hx
+  have h1 : Real.exp 3 ≤ 22 := by
+    have he := Real.exp_one_lt_d9
+    calc Real.exp 3 = Real.exp 1 ^ 3 := by
+          rw [show (3 : ℝ) = 1 + 1 + 1 by norm_num, Real.exp_add, Real.exp_add]
+          ring
+      _ ≤ (2.7182818286 : ℝ) ^ 3 := by
+          exact pow_le_pow_left₀ (Real.exp_pos 1).le he.le 3
+      _ ≤ 22 := by norm_num
+  have h2 : (3 : ℝ) ≤ Real.log 22 :=
+    (Real.le_log_iff_exp_le (by norm_num)).2 h1
+  exact h2.trans (Real.log_le_log (by norm_num) hx22)
+
+/-- On occupied large blocks, the exceptional factor is at most
+`2 * x^(ε/32)` eventually. -/
+theorem eventually_exceptionalFactor_le_of_mem {ε : ℝ} (hε : 0 < ε)
+    (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε,
+      lemma6ExceptionalFactorAt x l ≤ 2 * (x : ℝ) ^ (ε / 32) := by
+  have hδ : (0 : ℝ) < ε / 16 := by positivity
+  filter_upwards [eventually_lemma6ExceptionalFactorAt_le_rpow hδ,
+    eventually_three_le_log_nat, eventually_ge_atTop 1] with
+    x hI hxlog hx1
+  intro l hl
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  have hD2T := lemma6_occupied_modulusScale_lt_two_threshold hlog1 hl
+  have hT : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) :=
+    Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+  have hD : lemma6DyadicModulusScale x l ≤ 2 * (x : ℝ) ^ ((1 : ℝ) / 2) := by
+    linarith
+  have hID : lemma6ExceptionalFactorAt x l ≤
+      lemma6DyadicModulusScale x l ^ (ε / 16) := hI l
+  have h2ε : (2 : ℝ) ^ (ε / 16) ≤ 2 := by
+    calc (2 : ℝ) ^ (ε / 16) ≤ (2 : ℝ) ^ (1 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le (by norm_num) (by linarith)
+      _ = 2 := Real.rpow_one 2
+  calc lemma6ExceptionalFactorAt x l ≤
+        lemma6DyadicModulusScale x l ^ (ε / 16) := hID
+    _ ≤ (2 * (x : ℝ) ^ ((1 : ℝ) / 2)) ^ (ε / 16) := by
+      exact Real.rpow_le_rpow (lemma6DyadicModulusScale_nonneg x l) hD
+        hδ.le
+    _ = (2 : ℝ) ^ (ε / 16) * ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ (ε / 16) := by
+      exact Real.mul_rpow (by norm_num) (Real.rpow_nonneg hx0.le _)
+    _ = (2 : ℝ) ^ (ε / 16) * (x : ℝ) ^ ((1 : ℝ) / 2 * (ε / 16)) := by
+      rw [← Real.rpow_mul hx0.le]
+    _ ≤ 2 * (x : ℝ) ^ (ε / 32) := by
+      apply mul_le_mul h2ε _ (Real.rpow_nonneg hx0.le _) (by norm_num)
+      apply Real.rpow_le_rpow_of_exponent_le hx1'
+      linarith
+
+/-- On occupied large blocks, the equation-(19) cutoff is at most `x^2`
+eventually. -/
+theorem eventually_equation19HCutoff_le_sq {ε : ℝ} (hε : 0 < ε)
+    (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε,
+      (lemma6Equation19HCutoff x l : ℝ) ≤ (x : ℝ) ^ 2 := by
+  have hδ : (0 : ℝ) < (1 : ℝ) / 16 := by norm_num
+  have hab : (9 : ℝ) / 16 + ε / 32 < 7 / 8 := by linarith
+  filter_upwards [eventually_exceptionalFactor_le_of_mem hε hε',
+    eventually_three_le_log_nat,
+    eventually_log_pow_nat_le_rpow 100 hδ,
+    eventually_const_mul_rpow_le_rpow 4 hab,
+    eventually_ge_atTop 2] with x hI hxlog hlogpow hpow hx2
+  intro l hl
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast (show 1 ≤ x by omega)
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := by linarith
+  have hD2T := lemma6_occupied_modulusScale_lt_two_threshold hlog1 hl
+  have hT : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) :=
+    Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+  have hD : lemma6DyadicModulusScale x l ≤ 2 * (x : ℝ) ^ ((1 : ℝ) / 2) := by
+    linarith
+  have hIl : lemma6ExceptionalFactorAt x l ≤ 2 * (x : ℝ) ^ (ε / 32) :=
+    hI l hl
+  have hI0 : 0 ≤ lemma6ExceptionalFactorAt x l :=
+    (lemma6ExceptionalFactor_pos _).le
+  have hlog0 : 0 ≤ Real.log (x : ℝ) ^ 100 := by positivity
+  have hscale : lemma6Equation19HScale x l ≤ (x : ℝ) ^ (7 / 8 : ℝ) := by
+    have h1 : lemma6Equation19HScale x l ≤
+        4 * ((Real.log (x : ℝ)) ^ 100 * (x : ℝ) ^ ((1 : ℝ) / 2 + ε / 32)) := by
+      unfold lemma6Equation19HScale
+      have e1 : lemma6DyadicModulusScale x l * (Real.log x) ^ 100 *
+            lemma6ExceptionalFactorAt x l ≤
+          (2 * (x : ℝ) ^ ((1 : ℝ) / 2)) * (Real.log x) ^ 100 *
+            (2 * (x : ℝ) ^ (ε / 32)) := by
+        apply mul_le_mul _ hIl hI0 (by positivity)
+        exact mul_le_mul_of_nonneg_right hD (by positivity)
+      calc lemma6DyadicModulusScale x l * (Real.log x) ^ 100 *
+              lemma6ExceptionalFactorAt x l ≤
+            (2 * (x : ℝ) ^ ((1 : ℝ) / 2)) * (Real.log x) ^ 100 *
+              (2 * (x : ℝ) ^ (ε / 32)) := e1
+        _ = 4 * ((Real.log x) ^ 100 *
+              ((x : ℝ) ^ ((1 : ℝ) / 2) * (x : ℝ) ^ (ε / 32))) := by ring
+        _ = 4 * ((Real.log (x : ℝ)) ^ 100 *
+              (x : ℝ) ^ ((1 : ℝ) / 2 + ε / 32)) := by
+          rw [← Real.rpow_add hx0]
+    calc lemma6Equation19HScale x l ≤
+          4 * ((Real.log (x : ℝ)) ^ 100 *
+            (x : ℝ) ^ ((1 : ℝ) / 2 + ε / 32)) := h1
+      _ ≤ 4 * ((x : ℝ) ^ ((1 : ℝ) / 16) *
+            (x : ℝ) ^ ((1 : ℝ) / 2 + ε / 32)) := by
+        apply mul_le_mul_of_nonneg_left _ (by norm_num)
+        exact mul_le_mul_of_nonneg_right hlogpow (Real.rpow_nonneg hx0.le _)
+      _ = 4 * (x : ℝ) ^ (9 / 16 + ε / 32 : ℝ) := by
+        rw [← Real.rpow_add hx0]
+        congr 1
+        congr 1
+        ring
+      _ ≤ (x : ℝ) ^ (7 / 8 : ℝ) := hpow
+  calc (lemma6Equation19HCutoff x l : ℝ) ≤ lemma6Equation19HScale x l + 1 :=
+      (lemma6Equation19HCutoff_cast_lt_scale_add_one x l).le
+    _ ≤ (x : ℝ) ^ (7 / 8 : ℝ) + 1 := by linarith [hscale]
+    _ ≤ (x : ℝ) ^ 2 := by
+      have h2 : (2 : ℝ) ≤ x := by exact_mod_cast hx2
+      have h78 : (0 : ℝ) ≤ (x : ℝ) ^ (7 / 8 : ℝ) := Real.rpow_nonneg hx0.le _
+      have h9 : (2 : ℝ) ≤ (x : ℝ) ^ (9 / 8 : ℝ) := by
+        calc (2 : ℝ) = (2 : ℝ) ^ (1 : ℝ) := (Real.rpow_one 2).symm
+          _ ≤ (2 : ℝ) ^ (9 / 8 : ℝ) :=
+            Real.rpow_le_rpow_of_exponent_le (by norm_num) (by norm_num)
+          _ ≤ (x : ℝ) ^ (9 / 8 : ℝ) :=
+            Real.rpow_le_rpow (by norm_num) h2 (by norm_num)
+      have hprod : (x : ℝ) ^ (9 / 8 : ℝ) * (x : ℝ) ^ (7 / 8 : ℝ) =
+          (x : ℝ) ^ 2 := by
+        rw [← Real.rpow_add hx0, show (9 : ℝ) / 8 + 7 / 8 = 2 by norm_num,
+          Real.rpow_two]
+      have h22 : (2 : ℝ) ≤ (x : ℝ) ^ 2 := by
+        nlinarith [mul_le_mul_of_nonneg_right h2 (show (0 : ℝ) ≤ (x : ℝ) by linarith)]
+      nlinarith [h9, h78, hprod, h22]
+
+/-- On occupied large blocks, the equation-(20) cutoff is at most `x^2`
+eventually. -/
+theorem eventually_equation20HCutoff_le_sq {ε : ℝ} (hε : 0 < ε)
+    (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε, ∀ k : ℕ,
+      (lemma6Equation20HCutoff x l k ε : ℝ) ≤ (x : ℝ) ^ 2 := by
+  have hδ : (0 : ℝ) < (1 : ℝ) / 60 := by norm_num
+  have hab : (7 : ℝ) / 12 - 63 * ε / 32 < 3 / 4 := by linarith
+  filter_upwards [eventually_exceptionalFactor_le_of_mem hε hε',
+    eventually_three_le_log_nat,
+    eventually_log_pow_nat_le_rpow 200 hδ,
+    eventually_const_mul_rpow_le_rpow 8 hab,
+    eventually_ge_atTop 2] with x hI hxlog hlogpow hpow hx2
+  intro l hl k
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast (show 1 ≤ x by omega)
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := by linarith
+  have hD2T := lemma6_occupied_modulusScale_lt_two_threshold hlog1 hl
+  have hT : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) :=
+    Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+  have hD : lemma6DyadicModulusScale x l ≤ 2 * (x : ℝ) ^ ((1 : ℝ) / 2) := by
+    linarith
+  have hDsq : lemma6DyadicModulusScale x l ^ 2 ≤
+      4 * (x : ℝ) ^ (1 - 2 * ε : ℝ) := by
+    have h2 : lemma6DyadicModulusScale x l ^ 2 ≤
+        (2 * (x : ℝ) ^ ((1 : ℝ) / 2 - ε)) ^ 2 :=
+      pow_le_pow_left₀ (lemma6DyadicModulusScale_nonneg x l) hD2T.le 2
+    have h3 : (2 * (x : ℝ) ^ ((1 : ℝ) / 2 - ε)) ^ 2 =
+        4 * (x : ℝ) ^ (1 - 2 * ε : ℝ) := by
+      rw [mul_pow, show (4 : ℝ) = 2 ^ 2 by norm_num]
+      congr 1
+      rw [← Real.rpow_two, ← Real.rpow_mul hx0.le]
+      congr 1
+      ring
+    exact h2.trans_eq h3
+  have hIl : lemma6ExceptionalFactorAt x l ≤ 2 * (x : ℝ) ^ (ε / 32) :=
+    hI l hl
+  have hI0 : 0 ≤ lemma6ExceptionalFactorAt x l :=
+    (lemma6ExceptionalFactor_pos _).le
+  have hlog2000 : 0 ≤ Real.log (x : ℝ) ^ 200 := by positivity
+  have hY : (x : ℝ) ^ ((13 : ℝ) / 30) ≤ lemma6PairDyadicScale x k :=
+    lemma6_rpow_thirteen_thirty_le_pairScale x k
+  have hYpos : 0 < lemma6PairDyadicScale x k :=
+    (Real.rpow_pos_of_pos hx0 _).trans_le hY
+  have hF : lemma6Equation20HFirstScale x l k ≤
+      8 * (x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ) := by
+    have e1 : lemma6Equation20HFirstScale x l k =
+        (lemma6DyadicModulusScale x l ^ 2 * (Real.log x) ^ 200 *
+            lemma6ExceptionalFactorAt x l) / lemma6PairDyadicScale x k := by
+      unfold lemma6Equation20HFirstScale
+      ring
+    rw [e1, div_le_iff₀ hYpos]
+    have e2 : lemma6DyadicModulusScale x l ^ 2 * (Real.log x) ^ 200 *
+          lemma6ExceptionalFactorAt x l ≤
+        (4 * (x : ℝ) ^ (1 - 2 * ε : ℝ)) * (x : ℝ) ^ ((1 : ℝ) / 60) *
+          (2 * (x : ℝ) ^ (ε / 32)) := by
+      apply mul_le_mul _ hIl hI0 (by positivity)
+      exact mul_le_mul hDsq hlogpow hlog2000 (by positivity)
+    have hexp : (1 : ℝ) - 2 * ε + 1 / 60 + ε / 32 =
+        (7 / 12 - 63 * ε / 32) + 13 / 30 := by ring
+    calc lemma6DyadicModulusScale x l ^ 2 * (Real.log x) ^ 200 *
+            lemma6ExceptionalFactorAt x l ≤
+          (4 * (x : ℝ) ^ (1 - 2 * ε : ℝ)) * (x : ℝ) ^ ((1 : ℝ) / 60) *
+            (2 * (x : ℝ) ^ (ε / 32)) := e2
+      _ = 8 * ((x : ℝ) ^ (1 - 2 * ε : ℝ) * (x : ℝ) ^ ((1 : ℝ) / 60) *
+            (x : ℝ) ^ (ε / 32)) := by ring
+      _ = 8 * (x : ℝ) ^ ((1 - 2 * ε) + 1 / 60 + ε / 32 : ℝ) := by
+        rw [← Real.rpow_add hx0, ← Real.rpow_add hx0]
+      _ = 8 * ((x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ) *
+            (x : ℝ) ^ ((13 : ℝ) / 30)) := by
+        rw [hexp, Real.rpow_add hx0]
+      _ ≤ 8 * (x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ) *
+            lemma6PairDyadicScale x k := by
+        calc 8 * ((x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ) *
+                (x : ℝ) ^ ((13 : ℝ) / 30))
+            = (8 * (x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ)) *
+                (x : ℝ) ^ ((13 : ℝ) / 30) := by ring
+          _ ≤ (8 * (x : ℝ) ^ (7 / 12 - 63 * ε / 32 : ℝ)) *
+                lemma6PairDyadicScale x k :=
+            mul_le_mul_of_nonneg_left hY (by positivity)
+  have hT2 : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≤ (x : ℝ) ^ (3 / 4 : ℝ) :=
+    Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+  have hscale : lemma6Equation20HScale x l k ε ≤ (x : ℝ) ^ (3 / 4 : ℝ) := by
+    have hF' : lemma6Equation20HFirstScale x l k ≤ (x : ℝ) ^ (3 / 4 : ℝ) :=
+      hF.trans hpow
+    unfold lemma6Equation20HScale
+    exact max_le hF' hT2
+  have h34 : (x : ℝ) ^ (3 / 4 : ℝ) + 1 ≤ (x : ℝ) ^ 2 := by
+    have h2 : (2 : ℝ) ≤ x := by exact_mod_cast hx2
+    have h340 : (0 : ℝ) ≤ (x : ℝ) ^ (3 / 4 : ℝ) := Real.rpow_nonneg hx0.le _
+    have h5 : (2 : ℝ) ≤ (x : ℝ) ^ (5 / 4 : ℝ) := by
+      calc (2 : ℝ) = (2 : ℝ) ^ (1 : ℝ) := (Real.rpow_one 2).symm
+        _ ≤ (2 : ℝ) ^ (5 / 4 : ℝ) :=
+          Real.rpow_le_rpow_of_exponent_le (by norm_num) (by norm_num)
+        _ ≤ (x : ℝ) ^ (5 / 4 : ℝ) := Real.rpow_le_rpow (by norm_num) h2 (by norm_num)
+    have hprod : (x : ℝ) ^ (5 / 4 : ℝ) * (x : ℝ) ^ (3 / 4 : ℝ) =
+        (x : ℝ) ^ 2 := by
+      rw [← Real.rpow_add hx0, show (5 : ℝ) / 4 + 3 / 4 = 2 by norm_num,
+        Real.rpow_two]
+    have h22 : (2 : ℝ) ≤ (x : ℝ) ^ 2 := by
+      nlinarith [mul_le_mul_of_nonneg_right h2 (show (0 : ℝ) ≤ (x : ℝ) by linarith)]
+    nlinarith [h5, h340, hprod, h22]
+  calc (lemma6Equation20HCutoff x l k ε : ℝ) ≤
+        lemma6Equation20HScale x l k ε + 1 :=
+      (lemma6Equation20HCutoff_cast_lt_scale_add_one x l k ε).le
+    _ ≤ (x : ℝ) ^ (3 / 4 : ℝ) + 1 := by linarith [hscale]
+    _ ≤ (x : ℝ) ^ 2 := h34
+
+/-- Logarithm of the doubled squared cutoffs, for equation (19). -/
+theorem eventually_log_two_mul_H19sq_le {ε : ℝ} (hε : 0 < ε)
+    (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε,
+      Real.log ((2 * lemma6Equation19HCutoff x l *
+          lemma6Equation19HCutoff x l : ℕ) : ℝ) ≤
+        8 * Real.log (x : ℝ) := by
+  filter_upwards [eventually_equation19HCutoff_le_sq hε hε',
+    eventually_three_le_log_nat, eventually_ge_atTop 2] with
+    x hH hxlog hx2
+  intro l hl
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := by linarith
+  have hHl := hH l hl
+  have hH1 : (1 : ℝ) ≤ (lemma6Equation19HCutoff x l : ℝ) := by
+    have hle := lemma6Equation19HScale_le_cutoff x l
+    have hD := lemma6_fiftyfour_le_dyadicScale hxlog hl
+    have hI1 := one_le_lemma6ExceptionalFactorAt (x := x) (l := l) hxlog
+    have hInn : (0 : ℝ) ≤ lemma6ExceptionalFactorAt x l := by linarith
+    have hDnn : (0 : ℝ) ≤ lemma6DyadicModulusScale x l := by linarith
+    have hp : (1 : ℝ) ≤ Real.log (x : ℝ) ^ 100 := one_le_pow₀ (by linarith)
+    have h1 : (1 : ℝ) ≤ lemma6Equation19HScale x l := by
+      unfold lemma6Equation19HScale
+      calc (1 : ℝ) = 1 * 1 * 1 := by ring
+        _ ≤ lemma6DyadicModulusScale x l * Real.log (x : ℝ) ^ 100 *
+              lemma6ExceptionalFactorAt x l :=
+          mul_le_mul (mul_le_mul (by linarith) hp (by positivity) (by linarith))
+            hI1 (by linarith) (by positivity)
+    linarith
+  have hcast : ((2 * lemma6Equation19HCutoff x l *
+        lemma6Equation19HCutoff x l : ℕ) : ℝ) =
+      2 * (lemma6Equation19HCutoff x l : ℝ) ^ 2 := by
+    push_cast
+    ring
+  have hle : ((2 * lemma6Equation19HCutoff x l *
+        lemma6Equation19HCutoff x l : ℕ) : ℝ) ≤ (x : ℝ) ^ 5 := by
+    rw [hcast]
+    have h1 : (lemma6Equation19HCutoff x l : ℝ) ^ 2 ≤ ((x : ℝ) ^ 2) ^ 2 :=
+      pow_le_pow_left₀ (by positivity) hHl 2
+    have h2 : ((x : ℝ) ^ 2) ^ 2 = (x : ℝ) ^ 4 := by ring
+    have h3 : (x : ℝ) ^ 4 ≤ (x : ℝ) ^ 5 :=
+      pow_le_pow_right₀ (by exact_mod_cast (show (1:ℕ) ≤ x by omega) : (1 : ℝ) ≤ x) (by norm_num)
+    have h4 : (2 : ℝ) ≤ x := by exact_mod_cast hx2
+    have h5 : (0 : ℝ) < (x : ℝ) ^ 4 := by positivity
+    nlinarith [h1, h2, h3, h4, h5]
+  have hpos : (0 : ℝ) < (2 * lemma6Equation19HCutoff x l *
+      lemma6Equation19HCutoff x l : ℕ) := by
+    have hH1n : 1 ≤ lemma6Equation19HCutoff x l := by exact_mod_cast hH1
+    exact_mod_cast (mul_pos (by omega : (0 : ℕ) < 2 * lemma6Equation19HCutoff x l)
+      (by omega))
+  calc Real.log ((2 * lemma6Equation19HCutoff x l *
+          lemma6Equation19HCutoff x l : ℕ) : ℝ) ≤
+        Real.log ((x : ℝ) ^ 5) := Real.log_le_log hpos hle
+    _ = 5 * Real.log (x : ℝ) := by rw [Real.log_pow]; norm_cast
+    _ ≤ 8 * Real.log (x : ℝ) := by linarith
+
+/-- Logarithm of the doubled squared cutoffs, for equation (20). -/
+theorem eventually_log_two_mul_H20sq_le {ε : ℝ} (hε : 0 < ε)
+    (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε, ∀ k : ℕ,
+      Real.log ((2 * lemma6Equation20HCutoff x l k ε *
+          lemma6Equation20HCutoff x l k ε : ℕ) : ℝ) ≤
+        8 * Real.log (x : ℝ) := by
+  filter_upwards [eventually_equation20HCutoff_le_sq hε hε',
+    eventually_three_le_log_nat, eventually_ge_atTop 2] with
+    x hH hxlog hx2
+  intro l hl k
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := by linarith
+  have hHl := hH l hl k
+  have hH1 : (1 : ℝ) ≤ (lemma6Equation20HCutoff x l k ε : ℝ) := by
+    have hle := lemma6Equation20HScale_le_cutoff x l k ε
+    have hT : (1 : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε) := by
+      apply Real.one_le_rpow (by exact_mod_cast (show (1:ℕ) ≤ x by omega) : (1 : ℝ) ≤ x)
+      linarith
+    have hle2 := lemma6_threshold_le_Equation20HScale x l k ε
+    linarith
+  have hcast : ((2 * lemma6Equation20HCutoff x l k ε *
+        lemma6Equation20HCutoff x l k ε : ℕ) : ℝ) =
+      2 * (lemma6Equation20HCutoff x l k ε : ℝ) ^ 2 := by
+    push_cast
+    ring
+  have hle : ((2 * lemma6Equation20HCutoff x l k ε *
+        lemma6Equation20HCutoff x l k ε : ℕ) : ℝ) ≤ (x : ℝ) ^ 5 := by
+    rw [hcast]
+    have h1 : (lemma6Equation20HCutoff x l k ε : ℝ) ^ 2 ≤ ((x : ℝ) ^ 2) ^ 2 :=
+      pow_le_pow_left₀ (by positivity) hHl 2
+    have h2 : ((x : ℝ) ^ 2) ^ 2 = (x : ℝ) ^ 4 := by ring
+    have h3 : (x : ℝ) ^ 4 ≤ (x : ℝ) ^ 5 :=
+      pow_le_pow_right₀ (by exact_mod_cast (show (1:ℕ) ≤ x by omega) : (1 : ℝ) ≤ x) (by norm_num)
+    have h4 : (2 : ℝ) ≤ x := by exact_mod_cast hx2
+    have h5 : (0 : ℝ) < (x : ℝ) ^ 4 := by positivity
+    nlinarith [h1, h2, h3, h4, h5]
+  have hpos : (0 : ℝ) < (2 * lemma6Equation20HCutoff x l k ε *
+      lemma6Equation20HCutoff x l k ε : ℕ) := by
+    have hH1n : 1 ≤ lemma6Equation20HCutoff x l k ε := by exact_mod_cast hH1
+    exact_mod_cast (mul_pos (by omega : (0 : ℕ) < 2 * lemma6Equation20HCutoff x l k ε)
+      (by omega))
+  calc Real.log ((2 * lemma6Equation20HCutoff x l k ε *
+          lemma6Equation20HCutoff x l k ε : ℕ) : ℝ) ≤
+        Real.log ((x : ℝ) ^ 5) := Real.log_le_log hpos hle
+    _ = 5 * Real.log (x : ℝ) := by rw [Real.log_pow]; norm_cast
+    _ ≤ 8 * Real.log (x : ℝ) := by linarith
+
+/-- Logarithm of the doubled modulus cutoff, on occupied blocks. -/
+theorem eventually_log_two_mul_modulusCutoff_le {ε : ℝ} (hε : 0 ≤ ε) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε,
+      Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ≤ 2 * Real.log (x : ℝ) := by
+  filter_upwards [eventually_three_le_log_nat, eventually_ge_atTop 25] with
+    x hxlog hx25
+  intro l hl
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlog1 : 1 ≤ Real.log (x : ℝ) := by linarith
+  have hD2T := lemma6_occupied_modulusScale_lt_two_threshold hlog1 hl
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast (show 1 ≤ x by omega)
+  have hT : (x : ℝ) ^ ((1 : ℝ) / 2 - ε) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) :=
+    Real.rpow_le_rpow_of_exponent_le hx1' (by linarith)
+  have hD : lemma6DyadicModulusScale x l ≤ 2 * (x : ℝ) ^ ((1 : ℝ) / 2) := by
+    linarith
+  have hQ := lemma6DyadicModulusScale_le_modulusCutoff x l
+  have hQ2 : (lemma6ModulusCutoff x l : ℝ) ≤
+      lemma6DyadicModulusScale x l + 1 :=
+    (lemma6ModulusCutoff_cast_lt_scale_add_one x l).le
+  have hx25' : (25 : ℝ) ≤ x := by exact_mod_cast hx25
+  have h5 : (5 : ℝ) * (x : ℝ) ^ ((1 : ℝ) / 2) ≤ (x : ℝ) ^ 2 := by
+    have hsq : ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ 2 = x := by
+      have h1 : ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ 2 = (x : ℝ) ^ (((1 : ℝ) / 2) * 2) := by
+        rw [← Real.rpow_two, ← Real.rpow_mul hx0.le]
+      rw [h1, show ((1 : ℝ) / 2) * 2 = 1 by norm_num, Real.rpow_one]
+    have h1 : (5 : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2) := by
+      have h2 : (25 : ℝ) ≤ ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ 2 := by
+        rw [hsq]
+        exact hx25'
+      have h3 : (5 : ℝ) ^ 2 ≤ ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ 2 := by
+        rw [show (5 : ℝ) ^ 2 = 25 by ring]
+        exact h2
+      exact le_of_pow_le_pow_left₀ (by norm_num) (Real.rpow_nonneg hx0.le _) h3
+    calc (5 : ℝ) * (x : ℝ) ^ ((1 : ℝ) / 2) ≤
+          (x : ℝ) ^ ((1 : ℝ) / 2) * (x : ℝ) ^ ((1 : ℝ) / 2) :=
+        mul_le_mul_of_nonneg_right h1 (Real.rpow_nonneg hx0.le _)
+      _ = ((x : ℝ) ^ ((1 : ℝ) / 2)) ^ 2 := by ring
+      _ = x := hsq
+      _ ≤ (x : ℝ) ^ 2 := by
+        nth_rw 1 [← Real.rpow_one (x : ℝ)]
+        rw [← Real.rpow_natCast (x : ℝ) 2]
+        exact Real.rpow_le_rpow_of_exponent_le hx1' (by norm_num)
+  have hle : 2 * (lemma6ModulusCutoff x l : ℝ) ≤ (x : ℝ) ^ 2 := by
+    nlinarith [hQ2, hD, h5, Real.rpow_nonneg hx0.le ((1 : ℝ) / 2)]
+  have hpos : (0 : ℝ) < 2 * (lemma6ModulusCutoff x l : ℝ) := by
+    have h54 := lemma6_fiftyfour_le_dyadicScale hxlog hl
+    linarith [hQ]
+  calc Real.log (2 * (lemma6ModulusCutoff x l : ℝ)) ≤
+        Real.log ((x : ℝ) ^ 2) := Real.log_le_log hpos hle
+    _ = 2 * Real.log (x : ℝ) := by rw [Real.log_pow]; norm_cast
+
+/-- On occupied blocks, the exceptional factor times `(log x)^100` is at
+most `Y` eventually. -/
+theorem eventually_exceptionalFactor_mul_log100_le_pairScale {ε : ℝ}
+    (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε, ∀ k : ℕ,
+      lemma6ExceptionalFactorAt x l * (Real.log (x : ℝ)) ^ 100 ≤
+        lemma6PairDyadicScale x k := by
+  have hδ : (0 : ℝ) < (1 : ℝ) / 16 := by norm_num
+  have hab : (1 : ℝ) / 16 + ε / 32 < 13 / 30 := by linarith
+  filter_upwards [eventually_exceptionalFactor_le_of_mem hε hε',
+    eventually_log_pow_nat_le_rpow 100 hδ,
+    eventually_const_mul_rpow_le_rpow 2 hab,
+    eventually_ge_atTop 1] with x hI hlogpow hpow hx1
+  intro l hl k
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := Real.log_nonneg hx1'
+  have hIl := hI l hl
+  have hlog0 : 0 ≤ Real.log (x : ℝ) ^ 100 := by positivity
+  calc lemma6ExceptionalFactorAt x l * (Real.log (x : ℝ)) ^ 100 ≤
+        (2 * (x : ℝ) ^ (ε / 32)) * (x : ℝ) ^ ((1 : ℝ) / 16) :=
+      mul_le_mul hIl hlogpow hlog0 (by positivity)
+    _ = 2 * (x : ℝ) ^ ((1 : ℝ) / 16 + ε / 32 : ℝ) := by
+      rw [show (2 * (x : ℝ) ^ (ε / 32)) * (x : ℝ) ^ ((1 : ℝ) / 16) =
+          2 * ((x : ℝ) ^ (ε / 32) * (x : ℝ) ^ ((1 : ℝ) / 16)) by ring]
+      rw [← Real.rpow_add hx0]
+      congr 1
+      congr 1
+      ring
+    _ ≤ (x : ℝ) ^ ((13 : ℝ) / 30) := hpow
+    _ ≤ lemma6PairDyadicScale x k :=
+      lemma6_rpow_thirteen_thirty_le_pairScale x k
+
+/-- On occupied blocks, the exceptional factor times `(log x)^100` is at
+most the threshold `T` eventually. -/
+theorem eventually_exceptionalFactor_mul_log100_le_threshold {ε : ℝ}
+    (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε,
+      lemma6ExceptionalFactorAt x l * (Real.log (x : ℝ)) ^ 100 ≤
+        (x : ℝ) ^ ((1 : ℝ) / 2 - ε) := by
+  have hδ : (0 : ℝ) < (1 : ℝ) / 16 := by norm_num
+  have hab : (1 : ℝ) / 16 + ε / 32 < (1 : ℝ) / 2 - ε := by linarith
+  filter_upwards [eventually_exceptionalFactor_le_of_mem hε hε',
+    eventually_log_pow_nat_le_rpow 100 hδ,
+    eventually_const_mul_rpow_le_rpow 2 hab,
+    eventually_ge_atTop 1] with x hI hlogpow hpow hx1
+  intro l hl
+  have hx1' : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := Real.log_nonneg hx1'
+  have hIl := hI l hl
+  have hlog0 : 0 ≤ Real.log (x : ℝ) ^ 100 := by positivity
+  calc lemma6ExceptionalFactorAt x l * (Real.log (x : ℝ)) ^ 100 ≤
+        (2 * (x : ℝ) ^ (ε / 32)) * (x : ℝ) ^ ((1 : ℝ) / 16) :=
+      mul_le_mul hIl hlogpow hlog0 (by positivity)
+    _ = 2 * (x : ℝ) ^ ((1 : ℝ) / 16 + ε / 32 : ℝ) := by
+      rw [show (2 * (x : ℝ) ^ (ε / 32)) * (x : ℝ) ^ ((1 : ℝ) / 16) =
+          2 * ((x : ℝ) ^ (ε / 32) * (x : ℝ) ^ ((1 : ℝ) / 16)) by ring]
+      rw [← Real.rpow_add hx0]
+      congr 1
+      congr 1
+      ring
+    _ ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε) := hpow
+
+/-- On occupied blocks, `(log x)^200` times the exceptional factor is at
+most `Y` eventually. -/
+theorem eventually_log200_mul_exceptionalFactor_le_pairScale {ε : ℝ}
+    (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, ∀ l ∈ lemma6LargeBlockIndices x ε, ∀ k : ℕ,
+      (Real.log (x : ℝ)) ^ 200 * lemma6ExceptionalFactorAt x l ≤
+        lemma6PairDyadicScale x k := by
+  have hδ : (0 : ℝ) < (1 : ℝ) / 60 := by norm_num
+  have hab : (1 : ℝ) / 60 + ε / 32 < 13 / 30 := by linarith
+  filter_upwards [eventually_exceptionalFactor_le_of_mem hε hε',
+    eventually_log_pow_nat_le_rpow 200 hδ,
+    eventually_const_mul_rpow_le_rpow 2 hab,
+    eventually_ge_atTop 1] with x hI hlogpow hpow hx1
+  intro l hl k
+  have hx0 : (0 : ℝ) < x := by exact_mod_cast (show 0 < x by omega)
+  have hlogx0 : (0 : ℝ) ≤ Real.log (x : ℝ) := Real.log_nonneg
+    (by exact_mod_cast hx1)
+  have hIl := hI l hl
+  have hlog0 : 0 ≤ Real.log (x : ℝ) ^ 200 := by positivity
+  calc (Real.log (x : ℝ)) ^ 200 * lemma6ExceptionalFactorAt x l ≤
+        (x : ℝ) ^ ((1 : ℝ) / 60) * (2 * (x : ℝ) ^ (ε / 32)) :=
+      mul_le_mul hlogpow hIl (lemma6ExceptionalFactor_pos _).le
+        (Real.rpow_nonneg hx0.le _)
+    _ = 2 * (x : ℝ) ^ ((1 : ℝ) / 60 + ε / 32 : ℝ) := by
+      rw [show (x : ℝ) ^ ((1 : ℝ) / 60) * (2 * (x : ℝ) ^ (ε / 32)) =
+          2 * ((x : ℝ) ^ ((1 : ℝ) / 60) * (x : ℝ) ^ (ε / 32)) by ring]
+      rw [← Real.rpow_add hx0]
+    _ ≤ (x : ℝ) ^ ((13 : ℝ) / 30) := hpow
+    _ ≤ lemma6PairDyadicScale x k :=
+      lemma6_rpow_thirteen_thirty_le_pairScale x k
+
 
 /-- Focused analytic target for equations (19) and (20): every occupied
 `(l,k)` block has the paper's `x/(log x)^20` bound. -/

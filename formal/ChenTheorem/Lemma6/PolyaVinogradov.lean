@@ -208,8 +208,7 @@ theorem additiveCharacterPrefix_norm_le
       (ZMod.stdAddChar k) ^ n by
         rw [mul_comm]
         have hmul : (n : ZMod q) * k = n • k := by
-          simpa using
-            (Nat.cast_smul_eq_nsmul (R := ZMod q) n k).symm
+          simp
         rw [hmul, AddChar.map_nsmul_eq_pow]]
   rw [hsum, geom_sum_eq hchar, norm_div]
   apply div_le_div_of_nonneg_right _ (norm_nonneg _)
@@ -441,7 +440,7 @@ theorem centered_reciprocal_sum_zmod (q : ℕ) [NeZero q]
       have hj0 : j ≠ 0 := by
         intro h
         subst j
-        simpa using hj
+        simp at hj
       rw [if_neg hj0]
     _ ≤ 2 * (harmonic (q - 1) : ℝ) :=
       centered_reciprocal_sum_nat q hq

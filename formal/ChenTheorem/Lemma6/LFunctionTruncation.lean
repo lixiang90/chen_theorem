@@ -138,7 +138,7 @@ theorem lemma6TailCoeff_LSeries_eq_tail
     apply tsum_congr
     intro n
     by_cases hn0 : (n : ℕ) = 0
-    · simpa only [hn0, LSeries.term_zero]
+    · simp only [hn0, LSeries.term_zero]
     · rw [LSeries.term_of_ne_zero hn0,
         LSeries.term_of_ne_zero hn0]
       rw [lemma6TailCoeff, if_neg]
