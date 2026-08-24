@@ -1,0 +1,189 @@
+  have hHpos : (0 : ℝ) < H := by positivity
+  have hDpos : (0 : ℝ) < lemma6DyadicModulusScale x l := by positivity
+  have hEpos : 0 ≤ lemma6ExceptionalFactorAt x l :=
+    (lemma6ExceptionalFactor_pos x l).le
+  have hA0 : 0 ≤ lemma6ABlockAtAlpha x m l k H ν := by
+    unfold lemma6ABlockAtAlpha
+    apply Finset.sum_nonneg
+    intro d _
+    refine mul_nonneg (lemma6LinearWeight_nonneg d) ?_
+    by_cases hd0 : d = 0
+    · simp only [hd0, lemma6AModulusTotal, if_true]
+      rfl
+    · unfold lemma6AModulusTotal
+      rw [dif_neg hd0]
+      unfold lemma6AModulus primSum
+      rw [tsum_fintype]
+      refine Finset.sum_nonneg fun χ _ => ?_
+      split_ifs <;> positivity
+  -- the two moment majorants
+  have hpsm := lemma6PairSecondMajorant_alpha_le_scales
+    (x := x) (l := l) (m := m) (k := k) ν hxlog hl hD4 hY
+  have hrsm := lemma6RemainderSecondMajorant_le_crude hCremP hCremT
+    (by linarith) hl hH1 hD4 hxlogH hlogHH hlogQ ν
+  -- combine the two moment bounds into one squared estimate
+  have hW : lemma6ABlockAtAlpha x m l k H ν ^ 2 ≤
+      (lemma6ExceptionalFactorAt x l * (Cpair * (((5 / 4 : ℝ) *
+              lemma6DyadicModulusScale x l +
+            10 * lemma6PairDyadicScale x k /
+              lemma6DyadicModulusScale x l) *
+          (2 / lemma6PairDyadicScale x k)))) *
+        ((36864 * CremP + 200 * CremT ^ 2) * (Real.log (x : ℝ)) ^ 3 *
+          (Real.log (H : ℝ)) ^ 2 *
+          (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+              (H : ℝ) ^ 2)) := by
+    calc lemma6ABlockAtAlpha x m l k H ν ^ 2 ≤
+        (lemma6ExceptionalFactorAt x l *
+            (Cpair * lemma6PairSecondMajorant x l m k
+              (lemma6AlphaPoint x ν))) *
+          lemma6RemainderSecondMajorant CremP CremT x l H ν := hsq
+      _ ≤ (lemma6ExceptionalFactorAt x l * (Cpair * (((5 / 4 : ℝ) *
+                lemma6DyadicModulusScale x l +
+              10 * lemma6PairDyadicScale x k /
+                lemma6DyadicModulusScale x l) *
+            (2 / lemma6PairDyadicScale x k)))) *
+          lemma6RemainderSecondMajorant CremP CremT x l H ν :=
+        mul_le_mul_of_nonneg_right
+          (mul_le_mul_of_nonneg_left hpsm hCpair.le) hEpos
+      _ ≤ (lemma6ExceptionalFactorAt x l * (Cpair * (((5 / 4 : ℝ) *
+                lemma6DyadicModulusScale x l +
+              10 * lemma6PairDyadicScale x k /
+                lemma6DyadicModulusScale x l) *
+            (2 / lemma6PairDyadicScale x k)))) *
+          ((36864 * CremP + 200 * CremT ^ 2) * (Real.log (x : ℝ)) ^ 3 *
+            (Real.log (H : ℝ)) ^ 2 *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                (H : ℝ) ^ 2)) :=
+        mul_le_mul_of_nonneg_left hrsm (by positivity)
+  -- pass to the square root of the right-hand side
+  have hkey : lemma6ABlockAtAlpha x m l k H ν ≤
+      (Real.sqrt (Cpair * (36864 * CremP + 200 * CremT ^ 2)) *
+            Real.sqrt ((Real.log (x : ℝ)) ^ 3) * Real.log (H : ℝ)) *
+        Real.sqrt ((lemma6ExceptionalFactorAt x l *
+              (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                  10 * lemma6PairDyadicScale x k /
+                    lemma6DyadicModulusScale x l) *
+                (2 / lemma6PairDyadicScale x k))) *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                (H : ℝ) ^ 2)) := by
+    refine real_le_sqrt_of_sq_le hA0 ?_
+    have hsqA : lemma6ABlockAtAlpha x m l k H ν *
+        lemma6ABlockAtAlpha x m l k H ν =
+        lemma6ABlockAtAlpha x m l k H ν ^ 2 := by ring
+    rw [hsqA]
+    have heq :
+        ((Real.sqrt (Cpair * (36864 * CremP + 200 * CremT ^ 2)) *
+                  Real.sqrt ((Real.log (x : ℝ)) ^ 3) *
+                    Real.log (H : ℝ)) ^
+              2) *
+            ((lemma6ExceptionalFactorAt x l *
+                  (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                      10 * lemma6PairDyadicScale x k /
+                        lemma6DyadicModulusScale x l) *
+                    (2 / lemma6PairDyadicScale x k))) *
+              (lemma6DyadicModulusScale x l / (H : ℝ) +
+                1 / lemma6DyadicModulusScale x l +
+                (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                  (H : ℝ) ^ 2)) =
+          (lemma6ExceptionalFactorAt x l * (Cpair * (((5 / 4 : ℝ) *
+                    lemma6DyadicModulusScale x l +
+                  10 * lemma6PairDyadicScale x k /
+                    lemma6DyadicModulusScale x l) *
+                (2 / lemma6PairDyadicScale x k)))) *
+            ((36864 * CremP + 200 * CremT ^ 2) * (Real.log (x : ℝ)) ^ 3 *
+              (Real.log (H : ℝ)) ^ 2 *
+              (lemma6DyadicModulusScale x l / (H : ℝ) +
+                1 / lemma6DyadicModulusScale x l +
+                (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                  (H : ℝ) ^ 2)) := by
+      rw [mul_pow, Real.sq_sqrt (by positivity), Real.sq_sqrt (by positivity)]
+      ring
+    rw [heq]
+    exact hW
+  -- split the remaining square root into the three dyadic pieces
+  have hwub : Real.sqrt ((lemma6ExceptionalFactorAt x l *
+              (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                  10 * lemma6PairDyadicScale x k /
+                    lemma6DyadicModulusScale x l) *
+                (2 / lemma6PairDyadicScale x k))) *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                (H : ℝ) ^ 2)) ≤
+      Real.sqrt (lemma6ExceptionalFactorAt x l *
+            (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                10 * lemma6PairDyadicScale x k /
+                  lemma6DyadicModulusScale x l) *
+              (2 / lemma6PairDyadicScale x k))) *
+        (Real.sqrt (lemma6DyadicModulusScale x l / (H : ℝ)) +
+          Real.sqrt (1 / lemma6DyadicModulusScale x l) +
+          Real.sqrt ((1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+            (H : ℝ) ^ 2)) := by
+    have hsplit : Real.sqrt ((lemma6ExceptionalFactorAt x l *
+              (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                  10 * lemma6PairDyadicScale x k /
+                    lemma6DyadicModulusScale x l) *
+                (2 / lemma6PairDyadicScale x k))) *
+            (lemma6DyadicModulusScale x l / (H : ℝ) +
+              1 / lemma6DyadicModulusScale x l +
+              (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                (H : ℝ) ^ 2)) =
+        Real.sqrt (lemma6ExceptionalFactorAt x l *
+              (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                  10 * lemma6PairDyadicScale x k /
+                    lemma6DyadicModulusScale x l) *
+                (2 / lemma6PairDyadicScale x k))) *
+          Real.sqrt (lemma6DyadicModulusScale x l / (H : ℝ) +
+            1 / lemma6DyadicModulusScale x l +
+            (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+              (H : ℝ) ^ 2) :=
+      Real.sqrt_mul _ _
+    rw [hsplit]
+    exact mul_le_mul_of_nonneg_left
+      (real_sqrt_three_le (by positivity) (by positivity) (by positivity))
+      (Real.sqrt_nonneg _)
+  have hwsq : Real.sqrt ((1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+      (H : ℝ) ^ 2) =
+      Real.sqrt (1 + ν ^ 2) * (lemma6DyadicModulusScale x l / (H : ℝ)) := by
+    rw [Real.sqrt_mul (show (0 : ℝ) ≤ 1 + ν ^ 2 by positivity),
+      Real.sqrt_div hHpos, Real.sqrt_sq hDpos, Real.sqrt_sq hHpos]
+  calc lemma6ABlockAtAlpha x m l k H ν ≤
+        (Real.sqrt (Cpair * (36864 * CremP + 200 * CremT ^ 2)) *
+              Real.sqrt ((Real.log (x : ℝ)) ^ 3) * Real.log (H : ℝ)) *
+          Real.sqrt ((lemma6ExceptionalFactorAt x l *
+                (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                    10 * lemma6PairDyadicScale x k /
+                      lemma6DyadicModulusScale x l) *
+                  (2 / lemma6PairDyadicScale x k))) *
+              (lemma6DyadicModulusScale x l / (H : ℝ) +
+                1 / lemma6DyadicModulusScale x l +
+                (1 + ν ^ 2) * lemma6DyadicModulusScale x l ^ 2 /
+                  (H : ℝ) ^ 2)) := hkey
+      _ ≤ Real.sqrt (Cpair * (36864 * CremP + 200 * CremT ^ 2)) *
+            Real.sqrt ((Real.log (x : ℝ)) ^ 3) * Real.log (H : ℝ) *
+            (Real.sqrt (lemma6ExceptionalFactorAt x l *
+                  (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                      10 * lemma6PairDyadicScale x k /
+                        lemma6DyadicModulusScale x l) *
+                    (2 / lemma6PairDyadicScale x k))) *
+                (Real.sqrt (lemma6DyadicModulusScale x l / (H : ℝ)) +
+                  Real.sqrt (1 / lemma6DyadicModulusScale x l)) +
+              Real.sqrt (lemma6ExceptionalFactorAt x l *
+                  (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
+                      10 * lemma6PairDyadicScale x k /
+                        lemma6DyadicModulusScale x l) *
+                    (2 / lemma6PairDyadicScale x k))) *
+                (lemma6DyadicModulusScale x l / (H : ℝ)) *
+                  Real.sqrt (1 + ν ^ 2)) := by
+        rw [hwsq]
+        exact mul_le_mul_of_nonneg_left
+          (mul_le_mul_of_nonneg_left hwub (Real.sqrt_nonneg _))
+          (by positivity)
+
+end Chen

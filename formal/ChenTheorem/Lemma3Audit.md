@@ -93,8 +93,14 @@ Chen applies Lemma 3 at \(S=\beta+i\nu\) with unbounded \(\nu\).  Replacing
 the strong form by the proof-supported form is possible only after carrying
 an extra \(\log(2Q(1+|\nu|))\) through Cauchy's formula and checking that the
 resulting factor remains integrable against the rapidly decaying contour
-kernel.  The existing formal interface intentionally does not silently
-perform this replacement.  Thus the current status is:
+kernel.  This is not merely a bookkeeping mismatch in the present proof:
+the current large-pair-block majorant has already relaxed the smoothing
+kernel to an integrable multiple of \((1+\nu^2)^{-1}\).  Multiplying that
+relaxed majorant by a further linear height factor would no longer be
+integrable.  To use the height-logarithmic form one must therefore retain
+more of the original high-order smoothing decay until after the extra
+height logarithm is absorbed.  The existing formal interface intentionally
+does not silently perform this replacement.  Thus the current status is:
 
 * `lFunction_fourth_moment` is the sole unresolved theorem implementing the
   strong log-\(Q\)-only claim;

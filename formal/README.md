@@ -55,10 +55,10 @@ lake build
 | `M₁` | `Chen.mOne` |
 | Lemma 1 | `chenPhi_eq_zero`, `chenPhi_monotoneOn`, `chenPhi_nonneg`, `chenPhi_le_one`, `chenPhi_ge` (**all five proved**) |
 | Lemma 2, eqs. (2)–(3) | `large_sieve`, `large_sieve_dyadic` |
-| Lemma 3 | `lFunction_fourth_moment` (corrected to the implicit nonprincipal range `2 ≤ q ≤ Q`); `lemma6_deriv_fourth_moment` is its exact equation-(15) corollary required by Lemma 6 |
+| Lemma 3 | `lFunction_fourth_moment` records the claimed strong form on the corrected range `2 ≤ q ≤ Q`; `Lemma3FourthMomentWithHeightLog` records the weaker form supported by the printed calculation; `lemma6_deriv_fourth_moment` is the equation-(15) corollary of the strong form required by the current Lemma 6 pipeline |
 | Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
-| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`; pending inputs are the Lemma-3/Cauchy transfer, equation (12), the positive dyadic blocks (19)–(20), and the small-conductor zero-free estimate (21)) |
+| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equation (12), the Cauchy transfer, and the full positive-dyadic analysis (19)–(20) are proved. The remaining analytic inputs are the strong Lemma-3 moment and the precisely isolated zero-free-region contour estimate `lemma6_equation21_contour_estimate`; the elementary second half of (21) is proved |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
 | Lemma 7 | `mOne_le` |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
@@ -193,11 +193,14 @@ in particular the large-base smoothing boundary is bounded by
 `O(x (log x)^{-2.01})` using a short transition interval, optimal Selberg
 weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
 
-The `L`-function fourth moment (Lemma 3), the four precisely separated
-analytic inputs behind Lemma 6, the prime-distribution inputs behind
-Lemmas 7–9, and the shifted quantitative sieve estimate still contain
-documented `sorry` placeholders. The final exponent deduction in Lemma 6,
-including `mTwo_le_log12 ⇒ mTwo_le`, is machine-checked. The paper-internal numerical
+The strong `L`-function fourth moment claimed as Lemma 3 and the classical
+small-conductor zero-free-region shift in equation (21) are the two remaining
+analytic inputs behind Lemma 6.  The finite Mellin reduction, the A/B
+decomposition, both large-conductor regimes (19)–(20), the elementary
+prime-pair estimate after the shift in (21), and the final exponent deduction
+including `mTwo_le_log12 ⇒ mTwo_le` are machine-checked.  The prime-distribution
+inputs behind Lemmas 7–9 and the shifted quantitative sieve estimate still
+contain documented `sorry` placeholders. The paper-internal numerical
 integrals (24) and (27) are complete and do not depend on `sorryAx`.
 Inequality (28), including its exceptional `x^0.91` tail, is complete.
 `Main.lean` itself has no
