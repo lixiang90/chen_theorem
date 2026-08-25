@@ -34,6 +34,9 @@ lake build
 | `ChenTheorem/Lemma5/{PrimeReciprocals,EulerPenalty}.lean` | Prime reciprocal estimates and the Euler-factor penalty for excluded prime divisors |
 | `ChenTheorem/Lemma5/Boundary/{Sieve,Selberg,Weights,Mass,Analytic}.lean` | The dimension-two boundary sieve, Selberg diagonalization and optimal weights, the lower bound for `G(R)`, and the final short-interval estimate |
 | `ChenTheorem/Lemma6/FourthMoment.lean` | The dyadic, totient-weighted `L'` fourth moment required after equation (15), with one rigorous logarithmic slack over the paper's displayed exponent, explicitly derived from the corrected Lemma 3 interface |
+| `ChenTheorem/Lemma6/{PairBlockEstimate,LargePairBlock}.lean` | The full dyadic-block analysis of equations (13)–(20): block-summed A/B contour bounds, the remainder majorant scale bounds, and the pointwise regime estimates closing each occupied `(l,k)` block by `O(x/(log x)^20)` |
+| `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The classical zero-free region for primitive `L(s,χ)` with the companion `L'/L` bound, recorded as the honest unproved interface `PrimitiveZeroFreeRegion` (the single intentional `sorry` of Lemma 6) |
+| `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
@@ -58,7 +61,7 @@ lake build
 | Lemma 3 | `lFunction_fourth_moment` records the claimed strong form on the corrected range `2 ≤ q ≤ Q`; `Lemma3FourthMomentWithHeightLog` records the weaker form supported by the printed calculation; `lemma6_deriv_fourth_moment` is the equation-(15) corollary of the strong form required by the current Lemma 6 pipeline |
 | Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
-| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equation (12), the Cauchy transfer, and the full positive-dyadic analysis (19)–(20) are proved. The remaining analytic inputs are the strong Lemma-3 moment and the precisely isolated zero-free-region contour estimate `lemma6_equation21_contour_estimate`; the elementary second half of (21) is proved |
+| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved: the Cauchy transfer, the full positive-dyadic analysis (19)–(20), and the equation-(21) contour shift to `Re s = 1 - 1/√(log x)`. The only remaining analytic inputs are the strong Lemma-3 moment (`lFunction_fourth_moment`) and the classical zero-free region `primitive_zero_free_region`, both isolated as documented interfaces |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
 | Lemma 7 | `mOne_le` |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
@@ -136,9 +139,15 @@ lake build
   universal constant `8 + 2π`.
 * **Lemma 6 / `M₂`.** The finite character-sum form of `M₂` is defined and
   Lemma 5 retains it explicitly:
-  `Ω ≤ (M₁+M₂)/(1-ε) + O(x (log x)^{-2.01})`.  The analytic
-  contour/Dirichlet-series representation and the estimate
-  `M₂ ≪ x (log x)^{-2.01}` belong to the still-pending proof of Lemma 6.
+  `Ω ≤ (M₁+M₂)/(1-ε) + O(x (log x)^{-2.01})`.  The estimate
+  `M₂ ≪ x (log x)^{-2.01}` is now fully reduced, by machine-checked proofs,
+  to exactly two documented classical analytic inputs: the strong
+  Lemma-3 fourth moment (`lFunction_fourth_moment`) and the zero-free region
+  with companion `L'/L` bound (`primitive_zero_free_region`).  In particular
+  `lemma6_large_pair_block_estimate_of_deriv_fourth_moment` (equations
+  (13)–(20)) does not depend on `sorryAx` — its `Lemma 3` dependence is
+  explicit in the hypothesis — and the equation-(21) small-conductor estimate
+  is proved from `primitive_zero_free_region` alone.
 * **Primitive character sums.** `Chen.primSum` sums over primitive
   `DirichletCharacter ℂ q` via a `tsum`, avoiding `Fintype` instance juggling for
   the degenerate modulus `q = 0` that never occurs in the ranges used.
@@ -170,7 +179,9 @@ lake build
 ## Status
 
 Builds cleanly with `lake build` (Lean `v4.32.1`, Mathlib `v4.32.1`) with zero
-errors and zero warnings.
+errors; the only warning is the intentional `declaration uses 'sorry'` for the
+documented zero-free-region placeholder `primitive_zero_free_region`
+(`Lemma6/ZeroFreeRegion.lean`).
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -193,12 +204,18 @@ in particular the large-base smoothing boundary is bounded by
 `O(x (log x)^{-2.01})` using a short transition interval, optimal Selberg
 weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
 
-The strong `L`-function fourth moment claimed as Lemma 3 and the classical
-small-conductor zero-free-region shift in equation (21) are the two remaining
-analytic inputs behind Lemma 6.  The finite Mellin reduction, the A/B
-decomposition, both large-conductor regimes (19)–(20), the elementary
-prime-pair estimate after the shift in (21), and the final exponent deduction
-including `mTwo_le_log12 ⇒ mTwo_le` are machine-checked.  The prime-distribution
+The strong `L`-function fourth moment claimed as Lemma 3
+(`lFunction_fourth_moment`, `SieveLemmas.lean`) and the classical zero-free
+region (`primitive_zero_free_region`, `Lemma6/ZeroFreeRegion.lean`) are the
+two remaining analytic inputs behind Lemma 6, both isolated as documented
+`sorry` placeholders.  Everything else in Lemma 6 is machine-checked: the
+finite Mellin reduction, the A/B decomposition, both large-conductor regimes
+(19)–(20) (`lemma6_large_pair_block_estimate_of_deriv_fourth_moment` is
+`sorryAx`-free), the full equation-(21) contour shift to
+`Re s = 1 - 1/√(log x)` with its horizontal-edge and vertical-line estimates
+(`Lemma6/Equation21.lean`, proved from `primitive_zero_free_region` alone),
+the elementary prime-pair estimate after the shift, and the final exponent
+deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-distribution
 inputs behind Lemmas 7–9 and the shifted quantitative sieve estimate still
 contain documented `sorry` placeholders. The paper-internal numerical
 integrals (24) and (27) are complete and do not depend on `sorryAx`.

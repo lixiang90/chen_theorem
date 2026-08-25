@@ -15,6 +15,7 @@ import ChenTheorem.Lemma6.BIntegrability
 import ChenTheorem.Lemma6.Equation20
 import ChenTheorem.Lemma6.PairBlockEstimate
 import ChenTheorem.Lemma6.LargePairBlock
+import ChenTheorem.Lemma6.Equation21
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
@@ -6159,7 +6160,16 @@ bound.  Mathlib currently has only the nonvanishing theorem in `Re s ≥ 1`,
 whereas this proof needs the line `1 - 1 / sqrt(log x)`. -/
 theorem lemma6_equation21_character_bound :
     Lemma6Equation21CharacterBound := by
-  sorry
+  obtain ⟨C, hC, h⟩ := eq21_characterIntegral_bound primitive_zero_free_region
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [h] with x hx
+  intro m l χ hl2 hl100 hχ
+  have hl0 : l ≠ 0 := by omega
+  haveI : NeZero l := ⟨hl0⟩
+  have hbound := hx m l χ hl2 hl100 hχ
+  unfold lemma6Equation21CharacterIntegral lemma6Equation21PairSum
+  rw [dif_neg hl0]
+  simpa only [eq21LogDerivIntegrand] using hbound
 
 /-- The first inequality in equation (21), including the now-proved
 primitive-character and small-conductor summations. -/
