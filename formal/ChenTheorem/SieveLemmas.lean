@@ -11,7 +11,8 @@ Lemma 1's four qualitative assertions (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 as a (rescaled) incomplete Gamma integral: `n! · Φ(y) = ∫_{(0,a(y)]} e^{-t}t^n dt`
 with `a(y) = (log x)^{1.1} log y`, `n = ⌊log x⌋`, compared against the convergent
 Euler integral `n! = ∫_{(0,∞)} e^{-t}t^n dt` (`Real.Gamma_eq_integral`).
-Lemmas 1, 2, and 4 are proved in full. Lemma 3 remains a `sorry`-placeholder.
+Lemmas 1, 2, and 4 are proved in full.  The proof-supported form of Lemma 3
+is completed in `ChenTheorem.Lemma3.FourthMoment`.
 -/
 import ChenTheorem.Defs
 import ChenTheorem.LargeSieve.Character
@@ -20,9 +21,6 @@ import Mathlib.Analysis.Real.Pi.Bounds
 import Mathlib.Analysis.SpecialFunctions.Stirling
 import Mathlib.Data.FunLike.Fintype
 import Mathlib.NumberTheory.LSeries.DirichletContinuation
-
--- The remaining `sorry` is the explicitly documented Lemma 3 target.
-set_option warn.sorry false
 
 open Filter Real
 open scoped Classical
@@ -496,19 +494,6 @@ theorem lemma3FourthMomentWithHeightLog_of_strong
       (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4 :=
     pow_le_pow_left₀ hlog0 hlog 4
   exact (hbound Q s hQ hs).trans (by gcongr)
-
-/-- **Lemma 3**: for `Re s ≥ 1/2`,
-`∑_{2 ≤ q ≤ Q} ∑*_{χ mod q} |L(s, χ)|⁴ ≪ Q² |s|² (log Q)⁴`.
-
-The scan writes only `q ≤ Q`, but its proof uses the character-sum estimate
-for nonprincipal primitive characters. Thus `q = 1` (whose character gives
-the zeta pole at `s = 1`) is implicitly excluded. Lemma 6 only uses moduli
-strictly larger than one.
-
-The theorem remains the unresolved *strong* analytic input: the proof in the
-scan only yields the height-logarithmic variant above. -/
-theorem lFunction_fourth_moment : Lemma3FourthMoment := by
-  sorry
 
 /-! ### Lemma 4 : primitive character sums at a point -/
 

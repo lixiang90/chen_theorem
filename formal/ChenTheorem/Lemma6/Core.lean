@@ -16,6 +16,7 @@ import ChenTheorem.Lemma6.Equation20
 import ChenTheorem.Lemma6.PairBlockEstimate
 import ChenTheorem.Lemma6.LargePairBlock
 import ChenTheorem.Lemma6.Equation21
+import ChenTheorem.Lemma3.FourthMoment
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
@@ -25,6 +26,13 @@ open Filter Real MeasureTheory ENNReal
 open scoped ArithmeticFunction.Moebius Classical
 
 namespace Chen
+
+/-- The derivative fourth moment used in the final Lemma 6 assembly,
+instantiated from the height-logarithmic form of Lemma 3 actually proved by
+Chen's argument. -/
+theorem lemma6_deriv_fourth_moment : Lemma6DerivativeFourthMoment :=
+  lemma6_deriv_fourth_moment_of_lFunction_fourth_moment_with_height_log
+    lFunction_fourth_moment_with_height_log
 
 /-- The primitive-character block of conductor `l` occurring in `N_m`.
 Here `m` is the original (possibly imprimitive) modulus, which remains in the

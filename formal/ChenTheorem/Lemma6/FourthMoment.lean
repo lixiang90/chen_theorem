@@ -11,8 +11,6 @@ import ChenTheorem.SieveLemmas
 import ChenTheorem.Lemma6.Coefficients
 import ChenTheorem.Lemma6.CauchyHolder
 
-set_option warn.sorry false
-
 open Filter Real MeasureTheory
 open scoped Classical
 
@@ -377,7 +375,8 @@ theorem lemma6_weighted_lFourth_block_le
     {C : ℝ}
     (hL : ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
       ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
-        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4)
+        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 *
+          (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4)
     {x l : ℕ} (hxlog : 1 ≤ Real.log (x : ℝ))
     (hQ2 : 2 ≤ lemma6ModulusCutoff x l) (s : ℂ)
     (hs : (1 / 2 : ℝ) ≤ s.re) :
@@ -386,7 +385,8 @@ theorem lemma6_weighted_lFourth_block_le
       ((2 / Real.log 2) * Real.log x /
           ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
         (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 * ‖s‖ ^ 2 *
-          (Real.log (lemma6ModulusCutoff x l)) ^ 4) := by
+          (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+            (1 + ‖s‖))) ^ 4) := by
   let D : ℝ := (2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100
   let K : ℝ := (2 / Real.log 2) * Real.log x / D
   have hDpos : 0 < D := by
@@ -416,13 +416,15 @@ theorem lemma6_weighted_lFourth_block_le
         (lemma6ModulusBlock_subset_Icc hxlog)
         (fun d hd hnot => lFourthTerm_nonneg d s)
     _ ≤ K * (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 * ‖s‖ ^ 2 *
-          (Real.log (lemma6ModulusCutoff x l)) ^ 4) := by
+          (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+            (1 + ‖s‖))) ^ 4) := by
       exact mul_le_mul_of_nonneg_left
         (hL (lemma6ModulusCutoff x l) s hQ2 hs) hK0
     _ = ((2 / Real.log 2) * Real.log x /
           ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
         (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 * ‖s‖ ^ 2 *
-          (Real.log (lemma6ModulusCutoff x l)) ^ 4) := by rfl
+          (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+            (1 + ‖s‖))) ^ 4) := by rfl
 
 /-- Cauchy--Hölder after interchanging both finite sums (moduli and
 primitive characters) with the circle integral. -/
@@ -493,7 +495,8 @@ theorem lemma6_weighted_lDerivFourth_block_le_raw
     {C : ℝ} (hC : 0 < C)
     (hL : ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
       ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
-        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4)
+        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 *
+          (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4)
     {x l : ℕ} (hx : 2 ≤ x) (hxlog : 1 ≤ Real.log (x : ℝ))
     (hQ2 : 2 ≤ lemma6ModulusCutoff x l) (ν : ℝ) :
     ∑ d ∈ lemma6ModulusBlock x l,
@@ -505,7 +508,8 @@ theorem lemma6_weighted_lDerivFourth_block_le_raw
               ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
             (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 *
               (2 * ‖lemma6BetaPoint x ν‖) ^ 2 *
-              (Real.log (lemma6ModulusCutoff x l)) ^ 4)) := by
+              (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+                (1 + 2 * ‖lemma6BetaPoint x ν‖))) ^ 4)) := by
   let s := lemma6BetaPoint x ν
   let r := lemma6CauchyRadius x
   let F : ℝ → ℝ := fun θ =>
@@ -515,7 +519,8 @@ theorem lemma6_weighted_lDerivFourth_block_le_raw
     ((2 / Real.log 2) * Real.log x /
         ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
       (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 * (2 * ‖s‖) ^ 2 *
-        (Real.log (lemma6ModulusCutoff x l)) ^ 4)
+        (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+          (1 + 2 * ‖s‖))) ^ 4)
   have hr : 0 < r := lemma6CauchyRadius_pos hx
   have hFcont : Continuous F := by
     dsimp only [F]
@@ -539,6 +544,13 @@ theorem lemma6_weighted_lDerivFourth_block_le_raw
       hL hxlog hQ2 (circleMap s r θ) hre
     apply hpoint.trans
     dsimp only [F, B]
+    have hlog0 : 0 ≤ Real.log
+        (2 * (lemma6ModulusCutoff x l : ℝ) *
+          (1 + ‖circleMap s r θ‖)) := by
+      apply Real.log_nonneg
+      have hQr : (2 : ℝ) ≤ lemma6ModulusCutoff x l := by
+        exact_mod_cast hQ2
+      nlinarith [norm_nonneg (circleMap s r θ)]
     gcongr
   have hint : (∫ θ in (0 : ℝ)..2 * Real.pi, F θ) ≤
       ∫ _θ in (0 : ℝ)..2 * Real.pi, B :=
@@ -563,12 +575,79 @@ theorem lemma6_weighted_lDerivFourth_block_le_raw
       simp only [intervalIntegral.integral_const, sub_zero, smul_eq_mul]
       ring
 
+/-- On an occupied dyadic block, the height-dependent logarithm supplied by
+the corrected Lemma 3 is at most a fixed multiple of `log x` times the
+Cauchy weight. -/
+theorem lemma6_height_log_le_cauchy_weight
+    {x l : ℕ} (hx4 : 4 ≤ x) (hxlog : 2 ≤ Real.log (x : ℝ))
+    (hl : 1 ≤ l) (hne : (lemma6ModulusBlock x l).Nonempty) (ν : ℝ) :
+    Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+        (1 + 2 * ‖lemma6BetaPoint x ν‖)) ≤
+      6 * Real.log (x : ℝ) * Real.sqrt (1 + ν ^ 2) := by
+  let L : ℝ := Real.log (x : ℝ)
+  let Q : ℝ := lemma6ModulusCutoff x l
+  let N : ℝ := ‖lemma6BetaPoint x ν‖
+  let A : ℝ := 1 + ν ^ 2
+  have hLpos : 0 < L := by dsimp only [L]; linarith
+  have hLone : 1 ≤ L := by dsimp only [L]; linarith
+  have hQpos : 0 < Q := by
+    dsimp only [Q]
+    exact_mod_cast (show 0 < lemma6ModulusCutoff x l by
+      have := lemma6ModulusCutoff_two_le (by linarith) hl
+      omega)
+  have hlogQ : Real.log Q ≤ 2 * L := by
+    simpa only [Q, L] using
+      lemma6_log_modulusCutoff_le hx4 (by linarith) hl hne
+  have hlog2 : Real.log 2 ≤ L := by
+    dsimp only [L]
+    exact Real.log_le_log (by norm_num)
+      (by exact_mod_cast (show 2 ≤ x by omega))
+  have hA0 : 0 ≤ A := by dsimp only [A]; positivity
+  have hsqrt1 : 1 ≤ Real.sqrt A := by
+    have h := Real.sqrt_le_sqrt (show (1 : ℝ) ≤ A by
+      dsimp only [A]
+      nlinarith [sq_nonneg ν])
+    simpa using h
+  have hNsq : N ^ 2 ≤ A := by
+    have hlog : 0 < Real.log (x : ℝ) := by linarith
+    have hinv : (1 : ℝ) / Real.log x ≤ 1 / 2 := by
+      rw [div_le_iff₀ hlog]
+      nlinarith
+    have hre0 : 0 ≤ (lemma6BetaPoint x ν).re := by
+      rw [lemma6BetaPoint_re]
+      positivity
+    have hre1 : (lemma6BetaPoint x ν).re ≤ 1 := by
+      rw [lemma6BetaPoint_re]
+      linarith
+    dsimp only [N, A]
+    rw [Complex.sq_norm, Complex.normSq_apply, lemma6BetaPoint_im]
+    nlinarith
+  have hN : N ≤ Real.sqrt A := by
+    have hN0 : 0 ≤ N := by dsimp only [N]; positivity
+    have hs0 : 0 ≤ Real.sqrt A := Real.sqrt_nonneg _
+    have hsquare : (Real.sqrt A) ^ 2 = A := Real.sq_sqrt hA0
+    nlinarith
+  have hheight : Real.log (1 + 2 * N) ≤ 2 * Real.sqrt A := by
+    have hpos : 0 < 1 + 2 * N := by
+      dsimp only [N]
+      positivity
+    exact (Real.log_le_sub_one_of_pos hpos).trans (by nlinarith)
+  change Real.log (2 * Q * (1 + 2 * N)) ≤
+    6 * L * Real.sqrt A
+  rw [Real.log_mul (mul_pos (by norm_num) hQpos).ne'
+    (by positivity : 1 + 2 * N ≠ 0),
+    Real.log_mul (by norm_num : (2 : ℝ) ≠ 0) hQpos.ne']
+  have honeprod : 1 ≤ L * Real.sqrt A := by
+    nlinarith [mul_nonneg (sub_nonneg.mpr hLone)
+      (sub_nonneg.mpr hsqrt1)]
+  nlinarith
+
 /-- Elementary simplification of the raw Cauchy bound on a nonempty
 dyadic block.  Before the final harmless slack, the calculation gives the
 power `(log x)^109` displayed in the scan. -/
 theorem lemma6_raw_deriv_bound_le
     {C : ℝ} (hC : 0 < C) {x l : ℕ}
-    (hx4 : 4 ≤ x) (hxlog : 1 ≤ Real.log (x : ℝ)) (hl : 1 ≤ l)
+    (hx4 : 4 ≤ x) (hxlog : 2 ≤ Real.log (x : ℝ)) (hl : 1 ≤ l)
     (hne : (lemma6ModulusBlock x l).Nonempty) (ν : ℝ) :
     (2 * Real.pi * (lemma6CauchyRadius x) ^ 4)⁻¹ *
         (2 * Real.pi) *
@@ -576,28 +655,45 @@ theorem lemma6_raw_deriv_bound_le
               ((2 : ℝ) ^ (l - 1) * (Real.log x) ^ 100)) *
             (C * (lemma6ModulusCutoff x l : ℝ) ^ 2 *
               (2 * ‖lemma6BetaPoint x ν‖) ^ 2 *
-              (Real.log (lemma6ModulusCutoff x l)) ^ 4)) ≤
-      (1024 / Real.log 2 * C) * (2 : ℝ) ^ l *
-        (Real.log x) ^ 110 * ‖lemma6BetaPoint x ν‖ ^ 2 := by
+              (Real.log (2 * (lemma6ModulusCutoff x l : ℝ) *
+                (1 + 2 * ‖lemma6BetaPoint x ν‖))) ^ 4)) ≤
+      (82944 / Real.log 2 * C) * (2 : ℝ) ^ l *
+        (Real.log x) ^ 110 * ‖lemma6BetaPoint x ν‖ ^ 2 *
+          (1 + ν ^ 2) ^ 2 := by
   let L : ℝ := Real.log x
   let P : ℝ := (2 : ℝ) ^ l
   let D : ℝ := (2 : ℝ) ^ (l - 1) * L ^ 100
   let Q : ℝ := lemma6ModulusCutoff x l
   let N : ℝ := ‖lemma6BetaPoint x ν‖
+  let A : ℝ := 1 + ν ^ 2
   have hLpos : 0 < L := by dsimp only [L]; linarith
+  have hLone : 1 ≤ L := by linarith
   have hPpos : 0 < P := by dsimp only [P]; positivity
   have hDpos : 0 < D := by dsimp only [D]; positivity
   have hQ2 : (2 : ℝ) ≤ Q := by
     dsimp only [Q]
-    exact_mod_cast lemma6ModulusCutoff_two_le hxlog hl
+    exact_mod_cast lemma6ModulusCutoff_two_le (by linarith) hl
   have hQ0 : 0 ≤ Q := hQ2.trans' (by norm_num)
-  have hlogQ0 : 0 ≤ Real.log Q := Real.log_nonneg (by linarith)
   have hQle : Q ≤ 2 * (P * L ^ 100) := by
     simpa only [Q, P, L] using
-      lemma6ModulusCutoff_le_two_mul (x := x) (l := l) hxlog
-  have hlogQle : Real.log Q ≤ 2 * L := by
-    simpa only [Q, L] using
-      lemma6_log_modulusCutoff_le hx4 hxlog hl hne
+      lemma6ModulusCutoff_le_two_mul (x := x) (l := l) (by linarith)
+  have hA0 : 0 ≤ A := by dsimp only [A]; positivity
+  have hheight0 : 0 ≤ Real.log (2 * Q * (1 + 2 * N)) := by
+    apply Real.log_nonneg
+    nlinarith [norm_nonneg (lemma6BetaPoint x ν)]
+  have hheight : Real.log (2 * Q * (1 + 2 * N)) ≤
+      6 * L * Real.sqrt A := by
+    simpa only [Q, L, N, A] using
+      lemma6_height_log_le_cauchy_weight hx4 hxlog hl hne ν
+  have hsqrt_sq : (Real.sqrt A) ^ 2 = A := Real.sq_sqrt hA0
+  have hsqrt_four : (Real.sqrt A) ^ 4 = A ^ 2 := by
+    calc
+      (Real.sqrt A) ^ 4 = ((Real.sqrt A) ^ 2) ^ 2 := by ring
+      _ = A ^ 2 := by rw [hsqrt_sq]
+  have hheightpow : (6 * L * Real.sqrt A) ^ 4 =
+      1296 * L ^ 4 * A ^ 2 := by
+    rw [mul_pow, mul_pow, hsqrt_four]
+    norm_num
   have hpow_eq : P = 2 * (2 : ℝ) ^ (l - 1) := by
     dsimp only [P]
     calc
@@ -614,24 +710,27 @@ theorem lemma6_raw_deriv_bound_le
     (2 * Real.pi * (lemma6CauchyRadius x) ^ 4)⁻¹ *
         (2 * Real.pi) *
           (((2 / Real.log 2) * L / D) *
-            (C * Q ^ 2 * (2 * N) ^ 2 * (Real.log Q) ^ 4)) ≤
-      (1024 / Real.log 2 * C) * P * L ^ 110 * N ^ 2
+            (C * Q ^ 2 * (2 * N) ^ 2 *
+              (Real.log (2 * Q * (1 + 2 * N))) ^ 4)) ≤
+      (82944 / Real.log 2 * C) * P * L ^ 110 * N ^ 2 * A ^ 2
   rw [hcauchy]
   calc
     L ^ 4 *
         (((2 / Real.log 2) * L / D) *
-          (C * Q ^ 2 * (2 * N) ^ 2 * (Real.log Q) ^ 4)) ≤
+          (C * Q ^ 2 * (2 * N) ^ 2 *
+            (Real.log (2 * Q * (1 + 2 * N))) ^ 4)) ≤
       L ^ 4 *
         (((2 / Real.log 2) * L / D) *
           (C * (2 * (P * L ^ 100)) ^ 2 *
-            (2 * N) ^ 2 * (2 * L) ^ 4)) := by
+            (2 * N) ^ 2 * (6 * L * Real.sqrt A) ^ 4)) := by
       gcongr
-    _ = (1024 / Real.log 2 * C) * P * L ^ 109 * N ^ 2 := by
+    _ = (82944 / Real.log 2 * C) * P * L ^ 109 * N ^ 2 * A ^ 2 := by
       dsimp only [D]
       rw [hpow_eq]
+      rw [hheightpow]
       field_simp
       ring
-    _ ≤ (1024 / Real.log 2 * C) * P * L ^ 110 * N ^ 2 := by
+    _ ≤ (82944 / Real.log 2 * C) * P * L ^ 110 * N ^ 2 * A ^ 2 := by
       gcongr
       omega
 
@@ -642,18 +741,20 @@ theorem lemma6_weighted_lDerivFourth_block_le
     {C : ℝ} (hC : 0 < C)
     (hL : ∀ (Q : ℕ) (s : ℂ), 2 ≤ Q → (1 / 2 : ℝ) ≤ s.re →
       ∑ q ∈ Finset.Icc 2 Q, lFourthTerm q s ≤
-        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 * (Real.log Q) ^ 4)
-    {x l : ℕ} (hx4 : 4 ≤ x) (hxlog : 1 ≤ Real.log (x : ℝ))
+        C * (Q : ℝ) ^ 2 * ‖s‖ ^ 2 *
+          (Real.log (2 * (Q : ℝ) * (1 + ‖s‖))) ^ 4)
+    {x l : ℕ} (hx4 : 4 ≤ x) (hxlog : 2 ≤ Real.log (x : ℝ))
     (hl : 1 ≤ l) (ν : ℝ) :
     ∑ d ∈ lemma6ModulusBlock x l,
         (Nat.totient d : ℝ)⁻¹ *
           lDerivFourthTerm d (lemma6BetaPoint x ν) ≤
-      (1024 / Real.log 2 * C) * (2 : ℝ) ^ l *
-        (Real.log x) ^ 110 * ‖lemma6BetaPoint x ν‖ ^ 2 := by
+      (82944 / Real.log 2 * C) * (2 : ℝ) ^ l *
+        (Real.log x) ^ 110 * ‖lemma6BetaPoint x ν‖ ^ 2 *
+          (1 + ν ^ 2) ^ 2 := by
   by_cases hne : (lemma6ModulusBlock x l).Nonempty
   · exact (lemma6_weighted_lDerivFourth_block_le_raw
-      hC hL (show 2 ≤ x by omega) hxlog
-        (lemma6ModulusCutoff_two_le hxlog hl) ν).trans
+      hC hL (show 2 ≤ x by omega) (by linarith)
+        (lemma6ModulusCutoff_two_le (by linarith) hl) ν).trans
       (lemma6_raw_deriv_bound_le hC hx4 hxlog hl hne ν)
   · rw [Finset.not_nonempty_iff_eq_empty.mp hne]
     simp only [Finset.sum_empty]
@@ -672,7 +773,7 @@ def Lemma6DerivativeFourthMoment : Prop :=
     ∑ d ∈ lemma6ModulusBlock x l,
         (Nat.totient d : ℝ)⁻¹ * lDerivFourthTerm d (lemma6BetaPoint x ν) ≤
       C * (2 : ℝ) ^ l * (Real.log x) ^ 110 *
-        ‖lemma6BetaPoint x ν‖ ^ 2
+        ‖lemma6BetaPoint x ν‖ ^ 2 * (1 + ν ^ 2) ^ 2
 
 /-- Cauchy's integral formula plus the dyadic totient estimate transfers the
 paper's Lemma 3 to the derivative fourth moment required in Lemma 6.
@@ -682,23 +783,17 @@ primitive L-function, the dyadic cutoff, and the weighted application of
 Lemma 3 are proved above.  What remains here is the analytic Cauchy--Hölder
 inequality, its interchange with the finite primitive-character sum, and the
 final elementary simplification of the dyadic cutoff. -/
-theorem lemma6_deriv_fourth_moment_of_lFunction_fourth_moment
-    (hL : Lemma3FourthMoment) :
+theorem lemma6_deriv_fourth_moment_of_lFunction_fourth_moment_with_height_log
+    (hL : Lemma3FourthMomentWithHeightLog) :
     Lemma6DerivativeFourthMoment := by
   obtain ⟨C, hC, hL⟩ := hL
-  refine ⟨1024 / Real.log 2 * C, by positivity, ?_⟩
-  have hlogOneReal : ∀ᶠ y : ℝ in atTop, 1 ≤ Real.log y :=
-    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 1)
-  have hlogOne : ∀ᶠ x : ℕ in atTop, 1 ≤ Real.log (x : ℝ) :=
-    tendsto_natCast_atTop_atTop.eventually hlogOneReal
-  filter_upwards [hlogOne, eventually_ge_atTop 4] with x hxlog hx4
+  refine ⟨82944 / Real.log 2 * C, by positivity, ?_⟩
+  have hlogTwoReal : ∀ᶠ y : ℝ in atTop, 2 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 2)
+  have hlogTwo : ∀ᶠ x : ℕ in atTop, 2 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hlogTwoReal
+  filter_upwards [hlogTwo, eventually_ge_atTop 4] with x hxlog hx4
   intro l ν hl
   exact lemma6_weighted_lDerivFourth_block_le hC hL hx4 hxlog hl ν
-
-/-- The derivative fourth moment used below, explicitly derived from the
-corrected statement of Lemma 3. -/
-theorem lemma6_deriv_fourth_moment : Lemma6DerivativeFourthMoment :=
-  lemma6_deriv_fourth_moment_of_lFunction_fourth_moment
-    lFunction_fourth_moment
 
 end Chen

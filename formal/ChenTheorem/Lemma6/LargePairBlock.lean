@@ -10,40 +10,51 @@ open scoped Classical
 
 namespace Chen
 
-/-! ### The quarter-moment mass of the shifted-line kernel -/
+/-! ### The height-weighted quarter-moment mass of the shifted-line kernel -/
 
 /-- Pointwise domination of the kernel against the Cauchy denominator. -/
-theorem kernelNorm_mul_rpow_quarter_le
+theorem kernelNorm_mul_rpow_three_quarters_le
     {x : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ)) (nu : ℝ) :
     ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) ≤
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) ≤
       4 * Real.log (x : ℝ) ^ 5 * (1 + nu ^ 2)⁻¹ := by
   have hker := norm_lemma6SmoothingMellinKernel_beta_le_two_mul_log_five
     hxlog nu
-  have hpow : (0 : ℝ) ≤ (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by positivity
-  have hB := lemma6BKernel_le_cauchy nu
+  have hpow : (0 : ℝ) ≤ (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by positivity
+  have hbase : (1 : ℝ) ≤ 1 + nu ^ 2 := by nlinarith [sq_nonneg nu]
+  have hrpow : (1 + nu ^ 2) ^ ((3 : ℝ) / 4) ≤ 1 + nu ^ 2 :=
+    Real.rpow_le_self_of_one_le hbase (by norm_num)
+  have hden : (0 : ℝ) < 1 + nu ^ 4 := by positivity
+  have hratio : (1 + nu ^ 2) / (1 + nu ^ 4) ≤
+      2 * (1 + nu ^ 2)⁻¹ := by
+    rw [← div_eq_mul_inv]
+    apply (div_le_div_iff₀ hden (by positivity : (0 : ℝ) < 1 + nu ^ 2)).2
+    nlinarith [sq_nonneg (nu ^ 2 - 1)]
   calc ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) ≤
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) ≤
       (2 * Real.log (x : ℝ) ^ 5 / (1 + nu ^ 4)) *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) :=
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) :=
     mul_le_mul_of_nonneg_right hker hpow
-  _ = (2 * Real.log (x : ℝ) ^ 5) * lemma6BKernel nu := by
-      unfold lemma6BKernel
-      ring
+  _ = (2 * Real.log (x : ℝ) ^ 5) *
+      ((1 + nu ^ 2) ^ ((3 : ℝ) / 4) / (1 + nu ^ 4)) := by ring
+  _ ≤ (2 * Real.log (x : ℝ) ^ 5) *
+      ((1 + nu ^ 2) / (1 + nu ^ 4)) := by
+    exact mul_le_mul_of_nonneg_left
+      (div_le_div_of_nonneg_right hrpow hden.le) (by positivity)
   _ ≤ (2 * Real.log (x : ℝ) ^ 5) * (2 * (1 + nu ^ 2)⁻¹) :=
-    mul_le_mul_of_nonneg_left hB (by positivity)
+    mul_le_mul_of_nonneg_left hratio (by positivity)
   _ = 4 * Real.log (x : ℝ) ^ 5 * (1 + nu ^ 2)⁻¹ := by ring
 
 /-- Integrability of the quarter-moment weighted kernel on the `beta` line. -/
-theorem integrable_kernelNorm_mul_rpow_quarter
+theorem integrable_kernelNorm_mul_rpow_three_quarters
     {x : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ)) :
     Integrable (fun nu : ℝ =>
       ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := by
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := by
   have hlog1 : (1 : ℝ) ≤ Real.log (x : ℝ) := by linarith
   have hmeas : AEStronglyMeasurable (fun nu : ℝ =>
       ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) volume :=
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) volume :=
     (aestronglyMeasurable_norm_kernel_beta hxlog).mul
       ((continuous_const.add (continuous_id.pow 2)).rpow_const
         (fun _ => Or.inr (by norm_num))).aestronglyMeasurable
@@ -53,33 +64,33 @@ theorem integrable_kernelNorm_mul_rpow_quarter
   refine hmaj.mono' hmeas ?_
   filter_upwards with nu
   rw [Real.norm_of_nonneg (mul_nonneg (norm_nonneg _)
-    (show (0 : ℝ) ≤ (1 + nu ^ 2) ^ ((1 : ℝ) / 4) by positivity))]
-  exact kernelNorm_mul_rpow_quarter_le hxlog nu
+    (show (0 : ℝ) ≤ (1 + nu ^ 2) ^ ((3 : ℝ) / 4) by positivity))]
+  exact kernelNorm_mul_rpow_three_quarters_le hxlog nu
 
 /-- The full-line quarter-moment kernel mass: an absolute constant times
 the fifth power of the logarithm. -/
-theorem integral_kernelNorm_mul_rpow_quarter_le
+theorem integral_kernelNorm_mul_rpow_three_quarters_le
     {x : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ)) :
     (∫ nu : ℝ,
         ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) ≤
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) ≤
       4 * Real.pi * Real.log (x : ℝ) ^ 5 := by
   have hlog1 : (1 : ℝ) ≤ Real.log (x : ℝ) := by linarith
   have hstep : (∫ nu : ℝ,
         ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) ≤
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) ≤
       ∫ nu : ℝ, (4 * Real.log (x : ℝ) ^ 5) * (1 + nu ^ 2)⁻¹ := by
     apply MeasureTheory.integral_mono
-      (integrable_kernelNorm_mul_rpow_quarter hxlog)
+      (integrable_kernelNorm_mul_rpow_three_quarters hxlog)
       (integrable_inv_one_add_sq.const_mul (4 * Real.log (x : ℝ) ^ 5))
     intro nu
-    exact kernelNorm_mul_rpow_quarter_le hxlog nu
+    exact kernelNorm_mul_rpow_three_quarters_le hxlog nu
   have hval : (∫ nu : ℝ, (4 * Real.log (x : ℝ) ^ 5) * (1 + nu ^ 2)⁻¹) =
       4 * Real.log (x : ℝ) ^ 5 * Real.pi := by
     rw [MeasureTheory.integral_const_mul, integral_univ_inv_one_add_sq]
   calc (∫ nu : ℝ,
         ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) ≤
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) ≤
       ∫ nu : ℝ, (4 * Real.log (x : ℝ) ^ 5) * (1 + nu ^ 2)⁻¹ := hstep
     _ = 4 * Real.log (x : ℝ) ^ 5 * Real.pi := hval
     _ = 4 * Real.pi * Real.log (x : ℝ) ^ 5 := by ring
@@ -608,7 +619,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
           Real.log ((H * H : ℕ) : ℝ)) *
           ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
               ((1 : ℝ) / 4)))) *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by
     intro nu
     have h := bblock_eq19_majorant nu hCp hCm hCd hxlarge hxlog hl hD4 hY hH2
       (hpair2 nu) (hmol4 nu) (hder4 nu)
@@ -636,7 +647,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
     positivity
   have hint := integrable_kernelNorm_mul_lemma6BBlockAtBeta_of_le hxlog m k H
     hcoef0 hBpoint
-  have hmass := integral_kernelNorm_mul_rpow_quarter_le hxlog
+  have hmass := integral_kernelNorm_mul_rpow_three_quarters_le hxlog
   have hpoint : ∀ nu : ℝ,
       ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
         lemma6BBlockAtBeta x m l k H nu ≤
@@ -654,7 +665,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
           ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
               ((1 : ℝ) / 4)))) *
         (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := by
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := by
     intro nu
     have hk : (0 : ℝ) ≤ ‖lemma6SmoothingMellinKernel (x : ℝ)
         (lemma6BetaPoint x nu)‖ := norm_nonneg _
@@ -674,7 +685,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
               Real.log ((H * H : ℕ) : ℝ)) *
               ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
                   ((1 : ℝ) / 4)))) *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :=
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :=
       mul_le_mul_of_nonneg_left (hBpoint nu) hk
     _ = ((lemma6ExceptionalFactorAt x l * Cp *
               (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
@@ -690,7 +701,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
             ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
                 ((1 : ℝ) / 4)))) *
         (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := by
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := by
       ring
   have hint2 : Integrable (fun nu : ℝ =>
       ((lemma6ExceptionalFactorAt x l * Cp *
@@ -707,8 +718,8 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
           ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
               ((1 : ℝ) / 4)))) *
         (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4))) :=
-    (integrable_kernelNorm_mul_rpow_quarter hxlog).const_mul _
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4))) :=
+    (integrable_kernelNorm_mul_rpow_three_quarters hxlog).const_mul _
   have hmono : (∫ nu : ℝ,
         ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
           lemma6BBlockAtBeta x m l k H nu) ≤
@@ -727,7 +738,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
             ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
                 ((1 : ℝ) / 4)))) *
           (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :=
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :=
     MeasureTheory.integral_mono hint hint2 (fun nu => hpoint nu)
   refine ⟨hint, ?_⟩
   calc (∫ nu : ℝ,
@@ -748,7 +759,7 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
             ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
                 ((1 : ℝ) / 4)))) *
           (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := hmono
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := hmono
     _ = ((lemma6ExceptionalFactorAt x l * Cp *
               (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
                   10 * lemma6PairDyadicScale x k /
@@ -764,11 +775,11 @@ theorem integrable_and_integral_kernelNorm_mul_BBlock_le
                 ((1 : ℝ) / 4)))) *
           ∫ nu : ℝ,
             ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-              (1 + nu ^ 2) ^ ((1 : ℝ) / 4) :=
+              (1 + nu ^ 2) ^ ((3 : ℝ) / 4) :=
       MeasureTheory.integral_const_mul _
         (fun nu : ℝ =>
           ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4))
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4))
     _ ≤ ((lemma6ExceptionalFactorAt x l * Cp *
               (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
                   10 * lemma6PairDyadicScale x k /
@@ -1535,19 +1546,19 @@ theorem integrable_and_integral_kernelNorm_mul_B20Block_le
     Real.rpow_nonneg hbase0 _
   have hBpoint : ∀ nu : ℝ, lemma6BBlockAtBeta x m l k H nu ≤
       lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by
     intro nu
     exact bblock_eq20_majorant nu hCs hCd hCp hC4 hxlarge hxlog hl hD4 hY hH2
       (hmol2 nu) (hder4 nu) (hpair4 nu) (hpairMajorant nu)
   have hint := integrable_kernelNorm_mul_lemma6BBlockAtBeta_of_le
     hxlog m k H hcoef0 hBpoint
-  have hmass := integral_kernelNorm_mul_rpow_quarter_le hxlog
+  have hmass := integral_kernelNorm_mul_rpow_three_quarters_le hxlog
   have hpoint : ∀ nu : ℝ,
       ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
         lemma6BBlockAtBeta x m l k H nu ≤
       lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
         (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-          (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := by
+          (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := by
     intro nu
     have hk : (0 : ℝ) ≤ ‖lemma6SmoothingMellinKernel (x : ℝ)
         (lemma6BetaPoint x nu)‖ := norm_nonneg _
@@ -1556,12 +1567,12 @@ theorem integrable_and_integral_kernelNorm_mul_B20Block_le
           lemma6BBlockAtBeta x m l k H nu ≤
         ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
           (lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :=
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :=
         mul_le_mul_of_nonneg_left (hBpoint nu) hk
       _ = lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
           (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) := by ring
-  have hint2 := (integrable_kernelNorm_mul_rpow_quarter hxlog).const_mul
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) := by ring
+  have hint2 := (integrable_kernelNorm_mul_rpow_three_quarters hxlog).const_mul
     (lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4))
   refine ⟨hint, ?_⟩
   calc
@@ -1571,12 +1582,12 @@ theorem integrable_and_integral_kernelNorm_mul_B20Block_le
       ∫ nu : ℝ,
         lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
           (‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :=
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :=
       MeasureTheory.integral_mono hint hint2 hpoint
     _ = lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
         ∫ nu : ℝ,
           ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
-            (1 + nu ^ 2) ^ ((1 : ℝ) / 4) :=
+            (1 + nu ^ 2) ^ ((3 : ℝ) / 4) :=
       MeasureTheory.integral_const_mul _ _
     _ ≤ lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
         (4 * Real.pi * Real.log (x : ℝ) ^ 5) :=

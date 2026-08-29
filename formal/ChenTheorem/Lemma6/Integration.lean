@@ -319,20 +319,21 @@ theorem continuous_lemma6BBlockAtBeta
 
 /-- Any standard fourth-moment height bound for the shifted `B` block is
 integrable against Chen's exact smoothing kernel.  This is the analytic
-reason the factor `(1+nu^2)^(1/4)` in equations (19) and (20) is harmless. -/
+reason the factor `(1+nu^2)^(3/4)` arising from the corrected Lemma 3 is
+still harmless. -/
 theorem integrable_kernelNorm_mul_lemma6BBlockAtBeta_of_le
     {x l : ℕ} (hxlog : 3 ≤ Real.log (x : ℝ))
-    (m k H : ℕ) {C : ℝ} (_hC : 0 ≤ C)
+    (m k H : ℕ) {C : ℝ} (hC : 0 ≤ C)
     (hbound : ∀ nu : ℝ,
       lemma6BBlockAtBeta x m l k H nu ≤
-        C * (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :
+        C * (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :
     Integrable (fun nu : ℝ =>
       ‖lemma6SmoothingMellinKernel (x : ℝ)
           (lemma6BetaPoint x nu)‖ *
         lemma6BBlockAtBeta x m l k H nu) := by
-  let A : ℝ := 2 * Real.log (x : ℝ) ^ 5 * C
-  have hmajor : Integrable (fun nu : ℝ => A * lemma6BKernel nu) :=
-    integrable_lemma6BKernel.const_mul A
+  let A : ℝ := 4 * Real.log (x : ℝ) ^ 5 * C
+  have hmajor : Integrable (fun nu : ℝ => A * (1 + nu ^ 2)⁻¹) :=
+    integrable_inv_one_add_sq.const_mul A
   have hkernel : AEStronglyMeasurable (fun nu : ℝ =>
       ‖lemma6SmoothingMellinKernel (x : ℝ)
         (lemma6BetaPoint x nu)‖) := by
@@ -367,16 +368,31 @@ theorem integrable_kernelNorm_mul_lemma6BBlockAtBeta_of_le
     hxlog nu
   have hb := hbound nu
   have hB0 := lemma6BBlockAtBeta_nonneg x m l k H nu
-  have hnum0 : 0 ≤ (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by positivity
+  have hbase : (1 : ℝ) ≤ 1 + nu ^ 2 := by nlinarith [sq_nonneg nu]
+  have hrpow : (1 + nu ^ 2) ^ ((3 : ℝ) / 4) ≤ 1 + nu ^ 2 :=
+    Real.rpow_le_self_of_one_le hbase (by norm_num)
+  have hden : (0 : ℝ) < 1 + nu ^ 4 := by positivity
+  have hratio : (1 + nu ^ 2) / (1 + nu ^ 4) ≤
+      2 * (1 + nu ^ 2)⁻¹ := by
+    rw [← div_eq_mul_inv]
+    apply (div_le_div_iff₀ hden (by positivity : (0 : ℝ) < 1 + nu ^ 2)).2
+    nlinarith [sq_nonneg (nu ^ 2 - 1)]
   rw [Real.norm_of_nonneg (mul_nonneg (norm_nonneg _) hB0)]
   calc
     ‖lemma6SmoothingMellinKernel (x : ℝ) (lemma6BetaPoint x nu)‖ *
         lemma6BBlockAtBeta x m l k H nu ≤
       (2 * Real.log (x : ℝ) ^ 5 / (1 + nu ^ 4)) *
-        (C * (1 + nu ^ 2) ^ ((1 : ℝ) / 4)) :=
+        (C * (1 + nu ^ 2) ^ ((3 : ℝ) / 4)) :=
       mul_le_mul hk hb hB0 (by positivity)
-    _ = A * lemma6BKernel nu := by
-      unfold A lemma6BKernel
+    _ ≤ (2 * Real.log (x : ℝ) ^ 5 / (1 + nu ^ 4)) *
+        (C * (1 + nu ^ 2)) := by gcongr
+    _ = (2 * Real.log (x : ℝ) ^ 5 * C) *
+        ((1 + nu ^ 2) / (1 + nu ^ 4)) := by ring
+    _ ≤ (2 * Real.log (x : ℝ) ^ 5 * C) *
+        (2 * (1 + nu ^ 2)⁻¹) := by
+      exact mul_le_mul_of_nonneg_left hratio (by positivity)
+    _ = A * (1 + nu ^ 2)⁻¹ := by
+      unfold A
       ring
 
 end Chen

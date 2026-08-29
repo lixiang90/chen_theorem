@@ -118,7 +118,7 @@ noncomputable def lemma6MollifierFourthMajorant
 noncomputable def lemma6DerivativeFourthMajorant
     (x l : ℕ) (ν : ℝ) : ℝ :=
   (2 : ℝ) ^ l * (Real.log x) ^ 110 *
-    ‖lemma6BetaPoint x ν‖ ^ 2
+    ‖lemma6BetaPoint x ν‖ ^ 2 * (1 + ν ^ 2) ^ 2
 
 /-- Formula (19), with all three moment inputs instantiated by the results
 proved in `PairLargeSieve`, `MomentConnection`, and `FourthMoment`.
@@ -166,23 +166,5 @@ theorem lemma6_equation19_B_with_large_sieve_moments_of_deriv_fourth_moment
       hmollifier x l H ν hxlog hH
   · simpa only [lemma6DerivativeFourthMajorant, mul_assoc] using
       hxderiv l ν hl
-
-theorem lemma6_equation19_B_with_large_sieve_moments :
-    ∃ Cp Cm Cd : ℝ, 0 < Cp ∧ 0 < Cm ∧ 0 < Cd ∧
-      ∀ᶠ x : ℕ in atTop,
-        ∀ (l m k H : ℕ) (ν : ℝ), 1 ≤ l → 2 ≤ H →
-          (∑ i ∈ lemma6CharacterBlock x l,
-              lemma6PrimitiveBaseWeight i *
-                (3 : ℝ) ^ distinctPrimeFactors i.1 *
-                lemma6PairBlockNorm x m k (lemma6BetaPoint x ν) i *
-                lemma6MollifierNorm H (lemma6BetaPoint x ν) i *
-                lemma6LDerivNorm (lemma6BetaPoint x ν) i) ^ 4 ≤
-            (lemma6ExceptionalFactorAt x l *
-              (Cp * lemma6PairSecondMajorant x l m k
-                (lemma6BetaPoint x ν))) ^ 2 *
-              (Cm * lemma6MollifierFourthMajorant x l H) *
-                (Cd * lemma6DerivativeFourthMajorant x l ν) :=
-  lemma6_equation19_B_with_large_sieve_moments_of_deriv_fourth_moment
-    lemma6_deriv_fourth_moment
 
 end Chen

@@ -932,7 +932,7 @@ theorem bblock_eq19_majorant
         lemma6PrimitiveBaseWeight i *
           lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4) ≤
       Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110 *
-        ‖lemma6BetaPoint x ν‖ ^ 2)) :
+        ‖lemma6BetaPoint x ν‖ ^ 2 * (1 + ν ^ 2) ^ 2)) :
     lemma6BBlockAtBeta x m l k H ν ≤
       ((lemma6ExceptionalFactorAt x l * Cp *
               (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
@@ -947,7 +947,7 @@ theorem bblock_eq19_majorant
             Real.log ((H * H : ℕ) : ℝ)) *
           ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
               ((1 : ℝ) / 4) *
-            (1 + ν ^ 2) ^ ((1 : ℝ) / 4)))) := by
+            (1 + ν ^ 2) ^ ((3 : ℝ) / 4)))) := by
   have hEpos : 0 ≤ lemma6ExceptionalFactorAt x l :=
     (lemma6ExceptionalFactor_pos _).le
   have hB0 : 0 ≤ lemma6BBlockAtBeta x m l k H ν :=
@@ -961,7 +961,8 @@ theorem bblock_eq19_majorant
   have hW0 : (0 : ℝ) ≤ (2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110 :=
     mul_nonneg (by positivity) (pow_nonneg hlogx0 110)
   have hCDQ0 : (0 : ℝ) ≤
-      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) * (1 + ν ^ 2) :=
+      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
+        (1 + ν ^ 2) ^ 3 :=
     mul_nonneg (mul_nonneg hCd hW0) (by positivity)
   have hlogHHpos : (0 : ℝ) ≤ Real.log ((H * H : ℕ) : ℝ) := by
     refine Real.log_nonneg ?_
@@ -1024,8 +1025,10 @@ theorem bblock_eq19_majorant
         (Real.log ((H * H : ℕ) : ℝ)) ^ 4) := by
     ring
   have assocCD :
-      Cd * (((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110) * (1 + ν ^ 2)) =
-      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) * (1 + ν ^ 2) := by
+      Cd * (((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110 *
+        (1 + ν ^ 2) ^ 2) * (1 + ν ^ 2)) =
+      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
+        (1 + ν ^ 2) ^ 3 := by
     ring
   have e1 : lemma6ExceptionalFactorAt x l *
       ∑ i ∈ lemma6CharacterBlock x l,
@@ -1050,9 +1053,18 @@ theorem bblock_eq19_majorant
   have e3 : ∑ i ∈ lemma6CharacterBlock x l,
       lemma6PrimitiveBaseWeight i *
         lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4 ≤
-      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) * (1 + ν ^ 2) := by
-    refine le_trans (hder4.trans (mul_le_mul_of_nonneg_left
-        (mul_le_mul_of_nonneg_left hbeta hW0) hCd)) (le_of_eq assocCD)
+      (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
+        (1 + ν ^ 2) ^ 3 := by
+    calc
+      ∑ i ∈ lemma6CharacterBlock x l,
+          lemma6PrimitiveBaseWeight i *
+            lemma6LDerivNorm (lemma6BetaPoint x ν) i ^ 4 ≤
+        Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110 *
+          ‖lemma6BetaPoint x ν‖ ^ 2 * (1 + ν ^ 2) ^ 2) := hder4
+      _ ≤ Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110 *
+          (1 + ν ^ 2) * (1 + ν ^ 2) ^ 2) := by gcongr
+      _ = (Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
+          (1 + ν ^ 2) ^ 3 := by ring
 
   have hpow : lemma6BBlockAtBeta x m l k H ν ^ 4 ≤
       (((lemma6ExceptionalFactorAt x l * Cp *
@@ -1066,7 +1078,7 @@ theorem bblock_eq19_majorant
                   lemma6DyadicModulusScale x l)) *
             (Real.log ((H * H : ℕ) : ℝ)) ^ 4)) *
         ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
-          (1 + ν ^ 2))) := by
+          (1 + ν ^ 2) ^ 3)) := by
     rw [lemma6BBlockAtBeta_eq_characterBlock_sum x m l k H ν]
     refine (lemma6_equation19_B_holder hxlarge m k H ν).trans ?_
     have hsumP : (0 : ℝ) ≤ ∑ i ∈ lemma6CharacterBlock x l,
@@ -1101,7 +1113,7 @@ theorem bblock_eq19_majorant
                   lemma6DyadicModulusScale x l)) *
             (Real.log ((H * H : ℕ) : ℝ)) ^ 4)) *
         ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) *
-          (1 + ν ^ 2))) ^ ((1 : ℝ) / 4) =
+          (1 + ν ^ 2) ^ 3)) ^ ((1 : ℝ) / 4) =
       ((lemma6ExceptionalFactorAt x l * Cp *
               (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
                   10 * lemma6PairDyadicScale x k /
@@ -1115,7 +1127,7 @@ theorem bblock_eq19_majorant
             Real.log ((H * H : ℕ) : ℝ)) *
           ((Cd * ((2 : ℝ) ^ l * (Real.log (x : ℝ)) ^ 110)) ^
               ((1 : ℝ) / 4) *
-            (1 + ν ^ 2) ^ ((1 : ℝ) / 4)))) := by
+            (1 + ν ^ 2) ^ ((3 : ℝ) / 4)))) := by
 
     have hCT0 : (0 : ℝ) ≤ Cm * (((5 / 4 : ℝ) * lemma6DyadicModulusScale x l +
         4 * ((H * H : ℕ) : ℝ) / lemma6DyadicModulusScale x l)) :=
@@ -1125,11 +1137,18 @@ theorem bblock_eq19_majorant
           lemma6DyadicModulusScale x l)) *
       (Real.log ((H * H : ℕ) : ℝ)) ^ 4)) :=
       mul_nonneg hCT0 (pow_nonneg hlogHHpos 4)
+    have hheight : ((1 + ν ^ 2) ^ 3) ^ ((1 : ℝ) / 4) =
+        (1 + ν ^ 2) ^ ((3 : ℝ) / 4) := by
+      calc
+        ((1 + ν ^ 2) ^ 3) ^ ((1 : ℝ) / 4) =
+            (1 + ν ^ 2) ^ (((3 : ℕ) : ℝ) * (1 / 4)) := by
+          rw [← Real.rpow_natCast _ 3, ← Real.rpow_mul (by positivity)]
+        _ = (1 + ν ^ 2) ^ ((3 : ℝ) / 4) := by norm_num
     refine Eq.trans (real_rpow_quarter_combine hACS0 hBC0 hCDQ0) ?_
     rw [Real.mul_rpow hCT0 (pow_nonneg hlogHHpos 4),
       ← Real.rpow_natCast, ← Real.rpow_mul hlogHHpos,
       show (((4 : ℕ) : ℝ)) * ((1 : ℝ) / 4) = 1 by ring, Real.rpow_one,
-      Real.mul_rpow (mul_nonneg hCd hW0) (by positivity)]
+      Real.mul_rpow (mul_nonneg hCd hW0) (by positivity), hheight]
   rw [hexp] at hroot
   exact hroot
 
@@ -1181,7 +1200,7 @@ theorem bblock_eq20_majorant
           Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ) ^ 4)) :
     lemma6BBlockAtBeta x m l k H nu ≤
       lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by
   have hmScale := lemma6MollifierSecondMajorant_le_scales (H := H) hl hD4
   have hdScale := lemma6DerivativeFourthMajorant_le_kernel
     (x := x) (l := l) nu (by linarith)
@@ -1198,7 +1217,7 @@ theorem bblock_eq20_majorant
           lemma6PrimitiveBaseWeight i *
             lemma6LDerivNorm (lemma6BetaPoint x nu) i ^ 4) ≤
         (Cd * ((2 : ℝ) ^ l * Real.log (x : ℝ) ^ 110)) *
-          (1 + nu ^ 2) := by
+          (1 + nu ^ 2) ^ 3 := by
     refine hder4.trans ?_
     simpa only [mul_assoc] using mul_le_mul_of_nonneg_left hdScale hCd
   have eP :
@@ -1221,7 +1240,7 @@ theorem bblock_eq20_majorant
             lemma6DyadicModulusScale x l) *
           Real.log (lemma6PairUpperCutoff x k ^ 2 : ℕ) ^ 4) := by ring
   have hpow : lemma6BBlockAtBeta x m l k H nu ^ 4 ≤
-      lemma6B20BaseMajorant x l k H Cs Cd Cp C4 * (1 + nu ^ 2) := by
+      lemma6B20BaseMajorant x l k H Cs Cd Cp C4 * (1 + nu ^ 2) ^ 3 := by
     rw [lemma6BBlockAtBeta_eq_characterBlock_sum x m l k H nu]
     refine (lemma6_equation20_B_of_moment_bounds hxlarge m k H nu _ _ _
       eM eD eP).trans ?_
@@ -1233,11 +1252,18 @@ theorem bblock_eq20_majorant
     positivity
   have hroot := real_le_rpow_quarter_of_pow_four_le
     (lemma6BBlockAtBeta_nonneg x m l k H nu) hpow
+  have hheight : ((1 + nu ^ 2) ^ 3) ^ ((1 : ℝ) / 4) =
+      (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by
+    calc
+      ((1 + nu ^ 2) ^ 3) ^ ((1 : ℝ) / 4) =
+          (1 + nu ^ 2) ^ (((3 : ℕ) : ℝ) * (1 / 4)) := by
+        rw [← Real.rpow_natCast _ 3, ← Real.rpow_mul (by positivity)]
+      _ = (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by norm_num
   calc lemma6BBlockAtBeta x m l k H nu ≤
       (lemma6B20BaseMajorant x l k H Cs Cd Cp C4 *
-        (1 + nu ^ 2)) ^ ((1 : ℝ) / 4) := hroot
+        (1 + nu ^ 2) ^ 3) ^ ((1 : ℝ) / 4) := hroot
     _ = lemma6B20BaseMajorant x l k H Cs Cd Cp C4 ^ ((1 : ℝ) / 4) *
-        (1 + nu ^ 2) ^ ((1 : ℝ) / 4) := by
-      rw [Real.mul_rpow hbase0 (by positivity)]
+        (1 + nu ^ 2) ^ ((3 : ℝ) / 4) := by
+      rw [Real.mul_rpow hbase0 (by positivity), hheight]
 
 end Chen

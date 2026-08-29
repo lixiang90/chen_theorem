@@ -58,10 +58,10 @@ lake build
 | `M₁` | `Chen.mOne` |
 | Lemma 1 | `chenPhi_eq_zero`, `chenPhi_monotoneOn`, `chenPhi_nonneg`, `chenPhi_le_one`, `chenPhi_ge` (**all five proved**) |
 | Lemma 2, eqs. (2)–(3) | `large_sieve`, `large_sieve_dyadic` |
-| Lemma 3 | `lFunction_fourth_moment` records the claimed strong form on the corrected range `2 ≤ q ≤ Q`; `Lemma3FourthMomentWithHeightLog` records the weaker form supported by the printed calculation; `lemma6_deriv_fourth_moment` is the equation-(15) corollary of the strong form required by the current Lemma 6 pipeline |
+| Lemma 3 | `lFunction_fourth_moment_with_height_log` proves the corrected height-logarithmic form on `2 ≤ q ≤ Q`; the printed log-`Q`-only claim remains documented as `Lemma3FourthMoment` but is not asserted as a theorem |
 | Lemma 4 | `primitive_char_sum_bound` (general squarefree `k`, **proved**); `primitive_char_sum_bound_prime` (prime case, **proved**) |
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
-| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved: the Cauchy transfer, the full positive-dyadic analysis (19)–(20), and the equation-(21) contour shift to `Re s = 1 - 1/√(log x)`. The only remaining analytic inputs are the strong Lemma-3 moment (`lFunction_fourth_moment`) and the classical zero-free region `primitive_zero_free_region`, both isolated as documented interfaces |
+| Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved, and the corrected Lemma-3 height logarithm is carried through the Cauchy/Hölder/kernel estimates. The only remaining analytic input is the classical zero-free region `primitive_zero_free_region` |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
 | Lemma 7 | `mOne_le` |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
@@ -141,9 +141,9 @@ lake build
   Lemma 5 retains it explicitly:
   `Ω ≤ (M₁+M₂)/(1-ε) + O(x (log x)^{-2.01})`.  The estimate
   `M₂ ≪ x (log x)^{-2.01}` is now fully reduced, by machine-checked proofs,
-  to exactly two documented classical analytic inputs: the strong
-  Lemma-3 fourth moment (`lFunction_fourth_moment`) and the zero-free region
-  with companion `L'/L` bound (`primitive_zero_free_region`).  In particular
+  to the documented classical zero-free region with companion `L'/L` bound
+  (`primitive_zero_free_region`).  The corrected Lemma-3 fourth moment is now
+  proved and instantiated in the pipeline.  In particular
   `lemma6_large_pair_block_estimate_of_deriv_fourth_moment` (equations
   (13)–(20)) does not depend on `sorryAx` — its `Lemma 3` dependence is
   explicit in the hypothesis — and the equation-(21) small-conductor estimate
@@ -204,11 +204,11 @@ in particular the large-base smoothing boundary is bounded by
 `O(x (log x)^{-2.01})` using a short transition interval, optimal Selberg
 weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
 
-The strong `L`-function fourth moment claimed as Lemma 3
-(`lFunction_fourth_moment`, `SieveLemmas.lean`) and the classical zero-free
-region (`primitive_zero_free_region`, `Lemma6/ZeroFreeRegion.lean`) are the
-two remaining analytic inputs behind Lemma 6, both isolated as documented
-`sorry` placeholders.  Everything else in Lemma 6 is machine-checked: the
+The height-logarithmic `L`-function fourth moment supported by Chen's Lemma 3
+calculation is proved in `Lemma3/FourthMoment.lean`.  The stronger printed
+log-`Q`-only claim is not used.  The classical zero-free region
+(`primitive_zero_free_region`, `Lemma6/ZeroFreeRegion.lean`) is the sole
+remaining `sorry` input behind Lemma 6.  Everything else is machine-checked: the
 finite Mellin reduction, the A/B decomposition, both large-conductor regimes
 (19)–(20) (`lemma6_large_pair_block_estimate_of_deriv_fourth_moment` is
 `sorryAx`-free), the full equation-(21) contour shift to

@@ -573,11 +573,16 @@ theorem lemma6PairFourthMajorant_beta_le_scales :
 theorem lemma6DerivativeFourthMajorant_le_kernel
     {x l : ℕ} (ν : ℝ) (hxlog : 2 ≤ Real.log (x : ℝ)) :
     lemma6DerivativeFourthMajorant x l ν ≤
-      (2 : ℝ) ^ l * (Real.log x) ^ 110 * (1 + ν ^ 2) := by
+      (2 : ℝ) ^ l * (Real.log x) ^ 110 * (1 + ν ^ 2) ^ 3 := by
   unfold lemma6DerivativeFourthMajorant
-  exact mul_le_mul_of_nonneg_left
-    (lemma6BetaPoint_norm_sq_le hxlog ν)
-    (by positivity)
+  have h := lemma6BetaPoint_norm_sq_le hxlog ν
+  calc
+    (2 : ℝ) ^ l * Real.log (x : ℝ) ^ 110 *
+        ‖lemma6BetaPoint x ν‖ ^ 2 * (1 + ν ^ 2) ^ 2 ≤
+      (2 : ℝ) ^ l * Real.log (x : ℝ) ^ 110 *
+        (1 + ν ^ 2) * (1 + ν ^ 2) ^ 2 := by gcongr
+    _ = (2 : ℝ) ^ l * Real.log (x : ℝ) ^ 110 *
+        (1 + ν ^ 2) ^ 3 := by ring
 
 theorem lemma6_half_pairScale_le_pairLowerCutoff
     {x k : ℕ} (hY : 2 ≤ lemma6PairDyadicScale x k) :

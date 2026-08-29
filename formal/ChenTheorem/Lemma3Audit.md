@@ -59,9 +59,9 @@ the shape
 
 In Lean this proof-supported statement is
 `Lemma3FourthMomentWithHeightLog`.  The stronger log-\(Q\)-only statement is
-`Lemma3FourthMoment`; it is the statement currently consumed by the
-derivative fourth-moment part of Lemma 6, but it requires an additional
-argument not present in Chen's proof.
+`Lemma3FourthMoment`; it remains recorded only as the claim printed in the
+paper and has no theorem asserting it.  Lemma 6 now consumes the proved
+height-logarithmic statement.
 
 ## 3. The Dirichlet-series identity is used outside absolute convergence
 
@@ -81,34 +81,36 @@ conditional convergence and analytic continuation.
 This distinction is concrete in the formalization.  Mathlib's packaged
 theorem `DirichletCharacter.LFunction_eq_LSeries` has the hypothesis
 `1 < re S`; it cannot justify the displayed equality on the half-plane used
-in Lemma 3.  A complete formal proof of even the height-logarithmic variant
-therefore still needs a bridge showing that the conditionally convergent
-character Dirichlet series agrees with the analytic L-function for
-`0 < re S` (or an equivalent analytic-continuation argument).  The current
-code does not disguise that bridge as an absolute-convergence statement.
+in Lemma 3.  The formalization supplies the required conditional-convergence
+bridge in `Lemma6/StripGrowth.lean` and applies finite Abel summation in
+`Lemma3/Approximation.lean`; it does not disguise this step as absolute
+convergence.
 
 ## Consequence for Lemma 6
 
-Chen applies Lemma 3 at \(S=\beta+i\nu\) with unbounded \(\nu\).  Replacing
-the strong form by the proof-supported form is possible only after carrying
-an extra \(\log(2Q(1+|\nu|))\) through Cauchy's formula and checking that the
-resulting factor remains integrable against the rapidly decaying contour
-kernel.  This is not merely a bookkeeping mismatch in the present proof:
-the current large-pair-block majorant has already relaxed the smoothing
-kernel to an integrable multiple of \((1+\nu^2)^{-1}\).  Multiplying that
-relaxed majorant by a further linear height factor would no longer be
-integrable.  To use the height-logarithmic form one must therefore retain
-more of the original high-order smoothing decay until after the extra
-height logarithm is absorbed.  The existing formal interface intentionally
-does not silently perform this replacement.  Thus the current status is:
+Chen applies Lemma 3 at \(S=\beta+i\nu\) with unbounded \(\nu\).  The
+formalization carries the height logarithm through Cauchy's formula.  On an
+occupied dyadic block it proves
 
-* `lFunction_fourth_moment` is the sole unresolved theorem implementing the
-  strong log-\(Q\)-only claim;
-* `Lemma3FourthMomentWithHeightLog` records the weaker target supported by
-  the size calculation, but is presently a proposition rather than a proved
-  theorem;
-* `lemma3FourthMomentWithHeightLog_of_strong` formally verifies that the
-  strong statement implies the height-logarithmic one; no converse is
-  available;
-* proving that weaker target still requires the conditional-series bridge
-  just described.
+\[
+  \log(2Q(1+2|\beta+i\nu|))
+  \ll (\log x)\sqrt{1+\nu^2}.
+\]
+
+Consequently the derivative fourth moment acquires
+\((1+\nu^2)^2\); after taking a fourth root in equations (19) and (20), the
+kernel weight becomes \((1+\nu^2)^{3/4}\).  The smoothing kernel still
+dominates this by an integrable multiple of \((1+\nu^2)^{-1}\), so the
+final Lemma 6 estimates are unchanged.
+
+The current status is:
+
+* `lFunction_fourth_moment_with_height_log` proves
+  `Lemma3FourthMomentWithHeightLog` without `sorry`;
+* `Lemma3FourthMoment` remains only a definition documenting the stronger
+  printed claim, whose proof still has the height-log gap described above;
+* `lemma6_deriv_fourth_moment_of_lFunction_fourth_moment_with_height_log`
+  transfers the proved form to the derivative moment;
+* `Lemma6/Core.lean` instantiates that transfer and the full Lemma 6 build
+  succeeds.  The separate classical zero-free-region input remains the only
+  `sorry` in the Lemma 6 analytic chain.
