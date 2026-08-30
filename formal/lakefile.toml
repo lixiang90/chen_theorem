@@ -7,5 +7,10 @@ name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
 rev = "v4.32.2"
 
+[[require]]
+name = "PrimeNumberTheoremAnd"
+git = "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.git"
+rev = "c6c73610b406689c4b58325cbe1342ecca25d755"
+
 [[lean_lib]]
 name = "ChenTheorem"

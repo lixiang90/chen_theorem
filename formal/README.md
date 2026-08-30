@@ -11,6 +11,8 @@ directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 
 - **Lean**: `leanprover/lean4:v4.32.2`
 - **Mathlib**: release tag `v4.32.2`
+- **Prime number theorem**: `PrimeNumberTheoremAnd` at commit
+  `c6c73610b406689c4b58325cbe1342ecca25d755` (Apache-2.0), fetched by Lake
 
 ## Build
 
@@ -63,7 +65,7 @@ lake build
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
 | Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved, and the corrected Lemma-3 height logarithm is carried through the Cauchy/Hölder/kernel estimates. The only remaining analytic input is the classical zero-free region `primitive_zero_free_region` |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
-| Lemma 7 | `mOne_le` (**proved** from the explicitly isolated uniform smoothed-PNT input `eventually_smoothed_pair_mass_le`; the Selberg normalization, positivity, summation, and constants are machine-checked) |
+| Lemma 7 | `mOne_le` (**proved**); `eventually_smoothed_pair_mass_le` is derived from `PrimeNumberTheoremAnd.WeakPNT''` and the uniform lower bound `x^(1/3) < x/(p₁p₂)`, while the Selberg normalization, positivity, summation, and constants are all machine-checked |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
 | Lemma 8 | `sieveOmega_le` (**proved** from the explicitly isolated Mertens/partial-summation input `eventually_chenPairs_kernel_le_one_add_mul_integral`; `chenPairs_kernel_le_integral`, error conversion, and the numerical integral are machine-checked) |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
@@ -215,15 +217,17 @@ finite Mellin reduction, the A/B decomposition, both large-conductor regimes
 `Re s = 1 - 1/√(log x)` with its horizontal-edge and vertical-line estimates
 (`Lemma6/Equation21.lean`, proved from `primitive_zero_free_region` alone),
 the elementary prime-pair estimate after the shift, and the final exponent
-  deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-distribution
-inputs behind Lemmas 7–9 are now explicit named axioms, rather than hidden
-`sorryAx` terms: `eventually_smoothed_pair_mass_le` (uniform smoothed PNT),
+deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-number-theorem input
+behind Lemma 7 is now discharged: `eventually_smoothed_pair_mass_le` is proved
+from `PrimeNumberTheoremAnd.WeakPNT''`, and its uniformity over `chenPairs x`
+is derived internally from `x^(1/3) < x/(p₁p₂)`.  The remaining
+prime-distribution inputs behind Lemmas 8–9 are explicit named axioms rather
+than hidden `sorryAx` terms:
 `eventually_chenPairs_kernel_le_one_add_mul_integral` (Mertens plus two partial
 summations), and `eventually_richert_bombieri_equation26` (the specialization
-of Richert [11] and Bombieri [9] cited in the scan).  Thus Lemmas 7–9 are
-machine-checked conditional on precisely those external classical results;
-the project does not claim to prove those three background theorems from
-Mathlib 4.32.2.  The shifted quantitative sieve estimate still contains a
+of Richert [11] and Bombieri [9] cited in the scan).  Thus Lemmas 8–9 are
+machine-checked conditional on precisely those two external classical
+results.  The shifted quantitative sieve estimate still contains a
 documented `sorry` placeholder. The paper-internal numerical
 integrals (24) and (27) are complete and do not depend on `sorryAx`.
 Inequality (28), including its exceptional `x^0.91` tail, is complete.
