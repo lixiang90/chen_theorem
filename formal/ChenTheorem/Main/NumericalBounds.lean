@@ -45,6 +45,18 @@ noncomputable def equation24Integral : ℝ :=
   ∫ α : ℝ in (1 / 10)..(1 / 3),
     Real.log (2 - 3 * α) / (α * (1 - α))
 
+/-- The integral in (24) is nonnegative. -/
+theorem equation24Integral_nonneg : 0 ≤ equation24Integral := by
+  unfold equation24Integral
+  apply intervalIntegral.integral_nonneg
+  · norm_num
+  · intro α hα
+    have hα0 : 0 ≤ α := by linarith [hα.1]
+    have h1α : 0 ≤ 1 - α := by linarith [hα.2]
+    have hlog : 0 ≤ Real.log (2 - 3 * α) := by
+      exact Real.log_nonneg (by linarith [hα.2])
+    exact div_nonneg hlog (mul_nonneg hα0 h1α)
+
 private noncomputable def equation24RationalMajorant (α : ℝ) : ℝ :=
   (227 / 324) / α - (4 / 81) / (1 - α) +
     (104 / 81) / (1 - α) ^ 2 -

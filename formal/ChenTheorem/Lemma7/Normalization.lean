@@ -1759,12 +1759,12 @@ theorem fixedEulerProduct_sieveNorm_lower
         (Real.log (R / (2 * d : ℕ)) * P) := by ring
     _ ≤ sieveNorm x ε := hfinite
 
-/-- The asymptotic lower bound for Chen's normalizing sum with exactly the
-slack needed for the coefficient `8 + 24ε`. -/
+/-- The asymptotic lower bound for Chen's normalizing sum, retaining enough
+slack for the prime-number-theorem step at the end of Lemma 7. -/
 theorem eventually_log_div_coefficient_le_sieveNorm
     (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
     ∀ᶠ x : ℕ in atTop, Even x →
-      Real.log x / ((8 + 24 * ε) * chenConst x) ≤ sieveNorm x ε := by
+      Real.log x / ((8 + 20 * ε) * chenConst x) ≤ sieveNorm x ε := by
   obtain ⟨s, hsprime, hs2, hsprod⟩ :=
     exists_finiteEulerProduct_ge_one_sub (show 0 < ε / 8 by positivity)
   let K : ℕ := ∏ p ∈ s, p
@@ -1825,22 +1825,22 @@ theorem eventually_log_div_coefficient_le_sieveNorm
     have : 0 < 1 - ε / 8 := by linarith
     linarith
   have hnumeric :
-      (1 : ℝ) / (8 + 24 * ε) ≤
+      (1 : ℝ) / (8 + 20 * ε) ≤
         ((1 - ε / 8) / 2) * (α - ε / 16) := by
-    have hden : 0 < 8 + 24 * ε := by positivity
+    have hden : 0 < 8 + 20 * ε := by positivity
     rw [div_le_iff₀ hden]
     dsimp only [α]
-    have hpoly : 0 < 20 - 219 * ε + 27 * ε ^ 2 := by
+    have hpoly : 0 < 8 - 362 * ε + 45 * ε ^ 2 := by
       nlinarith [sq_nonneg ε]
-    have hmul : 0 ≤ ε * (20 - 219 * ε + 27 * ε ^ 2) :=
+    have hmul : 0 ≤ ε * (8 - 362 * ε + 45 * ε ^ 2) :=
       mul_nonneg hε.le hpoly.le
     nlinarith
   have hproduct :
-      (((1 : ℝ) / (8 + 24 * ε)) * Real.log x) ≤
+      (((1 : ℝ) / (8 + 20 * ε)) * Real.log x) ≤
         (twinConst * P / 2) *
           Real.log ((x : ℝ) ^ α / (2 * K : ℕ)) := by
     calc
-      ((1 : ℝ) / (8 + 24 * ε)) * Real.log x ≤
+      ((1 : ℝ) / (8 + 20 * ε)) * Real.log x ≤
           (((1 - ε / 8) / 2) * (α - ε / 16)) *
             Real.log x := mul_le_mul_of_nonneg_right hnumeric hlogpos.le
       _ = ((1 - ε / 8) / 2) *
@@ -1852,8 +1852,8 @@ theorem eventually_log_div_coefficient_le_sieveNorm
           Real.log ((x : ℝ) ^ α / (2 * K : ℕ)) := by
         exact mul_le_mul_of_nonneg_right (by linarith) hL0
   calc
-    Real.log x / ((8 + 24 * ε) * chenConst x) =
-        (((1 : ℝ) / (8 + 24 * ε)) * Real.log x) /
+    Real.log x / ((8 + 20 * ε) * chenConst x) =
+        (((1 : ℝ) / (8 + 20 * ε)) * Real.log x) /
           chenConst x := by
       field_simp [hCx.ne']
     _ ≤ ((twinConst * P / 2) *
@@ -1868,7 +1868,7 @@ theorem eventually_sieveMainCoefficient_le
     (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
     ∀ᶠ x : ℕ in atTop, Even x →
       sieveMainCoefficient x ε ≤
-        (8 + 24 * ε) * chenConst x / Real.log x := by
+        (8 + 20 * ε) * chenConst x / Real.log x := by
   filter_upwards [eventually_log_div_coefficient_le_sieveNorm ε hε hε',
       eventually_gt_atTop 1] with x hnorm hx1
   intro hxEven
@@ -1877,9 +1877,9 @@ theorem eventually_sieveMainCoefficient_le
     Real.log_pos (by exact_mod_cast hx1)
   have hCx : 0 < chenConst x :=
     twinConst_pos.trans_le (twinConst_le_chenConst x)
-  have hcoef : 0 < 8 + 24 * ε := by positivity
+  have hcoef : 0 < 8 + 20 * ε := by positivity
   have hlower :
-      0 < Real.log x / ((8 + 24 * ε) * chenConst x) := by positivity
+      0 < Real.log x / ((8 + 20 * ε) * chenConst x) := by positivity
   have hS : 0 < sieveNorm x ε :=
     zero_lt_one.trans_le (one_le_sieveNorm hxEven hx1' hε.le
       (by linarith : ε ≤ 1 / 2))
@@ -1887,9 +1887,9 @@ theorem eventually_sieveMainCoefficient_le
     (by linarith : ε ≤ 1 / 2)]
   calc
     (sieveNorm x ε)⁻¹ ≤
-        (Real.log x / ((8 + 24 * ε) * chenConst x))⁻¹ :=
+        (Real.log x / ((8 + 20 * ε) * chenConst x))⁻¹ :=
       (inv_le_inv₀ hS hlower).2 (hnorm hxEven)
-    _ = (8 + 24 * ε) * chenConst x / Real.log x := by
+    _ = (8 + 20 * ε) * chenConst x / Real.log x := by
       field_simp
 
 end Chen

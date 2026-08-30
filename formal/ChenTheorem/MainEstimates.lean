@@ -14,18 +14,16 @@ The main estimates: Lemmas 5–9 of Chen's paper.
      ≥ 2.6408 x C_x / (log x)²`,
   proved in the paper via Bombieri's theorem and Richert's weighted sieve [11].
 
-The remaining analytic estimates are explicitly isolated as
-`sorry`-placeholders. The final statements of Lemmas 5 and 6 are assembled
-from those estimates by proved finite and algebraic reductions in their
-respective modules.
+Analytic theorems cited by the paper but absent from Mathlib are isolated as
+named trust-boundary declarations in the corresponding lemma directories.
+All finite reductions, error management, integral estimates, and numerical
+deductions in this file are proved in Lean.
 -/
-import ChenTheorem.Lemma7.Normalization
-import ChenTheorem.Main.NumericalBounds
+import ChenTheorem.Lemma7.PrimeNumberTheorem
+import ChenTheorem.Lemma8.PrimeReciprocal
+import ChenTheorem.Lemma9.RichertBombieri
 import Mathlib.Analysis.PSeries
 import Mathlib.Analysis.SpecialFunctions.Log.Summable
-
--- This file is still an explicitly documented collection of formalization targets.
-set_option warn.sorry false
 
 open Filter Real
 open scoped Classical
@@ -293,7 +291,81 @@ theorem mOne_le (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
         (8 + 24 * ε) * (x : ℝ) * chenConst x / Real.log x *
           ∑ q ∈ chenPairs x,
             ((q.1 : ℝ) * (q.2 : ℝ) * Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
-  sorry
+  let η : ℝ := ε / 4
+  have hη : 0 < η := by
+    dsimp only [η]
+    positivity
+  filter_upwards [eventually_sieveMainCoefficient_le ε hε hε',
+      eventually_smoothedPrimeMass_le η hη,
+      eventually_gt_atTop 1] with x hcoefficient hmass hx
+  intro hxEven
+  have hx' : 1 < x := by omega
+  have hlog : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hCx : 0 < chenConst x :=
+    twinConst_pos.trans_le (twinConst_le_chenConst x)
+  have hmass0 : 0 ≤ smoothedPrimeMass x :=
+    smoothedPrimeMass_nonneg hx'
+  have hkernel0 :
+      0 ≤ ∑ q ∈ chenPairs x,
+        ((q.1 : ℝ) * (q.2 : ℝ) *
+          Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
+    apply Finset.sum_nonneg
+    intro q hq
+    have hquotient :
+        1 < (x : ℝ) / ((q.1 : ℝ) * q.2) :=
+      one_lt_pairQuotient hq
+    have hqdata := (Finset.mem_filter.mp hq).2
+    have hp₁ : (0 : ℝ) < q.1 := by exact_mod_cast hqdata.1.pos
+    have hp₂ : (0 : ℝ) < q.2 := by exact_mod_cast hqdata.2.1.pos
+    have hlogq :
+        0 < Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) :=
+      Real.log_pos hquotient
+    positivity
+  have hscale0 :
+      0 ≤ (8 + 20 * ε) * chenConst x / Real.log x := by
+    positivity
+  have hnumeric :
+      (8 + 20 * ε) * (1 + η) ≤ 8 + 24 * ε := by
+    dsimp only [η]
+    nlinarith [sq_nonneg ε]
+  rw [mOne_eq_sieveMainCoefficient_mul_smoothedPrimeMass]
+  calc
+    sieveMainCoefficient x ε * smoothedPrimeMass x ≤
+        ((8 + 20 * ε) * chenConst x / Real.log x) *
+          smoothedPrimeMass x :=
+      mul_le_mul_of_nonneg_right (hcoefficient hxEven) hmass0
+    _ ≤ ((8 + 20 * ε) * chenConst x / Real.log x) *
+        ((1 + η) * (x : ℝ) *
+          ∑ q ∈ chenPairs x,
+            ((q.1 : ℝ) * (q.2 : ℝ) *
+              Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) :=
+      mul_le_mul_of_nonneg_left hmass hscale0
+    _ ≤ (8 + 24 * ε) * (x : ℝ) * chenConst x / Real.log x *
+        ∑ q ∈ chenPairs x,
+          ((q.1 : ℝ) * (q.2 : ℝ) *
+            Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
+      calc
+        ((8 + 20 * ε) * chenConst x / Real.log x) *
+            ((1 + η) * (x : ℝ) *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) =
+          ((8 + 20 * ε) * (1 + η)) *
+            ((x : ℝ) * chenConst x / Real.log x *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) := by ring
+        _ ≤ (8 + 24 * ε) *
+            ((x : ℝ) * chenConst x / Real.log x *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) := by
+          gcongr
+        _ = (8 + 24 * ε) * (x : ℝ) * chenConst x / Real.log x *
+            ∑ q ∈ chenPairs x,
+              ((q.1 : ℝ) * (q.2 : ℝ) *
+                Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by ring
 
 /-! ### Lemma 8 -/
 
@@ -307,7 +379,36 @@ theorem chenPairs_kernel_le_integral
           ((q.1 : ℝ) * (q.2 : ℝ) *
             Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
         (equation24Integral + δ) / Real.log x := by
-  sorry
+  let η : ℝ := δ / (equation24Integral + 1)
+  have hI0 : 0 ≤ equation24Integral := equation24Integral_nonneg
+  have hden : 0 < equation24Integral + 1 := by linarith
+  have hη : 0 < η := by
+    dsimp only [η]
+    exact div_pos hδ hden
+  have hpartial :=
+    eventually_chenPairs_kernel_le_one_add_mul_integral η hη
+  filter_upwards [hpartial, eventually_gt_atTop 1] with x hpartial hx
+  have hlog : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hfrac :
+      equation24Integral / (equation24Integral + 1) ≤ 1 :=
+    (div_le_one hden).2 (by linarith)
+  have hηI : η * equation24Integral ≤ δ := by
+    calc
+      η * equation24Integral =
+          δ * (equation24Integral / (equation24Integral + 1)) := by
+        dsimp only [η]
+        ring
+      _ ≤ δ * 1 := mul_le_mul_of_nonneg_left hfrac hδ.le
+      _ = δ := by ring
+  calc
+    ∑ q ∈ chenPairs x,
+        ((q.1 : ℝ) * (q.2 : ℝ) *
+          Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
+      (1 + η) * equation24Integral / Real.log x := hpartial
+    _ ≤ (equation24Integral + δ) / Real.log x := by
+      apply (div_le_div_iff_of_pos_right hlog).2
+      nlinarith
 
 /-- The numerical form of (23)--(24).  The extra `0.000001` absorbs the
 limiting error in the two partial-summation steps. -/
@@ -494,7 +595,7 @@ theorem richert_weighted_sieve_estimate
           (1 / 2) *
             ∑ p' ∈ midPrimes x,
               (sievedPrimeCountAt x p' : ℝ) := by
-  sorry
+  exact eventually_richert_bombieri_equation26 δ hδ
 
 /-- Richert--Bombieri with equation (27) inserted.  Keeping `δ` explicit is
 important: the paper does not prove the stronger estimate with the limiting

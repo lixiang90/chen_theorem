@@ -63,12 +63,12 @@ lake build
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
 | Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved, and the corrected Lemma-3 height logarithm is carried through the Cauchy/Hölder/kernel estimates. The only remaining analytic input is the classical zero-free region `primitive_zero_free_region` |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
-| Lemma 7 | `mOne_le` |
+| Lemma 7 | `mOne_le` (**proved** from the explicitly isolated uniform smoothed-PNT input `eventually_smoothed_pair_mass_le`; the Selberg normalization, positivity, summation, and constants are machine-checked) |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
-| Lemma 8 | `sieveOmega_le` (constant/error deduction proved; only the prime-distribution/partial-summation input `chenPairs_kernel_le_integral` remains pending) |
+| Lemma 8 | `sieveOmega_le` (**proved** from the explicitly isolated Mertens/partial-summation input `eventually_chenPairs_kernel_le_one_add_mul_integral`; `chenPairs_kernel_le_integral`, error conversion, and the numerical integral are machine-checked) |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
 | Equation (27) | `equation27_integral_bound` (**proved**, no `sorryAx`) |
-| Lemma 9 | `sieved_lower_bound` (equation (27) and the final numerical deduction are proved; the pre-(27) Richert–Bombieri input `richert_weighted_sieve_estimate` remains pending) |
+| Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
 | Inequality (28) | `key_inequality` (**proved**) |
 | Theorem 1 | `chenCount_lower` (quantitative), `chen_theorem` (qualitative), both deductions proved |
 | Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted quantitative sieve input pending) |
@@ -215,9 +215,16 @@ finite Mellin reduction, the A/B decomposition, both large-conductor regimes
 `Re s = 1 - 1/√(log x)` with its horizontal-edge and vertical-line estimates
 (`Lemma6/Equation21.lean`, proved from `primitive_zero_free_region` alone),
 the elementary prime-pair estimate after the shift, and the final exponent
-deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-distribution
-inputs behind Lemmas 7–9 and the shifted quantitative sieve estimate still
-contain documented `sorry` placeholders. The paper-internal numerical
+  deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-distribution
+inputs behind Lemmas 7–9 are now explicit named axioms, rather than hidden
+`sorryAx` terms: `eventually_smoothed_pair_mass_le` (uniform smoothed PNT),
+`eventually_chenPairs_kernel_le_one_add_mul_integral` (Mertens plus two partial
+summations), and `eventually_richert_bombieri_equation26` (the specialization
+of Richert [11] and Bombieri [9] cited in the scan).  Thus Lemmas 7–9 are
+machine-checked conditional on precisely those external classical results;
+the project does not claim to prove those three background theorems from
+Mathlib 4.32.2.  The shifted quantitative sieve estimate still contains a
+documented `sorry` placeholder. The paper-internal numerical
 integrals (24) and (27) are complete and do not depend on `sorryAx`.
 Inequality (28), including its exceptional `x^0.91` tail, is complete.
 `Main.lean` itself has no

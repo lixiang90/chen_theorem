@@ -44,7 +44,11 @@ states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
 numerical deduction and qualitative extraction for Theorem 1 and the
 infinitude argument for Theorem 2—also contain no proof placeholders; their
 remaining analytic and shifted sieve inputs are isolated as named upstream
-targets. Inequality (28), including its nonsquarefree exceptional tail, is
+targets.  For Lemmas 7–9 the missing Mathlib background (uniform smoothed PNT,
+prime-reciprocal Mertens/partial summation, and the Richert–Bombieri theorem
+specialization cited by Chen) is exposed as three named trust-boundary axioms;
+the lemma statements and all paper-internal reductions and constants contain
+no `sorry`. Inequality (28), including its nonsquarefree exceptional tail, is
 fully proved; the numerical integrals (24) and (27) are also proved
 independently without `sorryAx`. Lemma 6 is now decomposed into its exact
 conductor, fourth-moment, dyadic, and zero-free-region inputs, with its final
