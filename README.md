@@ -38,7 +38,7 @@ Each may need to be run twice to resolve cross-references.
 
 ## The Lean formalization
 
-`formal/` is a Lake project targeting Lean `v4.32.1` / Mathlib `v4.32.1`. It
+`formal/` is a Lake project targeting Lean `v4.32.2` / Mathlib `v4.32.2`. It
 states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
 4, and 5 are fully proved. The final deductions in `Main.lean`—including the
 numerical deduction and qualitative extraction for Theorem 1 and the

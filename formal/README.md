@@ -9,8 +9,8 @@ This is a Lake project giving a **formal skeleton** — precise Lean statements 
 (A LaTeX transcription of the paper, in Chinese and English, lives in the parent
 directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 
-- **Lean**: `leanprover/lean4:v4.32.1`
-- **Mathlib**: release tag `v4.32.1`
+- **Lean**: `leanprover/lean4:v4.32.2`
+- **Mathlib**: release tag `v4.32.2`
 
 ## Build
 
@@ -178,10 +178,10 @@ lake build
 
 ## Status
 
-Builds cleanly with `lake build` (Lean `v4.32.1`, Mathlib `v4.32.1`) with zero
-errors; the only warning is the intentional `declaration uses 'sorry'` for the
-documented zero-free-region placeholder `primitive_zero_free_region`
-(`Lemma6/ZeroFreeRegion.lean`).
+Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
+The remaining output consists of non-fatal linter notices and the intentional
+`declaration uses 'sorry'` warning for the documented zero-free-region
+placeholder `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`).
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of

@@ -19,8 +19,10 @@ The remaining analytic estimates are explicitly isolated as
 from those estimates by proved finite and algebraic reductions in their
 respective modules.
 -/
-import ChenTheorem.Lemma6.Core
+import ChenTheorem.Lemma7.Normalization
 import ChenTheorem.Main.NumericalBounds
+import Mathlib.Analysis.PSeries
+import Mathlib.Analysis.SpecialFunctions.Log.Summable
 
 -- This file is still an explicitly documented collection of formalization targets.
 set_option warn.sorry false
@@ -29,17 +31,6 @@ open Filter Real
 open scoped Classical
 
 namespace Chen
-
-/-! ### Positivity of the singular series -/
-
-/-- The twin-prime constant is positive. -/
-theorem twinConst_pos : 0 < twinConst := by
-  sorry
-
-/-- `C_x ≥ ∏_{p>2} (1 - 1/(p-1)²)`, since the finite product over `p ∣ x` has all
-factors `≥ 1`. -/
-theorem twinConst_le_chenConst (x : ℕ) : twinConst ≤ chenConst x := by
-  sorry
 
 /-! ### Lemma 5 -/
 
