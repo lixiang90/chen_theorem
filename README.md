@@ -56,11 +56,12 @@ toward the last target is now explicit rather than hidden behind the aggregate
 estimate: the fixed-shift definitions and the parallel forms of Lemmas 1--4
 are complete, and shifted Lemma 5 is now proved through its smoothing boundary,
 arithmetic error terms, and final `Omega <= M1 + M2` estimate.  Shifted Lemma 6
-has reached the conductor decomposition and the first equation-(12) reductions
-to the finite `N_m` majorant, including the harmonic-convolution bound for its
-modulus weights.  The remaining analytic estimates in shifted Lemma 6 and the
-shifted Lemmas 7--9 still need to be formalized.  The final numerical deduction
-and representation extraction for Theorem 1, and the infinitude deduction for
+now includes the full conductor and equation-(12) reductions, the complete
+small-conductor equation-(21) contour estimate, and the large-conductor scalar
+majorants and A contributions for equations (19)--(20).  The equation-(19) B
+contribution is also formalized; equation (20), the final large-conductor
+assembly, and shifted Lemmas 7--9 remain.  The final numerical deduction and
+representation extraction for Theorem 1, and the infinitude deduction for
 Theorem 2, are proved from the
 named upstream estimates in `Main.lean`. See
 [`formal/README.md`](formal/README.md) for the build instructions, the full

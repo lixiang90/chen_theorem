@@ -3,7 +3,7 @@ import ChenTheorem.Main.ShiftedSieveLemmas
 import ChenTheorem.Main.ShiftedLemma5
 import ChenTheorem.Main.ShiftedLemma5Boundary
 import ChenTheorem.Main.ShiftedLemma5Arithmetic
-import ChenTheorem.Main.ShiftedLemma6
+import ChenTheorem.Main.ShiftedLemma6Large
 
 open Filter Real
 open scoped Classical
