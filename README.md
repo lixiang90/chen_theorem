@@ -47,25 +47,17 @@ and both prime-reciprocal partial-summation steps used in Lemma 8 have now been
 proved in Lean from `PrimeNumberTheoremAnd`, and the numerical integrals (24)
 and (27) and inequality (28) are machine-checked without `sorryAx`.
 
-Three explicit upstream targets remain. Lemma 6 depends on a documented
-classical zero-free-region and `L'/L` estimate proved by `sorry`; Lemma 9
-depends on one named axiom combining the Richert weighted-sieve and
-Bombieri--Vinogradov specializations cited by Chen; and the fixed-shift
-quantitative estimate used for Theorem 2 remains a documented `sorry`.  Work
-toward the last target is now explicit rather than hidden behind the aggregate
-estimate: the fixed-shift definitions and the parallel forms of Lemmas 1--4
-are complete, and shifted Lemma 5 is now proved through its smoothing boundary,
-arithmetic error terms, and final `Omega <= M1 + M2` estimate.  Shifted Lemma 6
-is now complete: the conductor split, equations (12)--(21), both A/B
-large-conductor contributions, the final dyadic-block assembly, and the
-`N_m`/`M2` logarithmic bounds are machine-checked (conditional only on the same
-documented zero-free-region input as the unshifted proof).  Shifted Lemma 7 has
-also reached the exact Selberg normalization identity (22), and a dyadic
-comparison with the unshifted normalization proves the required eventual lower
-bound with one unit of epsilon slack.  Its final `M1` estimate and shifted
-Lemmas 8--9 remain.  The final numerical deduction and representation
-extraction for Theorem 1, and the infinitude deduction for Theorem 2, are proved
-from the
+Three explicit analytic trust boundaries remain. Lemma 6 and its shifted
+counterpart share a documented classical zero-free-region and `L'/L` estimate
+proved by `sorry`; the original and fixed-shift forms of Lemma 9 each depend on
+a named Richert weighted-sieve/Bombieri--Vinogradov specialization.  Everything
+else in the fixed-shift chain is now explicit: the parallel Lemmas 1--9, the
+shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
+passage from even auxiliary scales to every sufficiently large scale are all
+machine-checked.  In particular the former aggregate `sorry` in
+`chenCountShift_lower_estimate` has been removed.  The final numerical
+deduction and representation extraction for Theorem 1, and the infinitude
+deduction for Theorem 2, are proved from the
 named upstream estimates in `Main.lean`. See
 [`formal/README.md`](formal/README.md) for the build instructions, the full
 correspondence table, and design notes.

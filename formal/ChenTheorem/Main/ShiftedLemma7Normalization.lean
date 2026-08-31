@@ -219,4 +219,129 @@ theorem eventually_log_div_shiftedCoefficient_le_shiftedSieveNorm
       sieveNorm_comparisonScale_le_shiftedSieveNorm
         hh0 hhEven hhx hε.le (by linarith)
 
+/-- The exact shifted Selberg coefficient is bounded by the reciprocal of the
+normalization lower bound. -/
+theorem eventually_shiftedSieveMainCoefficient_le
+    (h : ℕ) (hh0 : 0 < h) (hhEven : Even h)
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop,
+      shiftedSieveMainCoefficient h x ε ≤
+        (8 + 21 * ε) * chenConst h / Real.log (x : ℝ) := by
+  filter_upwards [
+      eventually_log_div_shiftedCoefficient_le_shiftedSieveNorm
+        h hh0 hhEven ε hε hε',
+      eventually_gt_atTop 1] with x hnorm hx1
+  have hx1' : 1 ≤ x := by omega
+  have hlog : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx1)
+  have hCh : 0 < chenConst h :=
+    twinConst_pos.trans_le (twinConst_le_chenConst h)
+  have hcoef : 0 < 8 + 21 * ε := by positivity
+  have hlower :
+      0 < Real.log (x : ℝ) / ((8 + 21 * ε) * chenConst h) := by
+    positivity
+  have hS : 0 < shiftedSieveNorm h x ε :=
+    zero_lt_one.trans_le
+      (one_le_shiftedSieveNorm hhEven hx1' hε.le
+        (by linarith : ε ≤ 1 / 2))
+  rw [shiftedSieveMainCoefficient_eq_inv_shiftedSieveNorm
+    hhEven hx1' hε.le (by linarith : ε ≤ 1 / 2)]
+  calc
+    (shiftedSieveNorm h x ε)⁻¹ ≤
+        (Real.log (x : ℝ) /
+          ((8 + 21 * ε) * chenConst h))⁻¹ :=
+      (inv_le_inv₀ hS hlower).2 hnorm
+    _ = (8 + 21 * ε) * chenConst h / Real.log (x : ℝ) := by
+      field_simp
+
+/-- **Shifted Lemma 7**: the fixed-shift principal term has the same
+prime-pair kernel as in the original argument, with singular series `C_h`. -/
+theorem shiftedMOne_le
+    (h : ℕ) (hh0 : 0 < h) (hhEven : Even h)
+    (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop, Even x →
+      shiftedMOne h x ε ≤
+        (8 + 24 * ε) * (x : ℝ) * chenConst h / Real.log (x : ℝ) *
+          ∑ q ∈ chenPairs x,
+            ((q.1 : ℝ) * (q.2 : ℝ) *
+              Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
+  let η : ℝ := ε / 4
+  have hη : 0 < η := by
+    dsimp only [η]
+    positivity
+  filter_upwards [
+      eventually_shiftedSieveMainCoefficient_le h hh0 hhEven ε hε hε',
+      eventually_smoothedPrimeMass_le η hη,
+      eventually_gt_atTop 1] with x hcoefficient hmass hx
+  intro _hxEven
+  have hx' : 1 < x := by omega
+  have hlog : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast hx)
+  have hCh : 0 < chenConst h :=
+    twinConst_pos.trans_le (twinConst_le_chenConst h)
+  have hmass0 : 0 ≤ smoothedPrimeMass x :=
+    smoothedPrimeMass_nonneg hx'
+  have hkernel0 :
+      0 ≤ ∑ q ∈ chenPairs x,
+        ((q.1 : ℝ) * (q.2 : ℝ) *
+          Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
+    apply Finset.sum_nonneg
+    intro q hq
+    have hquotient :
+        1 < (x : ℝ) / ((q.1 : ℝ) * q.2) :=
+      one_lt_pairQuotient hq
+    have hqdata := (Finset.mem_filter.mp hq).2
+    have hp₁ : (0 : ℝ) < q.1 := by exact_mod_cast hqdata.1.pos
+    have hp₂ : (0 : ℝ) < q.2 := by exact_mod_cast hqdata.2.1.pos
+    have hlogq :
+        0 < Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)) :=
+      Real.log_pos hquotient
+    positivity
+  have hscale0 :
+      0 ≤ (8 + 21 * ε) * chenConst h / Real.log (x : ℝ) := by
+    positivity
+  have hnumeric :
+      (8 + 21 * ε) * (1 + η) ≤ 8 + 24 * ε := by
+    dsimp only [η]
+    nlinarith [sq_nonneg ε]
+  rw [shiftedMOne_eq_sieveMainCoefficient_mul_smoothedPrimeMass]
+  calc
+    shiftedSieveMainCoefficient h x ε * smoothedPrimeMass x ≤
+        ((8 + 21 * ε) * chenConst h / Real.log (x : ℝ)) *
+          smoothedPrimeMass x :=
+      mul_le_mul_of_nonneg_right hcoefficient hmass0
+    _ ≤ ((8 + 21 * ε) * chenConst h / Real.log (x : ℝ)) *
+        ((1 + η) * (x : ℝ) *
+          ∑ q ∈ chenPairs x,
+            ((q.1 : ℝ) * (q.2 : ℝ) *
+              Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) :=
+      mul_le_mul_of_nonneg_left hmass hscale0
+    _ ≤ (8 + 24 * ε) * (x : ℝ) * chenConst h /
+        Real.log (x : ℝ) *
+          ∑ q ∈ chenPairs x,
+            ((q.1 : ℝ) * (q.2 : ℝ) *
+              Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by
+      calc
+        ((8 + 21 * ε) * chenConst h / Real.log (x : ℝ)) *
+            ((1 + η) * (x : ℝ) *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) =
+          ((8 + 21 * ε) * (1 + η)) *
+            ((x : ℝ) * chenConst h / Real.log (x : ℝ) *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) := by ring
+        _ ≤ (8 + 24 * ε) *
+            ((x : ℝ) * chenConst h / Real.log (x : ℝ) *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹) := by
+          gcongr
+        _ = (8 + 24 * ε) * (x : ℝ) * chenConst h /
+            Real.log (x : ℝ) *
+              ∑ q ∈ chenPairs x,
+                ((q.1 : ℝ) * (q.2 : ℝ) *
+                  Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ := by ring
+
 end Chen

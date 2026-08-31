@@ -53,8 +53,11 @@ lake build
 | `ChenTheorem/Main/ShiftedLemma6.lean` | The shifted Lemma 6 conductor decomposition, reduction to the finite `N_m` of equation (12), the completed small-conductor equation-(21) contour estimate, and the interfaces for the large-conductor dyadic blocks |
 | `ChenTheorem/Main/ShiftedLemma6Large.lean` | Completion of shifted Lemma 6: scalar block majorants, cutoff/logarithm and mollifier-scale estimates, both A/B contributions in equations (19)--(20), the per-block bounds, and the final large-conductor `N_m` and `M2` logarithmic estimates |
 | `ChenTheorem/Main/ShiftedLemma7.lean` | The shifted Lemmas 5--6 combination and the algebraic part of shifted Lemma 7, including Selberg diagonalization, the shifted Moebius transform, and the exact normalization identity (22) |
-| `ChenTheorem/Main/ShiftedLemma7Normalization.lean` | Dyadic comparison of the fixed-shift normalization with the unshifted Lemma 7 normalization, preserving the singular series and proving the eventual lower bound with coefficient `8 + 21 * epsilon` |
-| `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated aggregate quantitative input for the fixed-shift version; it imports the completed shifted Lemmas 1--6 and the current shifted Lemma 7 development while the final `M1` bound and shifted Lemmas 8--9 are pending |
+| `ChenTheorem/Main/ShiftedLemma7Normalization.lean` | Dyadic comparison of the fixed-shift normalization with the unshifted Lemma 7 normalization, the coefficient bound, and the completed shifted `M1` estimate with coefficient `8 + 24 * epsilon` |
+| `ChenTheorem/Main/ShiftedLemma8.lean` | The completed shifted Lemma 8, reusing the shift-independent prime-pair kernel and proving `shiftedSieveOmega ≤ 3.9404 x C_h/(log x)^2` |
+| `ChenTheorem/Main/ShiftedLemma9.lean` | The completed numerical deduction for shifted Lemma 9 from its explicitly isolated fixed-residue Richert--Bombieri specialization |
+| `ChenTheorem/Main/ShiftedKeyInequality.lean` | Fixed-shift inequality (28): prime-factor classification, two-witness injection, endpoint and nonsquarefree exception bounds, and the final `x^0.91` loss |
+| `ChenTheorem/Main/ShiftedEstimate.lean` | Complete aggregation of shifted Lemmas 1--9 and inequality (28), including the `0.67` numerical gap and the even-floor argument removing the auxiliary parity restriction on the scale |
 | `ChenTheorem/Main.lean` | Completed deductions of inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), and Theorem 2 (twin analogue) from the named upstream estimates |
 
 ## Correspondence with the paper
@@ -84,7 +87,7 @@ lake build
 | Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
 | Inequality (28) | `key_inequality` (**proved**) |
 | Theorem 1 | `chenCount_lower` (quantitative), `chen_theorem` (qualitative), both deductions proved |
-| Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted Lemmas 1--6 are complete modulo the shared zero-free-region input, and shifted Lemma 7 now includes the exact identity (22) and its dyadic normalization comparison; the final shifted `M1` estimate, shifted Lemmas 8--9, and the aggregate quantitative estimate remain) |
+| Theorem 2 | `chenCountShift_lower`, `chen_twin` (**proved** from the complete shifted Lemmas 1--9 and shifted inequality (28), conditional only on the shared zero-free-region input and the named fixed-shift Richert--Bombieri specialization) |
 
 ## Design notes / deliberate simplifications
 
@@ -192,28 +195,22 @@ lake build
 ## Status
 
 Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
-The project itself contains exactly two documented `sorry` declarations and
-one explicit non-foundational axiom:
+The project itself contains exactly one documented `sorry` declaration and
+two explicit non-foundational axioms:
 
 * `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`) supplies the
   classical zero-free region and companion `L'/L` bound needed by Lemma 6;
 * `eventually_richert_bombieri_equation26`
   (`Lemma9/RichertBombieri.lean`) supplies the combined Richert weighted-sieve
   and Bombieri--Vinogradov specialization needed by Lemma 9;
-* `chenCountShift_lower_estimate` (`Main/ShiftedEstimate.lean`) is the pending
-  fixed-shift sieve estimate used by Theorem 2.  Its dependency chain is now
-  being exposed explicitly: `Main/ShiftedDefs.lean` supplies the shifted
-  objects, `Main/ShiftedSieveLemmas.lean` proves the parallel Lemmas 1--4, and
-  the three `Main/ShiftedLemma5*.lean` files complete the parallel Lemma 5,
-  including its smoothing boundary and arithmetic error assembly.
-  `Main/ShiftedLemma6.lean` and `Main/ShiftedLemma6Large.lean` now complete the
-  parallel Lemma 6, from the conductor decomposition and equation (12) through
-  the small-conductor equation-(21) contour argument, both A/B contributions
-  in equations (19)--(20), and the final `N_m`/`M2` assembly.
-  `Main/ShiftedLemma7.lean` proves the exact Selberg normalization identity
-  (22), while `Main/ShiftedLemma7Normalization.lean` transfers the unshifted
-  asymptotic normalization along dyadic multiples of the fixed shift.  The
-  final shifted `M1` estimate and shifted Lemmas 8--9 remain.
+* `eventually_shifted_richert_bombieri_equation26`
+  (`Main/ShiftedLemma9.lean`) is the corresponding fixed-residue specialization
+  used by shifted Lemma 9.
+
+The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
+proof now runs through the complete shifted Lemmas 1--9, shifted inequality
+(28), the numerical gap `2.6408 - 3.9404/2`, and an even-floor comparison that
+extends the auxiliary even-scale estimate to every sufficiently large `x`.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -257,11 +254,10 @@ The paper-internal numerical integrals (24) and (27), inequality (28), the
 final numerical deduction and extraction of an actual representation for
 Theorem 1, and the infinitude deduction for Theorem 2 are complete.
 Consequently Theorem 1 is conditional only on the zero-free-region and
-Richert--Bombieri inputs above.  Theorem 2 additionally awaits the shifted
-quantitative sieve estimate.  For its nine-lemma parallel chain, Lemmas 1--6
-are complete (Lemma 6 shares the original zero-free-region trust boundary).
-Shifted Lemma 7 has reached equation (22) and the eventual normalization lower
-bound with coefficient `8 + 21 * epsilon`; its final `M1` upper bound and
-shifted Lemmas 8--9 still need to be carried over.  In the original Theorem 1
-chain, Lemmas 1, 2, 4, 5, and 7 are complete machine-checked proofs; Lemma 3 is
-complete in the corrected form used by the argument.
+Richert--Bombieri inputs above.  Theorem 2's complete nine-lemma parallel chain
+is now machine-checked conditional on the same zero-free-region input and the
+fixed-shift Richert--Bombieri specialization.  Shifted inequality (28), the
+quantitative estimate `chenCountShift_lower_estimate`, and the final infinitude
+deduction are also complete.  In the original Theorem 1 chain, Lemmas 1, 2, 4,
+5, and 7 are complete machine-checked proofs; Lemma 3 is complete in the
+corrected form used by the argument.
