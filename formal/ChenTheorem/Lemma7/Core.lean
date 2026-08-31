@@ -35,7 +35,7 @@ theorem mOne_eq_sieveMainCoefficient_mul_smoothedPrimeMass
 positivity fact is needed before equation (22) can divide by `S`. -/
 theorem one_le_sieveNorm
     {x : ℕ} {ε : ℝ} (hx : Even x) (hx1 : 1 ≤ x)
-    (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
+    (_hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
     1 ≤ sieveNorm x ε := by
   have hexp : 0 ≤ (1 : ℝ) / 4 - ε / 2 := by linarith
   have hmem : 1 ∈ sieveNormIndices x ε := by
@@ -131,7 +131,7 @@ theorem lcm_mem_sieveModuli_of_mem_sieveNormIndices
   exact ⟨by omega, hlcmPos, hlcmCoprime, hlcmR⟩
 
 theorem sieveWeight_eq_zero_of_divisor_not_mem_sieveNormIndices
-    {x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (hε0 : 0 ≤ ε)
+    {x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (_hε0 : 0 ≤ ε)
     (hε : ε ≤ 1 / 2) (hd : d ∈ sieveModuli x ε)
     (hq : q ∈ d.divisors) (hqnot : q ∉ sieveNormIndices x ε) :
     sieveWeight x ε q = 0 := by
@@ -331,7 +331,7 @@ theorem totient_gcd_mul_totient_lcm_of_squarefree
 /-- The divisor expansion of the lcm kernel used to diagonalize (22). -/
 theorem inv_totient_lcm_eq
     {a b : ℕ} (ha : Squarefree a) (hb : Squarefree b)
-    (haodd : Odd a) (hbodd : Odd b) :
+    (haodd : Odd a) (_hbodd : Odd b) :
     ((Nat.totient (a.lcm b) : ℝ))⁻¹ =
       ((Nat.totient a : ℝ))⁻¹ *
         ((Nat.totient b : ℝ))⁻¹ *
@@ -509,7 +509,10 @@ theorem sieveMainCoefficient_eq_diagonal
         rw [Finset.mul_sum, Finset.mul_sum]
         apply Finset.sum_congr rfl
         intro b hb
-        by_cases hkb : k ∣ b <;> simp [hkb] <;> ring
+        by_cases hkb : k ∣ b
+        · simp [hkb]
+          ring
+        · simp [hkb]
       · simp [hka]
     _ = ∑ k ∈ sieveNormIndices x ε,
         fW k *
@@ -763,7 +766,7 @@ theorem sum_sieveWeightTransform_eq_source
   · simp [hnmem, hnle]
   by_cases hnsq : Squarefree n <;> simp [hnmem, hnsq, hnle]
 
-theorem sum_moebius_divisors (n : ℕ) (hn : 0 < n) :
+theorem sum_moebius_divisors (n : ℕ) (_hn : 0 < n) :
     ∑ d ∈ n.divisors, ArithmeticFunction.moebius d =
       if n = 1 then 1 else 0 := by
   calc

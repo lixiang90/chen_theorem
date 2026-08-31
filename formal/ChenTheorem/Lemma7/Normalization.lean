@@ -932,7 +932,7 @@ theorem sieveNorm_eq_sum_convolutionSource
             (Nat.totient (k / q) : ℝ))
       have hkS := (Finset.mem_filter.mp hkQ).1
       have hkS' := hkS
-      simp only [S, sieveNormIndices, Finset.mem_filter,
+      simp only [sieveNormIndices, Finset.mem_filter,
         Finset.mem_range] at hkS'
       have hdivsubset : k.divisors ⊆ Finset.range (x + 1) := by
         intro q hq
@@ -1220,7 +1220,7 @@ theorem sum_divisors_moebius_sq_div_nat_mul_fW
       exact ArithmeticFunction.moebius_sq_eq_one_of_squarefree husq
     rw [hμ, fW_eq_prod_sub_two_of_squarefree_odd husq huodd,
       Nat.primeFactors_prod huprime, Nat.cast_prod]
-    simp only [Int.cast_one, one_pow, one_div]
+    simp only [one_div]
     rw [← Finset.prod_mul_distrib, Finset.prod_inv_distrib]
   calc
     (∑ u ∈ d.primeFactorsList.toFinset.powerset,
@@ -1260,8 +1260,8 @@ theorem divisor_mem_sieveNormIndices
 /-- Uniform logarithmic lower bound for divisors of a fixed finite Euler
 product.  The factor `2` absorbs the integer floor. -/
 theorem log_rpow_div_two_mul_le_log_sieveNumeratorCutoff
-    {x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (hε0 : 0 ≤ ε)
-    (hdx : d.Coprime x)
+    {x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (_hε0 : 0 ≤ ε)
+    (_hdx : d.Coprime x)
     (h2dR : ((2 * d : ℕ) : ℝ) ≤
       (x : ℝ) ^ ((1 : ℝ) / 4 - ε / 2))
     (hq : q ∈ d.divisors) :
@@ -1496,7 +1496,7 @@ theorem totient_div_mul_chenConst_eq_finiteEulerProduct
 
 theorem totient_div_mul_eulerProduct_mul_chenConst
     {x d : ℕ} (hx : Even x) (hx1 : 1 ≤ x)
-    (hodd : Odd d) (hdx : d.Coprime x) :
+    (_hodd : Odd d) (hdx : d.Coprime x) :
     (((Nat.totient x : ℝ) / x) *
         (∏ p ∈ d.primeFactors,
           (1 + (1 : ℝ) / ((p : ℝ) * ((p : ℝ) - 2)))) *

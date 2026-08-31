@@ -242,7 +242,7 @@ theorem primeReciprocal_abel_decomposition_auto
 increasing weight. -/
 theorem abel_error_le_of_nonneg_deriv
     {a b ε : ℝ} {f f' E : ℝ → ℝ}
-    (hab : a ≤ b) (hε : 0 ≤ ε)
+    (hab : a ≤ b) (_hε : 0 ≤ ε)
     (hE : ∀ t ∈ Set.Icc a b, |E t| ≤ ε)
     (hfa : 0 ≤ f a) (hfb : 0 ≤ f b)
     (hf' : ∀ t ∈ Set.Ioc a b, 0 ≤ f' t)
@@ -1252,7 +1252,7 @@ theorem primeReciprocal_mertens_power_interval
       (nhds (Real.log b - Real.log a)) :=
     (tendsto_congr' (eventually_log_log_rpow_sub ha hb)).2
       tendsto_const_nhds
-  convert herr.add hmain using 1 <;> ring
+  convert herr.add hmain using 1 <;> ring_nf
 
 /-- Mertens' error is uniformly small above any fixed positive power of the
 main parameter. -/

@@ -74,7 +74,7 @@ theorem shiftedMOne_eq_sieveMainCoefficient_mul_smoothedPrimeMass
 /-- The shifted normalizing sum contains its `k = 1` term. -/
 theorem one_le_shiftedSieveNorm
     {h x : ℕ} {ε : ℝ} (hhEven : Even h) (hx1 : 1 ≤ x)
-    (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
+    (_hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
     1 ≤ shiftedSieveNorm h x ε := by
   have hexp : 0 ≤ (1 : ℝ) / 4 - ε / 2 := by linarith
   have hmem : 1 ∈ shiftedSieveNormIndices h x ε := by
@@ -174,7 +174,7 @@ theorem lcm_mem_shiftedSieveModuli_of_mem_shiftedSieveNormIndices
   exact ⟨by omega, hlcmPos, hlcmCoprime, hlcmR⟩
 
 theorem shiftedSieveWeight_eq_zero_of_divisor_not_mem_normIndices
-    {h x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (hε0 : 0 ≤ ε)
+    {h x d q : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (_hε0 : 0 ≤ ε)
     (hε : ε ≤ 1 / 2) (hd : d ∈ shiftedSieveModuli h x ε)
     (hq : q ∈ d.divisors)
     (hqnot : q ∉ shiftedSieveNormIndices h x ε) :
@@ -462,7 +462,10 @@ theorem shiftedSieveMainCoefficient_eq_diagonal
         rw [Finset.mul_sum, Finset.mul_sum]
         apply Finset.sum_congr rfl
         intro b hb
-        by_cases hkb : k ∣ b <;> simp [hkb] <;> ring
+        by_cases hkb : k ∣ b
+        · simp [hkb]
+          ring
+        · simp [hkb]
       · simp [hka]
     _ = ∑ k ∈ shiftedSieveNormIndices h x ε,
         fW k *

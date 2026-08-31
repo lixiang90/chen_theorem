@@ -120,7 +120,7 @@ theorem even_shiftedLemma7ComparisonScale
 the shifted normalizing set at `x`. -/
 theorem sieveNorm_comparisonScale_le_shiftedSieveNorm
     {h x : ℕ} {ε : ℝ} (hh0 : 0 < h) (hhEven : Even h)
-    (hhx : h ≤ x) (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
+    (hhx : h ≤ x) (_hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 2) :
     sieveNorm (shiftedLemma7ComparisonScale h x) ε ≤
       shiftedSieveNorm h x ε := by
   let y := shiftedLemma7ComparisonScale h x

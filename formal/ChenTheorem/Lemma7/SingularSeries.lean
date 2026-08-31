@@ -44,8 +44,8 @@ theorem norm_twinFactorIncrement_le (p : Nat.Primes) :
 theorem summable_norm_twinFactorIncrement :
     Summable (fun p : Nat.Primes => ‖twinFactorIncrement p‖) := by
   have hbase : Summable (fun n : ℕ => ((n : ℝ) ^ 2)⁻¹) := by
-    simpa [one_div] using
-      (Real.summable_nat_pow_inv.mpr (by norm_num : 1 < 2))
+    have htwo : (1 : ℕ) < 2 := by norm_num
+    simpa only [one_div] using Real.summable_nat_pow_inv.mpr htwo
   have hsub : Summable (fun p : Nat.Primes => (((p : ℕ) : ℝ) ^ 2)⁻¹) :=
     hbase.subtype Nat.Prime
   refine (hsub.mul_left 4).of_nonneg_of_le (fun p => norm_nonneg _) ?_
@@ -103,8 +103,8 @@ theorem twinConst_pos : 0 < twinConst := by
       - (1 : ℝ) / ((((p : ℕ) : ℝ) - 1) ^ 2) else 0
   have ha_summable : Summable (fun p => ‖a p‖) := by
     have hbase : Summable (fun n : ℕ => ((n : ℝ) ^ 2)⁻¹) := by
-      simpa [one_div] using
-        (Real.summable_nat_pow_inv.mpr (by norm_num : 1 < 2))
+      have htwo : (1 : ℕ) < 2 := by norm_num
+      simpa only [one_div] using Real.summable_nat_pow_inv.mpr htwo
     have hsub : Summable (fun p : Nat.Primes => (((p : ℕ) : ℝ) ^ 2)⁻¹) :=
       hbase.subtype Nat.Prime
     refine (hsub.mul_left 4).of_nonneg_of_le (fun p => norm_nonneg _) ?_
