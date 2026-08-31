@@ -56,13 +56,16 @@ toward the last target is now explicit rather than hidden behind the aggregate
 estimate: the fixed-shift definitions and the parallel forms of Lemmas 1--4
 are complete, and shifted Lemma 5 is now proved through its smoothing boundary,
 arithmetic error terms, and final `Omega <= M1 + M2` estimate.  Shifted Lemma 6
-now includes the full conductor and equation-(12) reductions, the complete
-small-conductor equation-(21) contour estimate, and the large-conductor scalar
-majorants and A contributions for equations (19)--(20).  The equation-(19) B
-contribution is also formalized; equation (20), the final large-conductor
-assembly, and shifted Lemmas 7--9 remain.  The final numerical deduction and
-representation extraction for Theorem 1, and the infinitude deduction for
-Theorem 2, are proved from the
+is now complete: the conductor split, equations (12)--(21), both A/B
+large-conductor contributions, the final dyadic-block assembly, and the
+`N_m`/`M2` logarithmic bounds are machine-checked (conditional only on the same
+documented zero-free-region input as the unshifted proof).  Shifted Lemma 7 has
+also reached the exact Selberg normalization identity (22), and a dyadic
+comparison with the unshifted normalization proves the required eventual lower
+bound with one unit of epsilon slack.  Its final `M1` estimate and shifted
+Lemmas 8--9 remain.  The final numerical deduction and representation
+extraction for Theorem 1, and the infinitude deduction for Theorem 2, are proved
+from the
 named upstream estimates in `Main.lean`. See
 [`formal/README.md`](formal/README.md) for the build instructions, the full
 correspondence table, and design notes.

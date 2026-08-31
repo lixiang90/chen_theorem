@@ -51,8 +51,10 @@ lake build
 | `ChenTheorem/Main/ShiftedLemma5.lean` | The shifted Lemma 5 core: weight support and pointwise bounds, small-third-prime tail, character orthogonality, and the Selberg-square/smoothed-sieve expansion |
 | `ChenTheorem/Main/{ShiftedLemma5Boundary,ShiftedLemma5Arithmetic}.lean` | The smoothing-boundary estimate, shifted `M3`/`M5` arithmetic errors, and the completed final estimate `shiftedSieveOmega_le_mOne_add_mTwo` for shifted Lemma 5 |
 | `ChenTheorem/Main/ShiftedLemma6.lean` | The shifted Lemma 6 conductor decomposition, reduction to the finite `N_m` of equation (12), the completed small-conductor equation-(21) contour estimate, and the interfaces for the large-conductor dyadic blocks |
-| `ChenTheorem/Main/ShiftedLemma6Large.lean` | The current large-conductor continuation of shifted Lemma 6: scalar block majorants, cutoff/logarithm and mollifier-scale estimates, both equation-(19)/(20) A contributions, and the equation-(19) B contribution; equation (20) and the final block assembly remain in progress |
-| `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated aggregate quantitative input for the fixed-shift version; it imports the completed shifted Lemmas 1--5 and the current two-file shifted Lemma 6 development while the remaining chain is pending |
+| `ChenTheorem/Main/ShiftedLemma6Large.lean` | Completion of shifted Lemma 6: scalar block majorants, cutoff/logarithm and mollifier-scale estimates, both A/B contributions in equations (19)--(20), the per-block bounds, and the final large-conductor `N_m` and `M2` logarithmic estimates |
+| `ChenTheorem/Main/ShiftedLemma7.lean` | The shifted Lemmas 5--6 combination and the algebraic part of shifted Lemma 7, including Selberg diagonalization, the shifted Moebius transform, and the exact normalization identity (22) |
+| `ChenTheorem/Main/ShiftedLemma7Normalization.lean` | Dyadic comparison of the fixed-shift normalization with the unshifted Lemma 7 normalization, preserving the singular series and proving the eventual lower bound with coefficient `8 + 21 * epsilon` |
+| `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated aggregate quantitative input for the fixed-shift version; it imports the completed shifted Lemmas 1--6 and the current shifted Lemma 7 development while the final `M1` bound and shifted Lemmas 8--9 are pending |
 | `ChenTheorem/Main.lean` | Completed deductions of inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), and Theorem 2 (twin analogue) from the named upstream estimates |
 
 ## Correspondence with the paper
@@ -82,7 +84,7 @@ lake build
 | Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
 | Inequality (28) | `key_inequality` (**proved**) |
 | Theorem 1 | `chenCount_lower` (quantitative), `chen_theorem` (qualitative), both deductions proved |
-| Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted Lemmas 1--5 are complete, the small-conductor half of shifted Lemma 6 is complete, and its large-conductor proof has reached equations (19)--(20), but the remaining large-conductor assembly, shifted Lemmas 7--9, and the aggregate quantitative estimate are not yet complete) |
+| Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted Lemmas 1--6 are complete modulo the shared zero-free-region input, and shifted Lemma 7 now includes the exact identity (22) and its dyadic normalization comparison; the final shifted `M1` estimate, shifted Lemmas 8--9, and the aggregate quantitative estimate remain) |
 
 ## Design notes / deliberate simplifications
 
@@ -204,12 +206,14 @@ one explicit non-foundational axiom:
   objects, `Main/ShiftedSieveLemmas.lean` proves the parallel Lemmas 1--4, and
   the three `Main/ShiftedLemma5*.lean` files complete the parallel Lemma 5,
   including its smoothing boundary and arithmetic error assembly.
-  `Main/ShiftedLemma6.lean` now carries the conductor decomposition through
-  equation (12) and completes the small-conductor equation-(21) contour
-  argument.  `Main/ShiftedLemma6Large.lean` continues the large-conductor
-  argument through its scalar majorants, both A contributions, and the
-  equation-(19) B contribution.  Equation (20), the final `N_m`/`M2` assembly,
-  and shifted Lemmas 7--9 remain.
+  `Main/ShiftedLemma6.lean` and `Main/ShiftedLemma6Large.lean` now complete the
+  parallel Lemma 6, from the conductor decomposition and equation (12) through
+  the small-conductor equation-(21) contour argument, both A/B contributions
+  in equations (19)--(20), and the final `N_m`/`M2` assembly.
+  `Main/ShiftedLemma7.lean` proves the exact Selberg normalization identity
+  (22), while `Main/ShiftedLemma7Normalization.lean` transfers the unshifted
+  asymptotic normalization along dyadic multiples of the fixed shift.  The
+  final shifted `M1` estimate and shifted Lemmas 8--9 remain.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -254,10 +258,10 @@ final numerical deduction and extraction of an actual representation for
 Theorem 1, and the infinitude deduction for Theorem 2 are complete.
 Consequently Theorem 1 is conditional only on the zero-free-region and
 Richert--Bombieri inputs above.  Theorem 2 additionally awaits the shifted
-quantitative sieve estimate.  For its nine-lemma parallel chain, Lemmas 1--5
-are complete.  In Lemma 6, the conductor split, equation-(12) reduction, and
-small-conductor equation (21) are complete; the large-conductor proof has
-reached the equation-(19)/(20) A terms and equation-(19) B term.  Its final
-assembly and Lemmas 7--9 still need to be carried over.  In the original Theorem 1 chain,
-Lemmas 1, 2, 4, 5, and 7 are complete machine-checked proofs; Lemma 3 is
+quantitative sieve estimate.  For its nine-lemma parallel chain, Lemmas 1--6
+are complete (Lemma 6 shares the original zero-free-region trust boundary).
+Shifted Lemma 7 has reached equation (22) and the eventual normalization lower
+bound with coefficient `8 + 21 * epsilon`; its final `M1` upper bound and
+shifted Lemmas 8--9 still need to be carried over.  In the original Theorem 1
+chain, Lemmas 1, 2, 4, 5, and 7 are complete machine-checked proofs; Lemma 3 is
 complete in the corrected form used by the argument.
