@@ -51,11 +51,17 @@ Three explicit upstream targets remain. Lemma 6 depends on a documented
 classical zero-free-region and `L'/L` estimate proved by `sorry`; Lemma 9
 depends on one named axiom combining the Richert weighted-sieve and
 Bombieri--Vinogradov specializations cited by Chen; and the fixed-shift
-quantitative estimate used for Theorem 2 remains a documented `sorry`.  The
-final numerical deduction and representation extraction for Theorem 1, and
-the infinitude deduction for Theorem 2, are proved from those named inputs in
-`Main.lean`. See [`formal/README.md`](formal/README.md) for the build
-instructions, the full correspondence table, and design notes.
+quantitative estimate used for Theorem 2 remains a documented `sorry`.  Work
+toward the last target is now explicit rather than hidden behind the aggregate
+estimate: the fixed-shift definitions and the parallel forms of Lemmas 1--4
+are complete, and the weight bounds, small-third-prime tail, character
+orthogonality, and Selberg-square expansion needed for shifted Lemma 5 are
+proved.  The rest of shifted Lemma 5 and the shifted Lemmas 6--9 remain to be
+formalized.  The final numerical deduction and representation extraction for
+Theorem 1, and the infinitude deduction for Theorem 2, are proved from the
+named upstream estimates in `Main.lean`. See
+[`formal/README.md`](formal/README.md) for the build instructions, the full
+correspondence table, and design notes.
 
 ```
 cd formal

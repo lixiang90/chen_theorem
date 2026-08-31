@@ -1,4 +1,6 @@
 import ChenTheorem.MainEstimates
+import ChenTheorem.Main.ShiftedSieveLemmas
+import ChenTheorem.Main.ShiftedLemma5
 
 open Filter Real
 open scoped Classical

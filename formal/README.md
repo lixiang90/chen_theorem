@@ -46,7 +46,10 @@ lake build
 | `ChenTheorem/Lemma9/RichertBombieri.lean` | The explicit trust-boundary specialization of Richert's weighted sieve and Bombieri--Vinogradov used in equations (25)–(26) |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
-| `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated quantitative input for the fixed-shift version, pending a shifted copy of the sieve infrastructure |
+| `ChenTheorem/Main/ShiftedDefs.lean` | Fixed-shift versions of the roughness predicate, sieve weights, divisor and character expansions, error terms, and sifted counting functions; the shift `h` is kept separate from the scale `x` |
+| `ChenTheorem/Main/ShiftedSieveLemmas.lean` | Parallel Lemmas 1--4 for Theorem 2, proved by reusing the residue-independent original theorems (including the corrected height-logarithmic Lemma 3) |
+| `ChenTheorem/Main/ShiftedLemma5.lean` | The completed initial part of shifted Lemma 5: weight support and pointwise bounds, small-third-prime tail, character orthogonality, and the Selberg-square/smoothed-sieve expansion |
+| `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated aggregate quantitative input for the fixed-shift version; it now imports the completed shifted Lemmas 1--4 and the partial shifted Lemma 5 development, while the remaining chain is pending |
 | `ChenTheorem/Main.lean` | Completed deductions of inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), and Theorem 2 (twin analogue) from the named upstream estimates |
 
 ## Correspondence with the paper
@@ -76,7 +79,7 @@ lake build
 | Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
 | Inequality (28) | `key_inequality` (**proved**) |
 | Theorem 1 | `chenCount_lower` (quantitative), `chen_theorem` (qualitative), both deductions proved |
-| Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted quantitative sieve input pending) |
+| Theorem 2 | `chenCountShift_lower`, `chen_twin` (final deduction proved; shifted Lemmas 1--4 and the initial shifted-Lemma-5 infrastructure are proved, but shifted Lemmas 5--9 and the aggregate quantitative estimate are not yet complete) |
 
 ## Design notes / deliberate simplifications
 
@@ -193,7 +196,12 @@ one explicit non-foundational axiom:
   (`Lemma9/RichertBombieri.lean`) supplies the combined Richert weighted-sieve
   and Bombieri--Vinogradov specialization needed by Lemma 9;
 * `chenCountShift_lower_estimate` (`Main/ShiftedEstimate.lean`) is the pending
-  fixed-shift sieve estimate used by Theorem 2.
+  fixed-shift sieve estimate used by Theorem 2.  Its dependency chain is now
+  being exposed explicitly: `Main/ShiftedDefs.lean` supplies the shifted
+  objects, `Main/ShiftedSieveLemmas.lean` proves the parallel Lemmas 1--4, and
+  `Main/ShiftedLemma5.lean` proves the weight, small-tail, character-expansion,
+  and square-sieve core of the parallel Lemma 5.  The smoothing-boundary
+  estimates completing shifted Lemma 5 and the shifted Lemmas 6--9 remain.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -238,6 +246,9 @@ final numerical deduction and extraction of an actual representation for
 Theorem 1, and the infinitude deduction for Theorem 2 are complete.
 Consequently Theorem 1 is conditional only on the zero-free-region and
 Richert--Bombieri inputs above.  Theorem 2 additionally awaits the shifted
-quantitative sieve estimate.  Lemmas 1, 2, 4, 5, and 7 are complete
-machine-checked proofs; Lemma 3 is complete in the corrected form used by the
-argument.
+quantitative sieve estimate.  For its nine-lemma parallel chain, Lemmas 1--4
+are complete by explicit reuse, Lemma 5 has its algebraic and square-sieve
+core but not yet its smoothing-boundary closure, and Lemmas 6--9 remain to be
+carried over.  In the original Theorem 1 chain, Lemmas 1, 2, 4, 5, and 7 are
+complete machine-checked proofs; Lemma 3 is complete in the corrected form
+used by the argument.
