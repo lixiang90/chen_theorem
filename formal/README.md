@@ -1,7 +1,8 @@
-# Formal skeleton of Chen's theorem (1 + 2) in Lean 4 / Mathlib
+# Formalization of Chen's theorem (1 + 2) in Lean 4 / Mathlib
 
-This is a Lake project giving a **formal skeleton** — precise Lean statements with
-`sorry` proofs — of Chen Jingrun's 1973 paper
+This Lake project is an in-progress formalization of Chen Jingrun's 1973 paper,
+with the remaining external analytic inputs isolated as explicit named trust
+boundaries:
 
 > Chen Jingrun, *On the representation of a large even integer as the sum of a
 > prime and the product of at most two primes*, Sci. Sinica **16** (1973), 111–128.
@@ -41,6 +42,8 @@ lake build
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
+| `ChenTheorem/Lemma8/PrimeReciprocal.lean` | The prime-reciprocal Mertens theorem imported from `PrimeNumberTheoremAnd`, exact Abel-summation formulas, both partial-summation steps between (23) and (24), and uniform error control |
+| `ChenTheorem/Lemma9/RichertBombieri.lean` | The explicit trust-boundary specialization of Richert's weighted sieve and Bombieri--Vinogradov used in equations (25)–(26) |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
 | `ChenTheorem/Main/ShiftedEstimate.lean` | The isolated quantitative input for the fixed-shift version, pending a shifted copy of the sieve infrastructure |
@@ -67,7 +70,7 @@ lake build
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
 | Lemma 7 | `mOne_le` (**proved**); `eventually_smoothed_pair_mass_le` is derived from `PrimeNumberTheoremAnd.WeakPNT''` and the uniform lower bound `x^(1/3) < x/(p₁p₂)`, while the Selberg normalization, positivity, summation, and constants are all machine-checked |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
-| Lemma 8 | `sieveOmega_le` (**proved** from the explicitly isolated Mertens/partial-summation input `eventually_chenPairs_kernel_le_one_add_mul_integral`; `chenPairs_kernel_le_integral`, error conversion, and the numerical integral are machine-checked) |
+| Lemma 8 | `sieveOmega_le` (**proved**); `primeReciprocal_mertens` is obtained from `PrimeNumberTheoremAnd`, and the two Abel-summation steps, uniform Mertens-error control, `eventually_chenPairs_kernel_le_integral_add`, error conversion, and the numerical integral are all machine-checked. The theorem inherits only the pending Lemma 6 zero-free-region input through `sieveOmega_le_mOne` |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
 | Equation (27) | `equation27_integral_bound` (**proved**, no `sorryAx`) |
 | Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
@@ -181,9 +184,16 @@ lake build
 ## Status
 
 Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
-The remaining output consists of non-fatal linter notices and the intentional
-`declaration uses 'sorry'` warning for the documented zero-free-region
-placeholder `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`).
+The project itself contains exactly two documented `sorry` declarations and
+one explicit non-foundational axiom:
+
+* `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`) supplies the
+  classical zero-free region and companion `L'/L` bound needed by Lemma 6;
+* `eventually_richert_bombieri_equation26`
+  (`Lemma9/RichertBombieri.lean`) supplies the combined Richert weighted-sieve
+  and Bombieri--Vinogradov specialization needed by Lemma 9;
+* `chenCountShift_lower_estimate` (`Main/ShiftedEstimate.lean`) is the pending
+  fixed-shift sieve estimate used by Theorem 2.
 
 **Lemma 1 is fully proved** — all five parts (`chenPhi_eq_zero`, `chenPhi_nonneg`,
 `chenPhi_le_one`, `chenPhi_monotoneOn`, `chenPhi_ge`), no `sorry`, built on top of
@@ -207,32 +217,27 @@ in particular the large-base smoothing boundary is bounded by
 weights, the lower bound `G(R) ≫ (log x)^1.97`, and the prime harmonic estimate.
 
 The height-logarithmic `L`-function fourth moment supported by Chen's Lemma 3
-calculation is proved in `Lemma3/FourthMoment.lean`.  The stronger printed
-log-`Q`-only claim is not used.  The classical zero-free region
-(`primitive_zero_free_region`, `Lemma6/ZeroFreeRegion.lean`) is the sole
-remaining `sorry` input behind Lemma 6.  Everything else is machine-checked: the
-finite Mellin reduction, the A/B decomposition, both large-conductor regimes
-(19)–(20) (`lemma6_large_pair_block_estimate_of_deriv_fourth_moment` is
-`sorryAx`-free), the full equation-(21) contour shift to
-`Re s = 1 - 1/√(log x)` with its horizontal-edge and vertical-line estimates
-(`Lemma6/Equation21.lean`, proved from `primitive_zero_free_region` alone),
-the elementary prime-pair estimate after the shift, and the final exponent
-deduction including `mTwo_le_log12 ⇒ mTwo_le`.  The prime-number-theorem input
-behind Lemma 7 is now discharged: `eventually_smoothed_pair_mass_le` is proved
-from `PrimeNumberTheoremAnd.WeakPNT''`, and its uniformity over `chenPairs x`
-is derived internally from `x^(1/3) < x/(p₁p₂)`.  The remaining
-prime-distribution inputs behind Lemmas 8–9 are explicit named axioms rather
-than hidden `sorryAx` terms:
-`eventually_chenPairs_kernel_le_one_add_mul_integral` (Mertens plus two partial
-summations), and `eventually_richert_bombieri_equation26` (the specialization
-of Richert [11] and Bombieri [9] cited in the scan).  Thus Lemmas 8–9 are
-machine-checked conditional on precisely those two external classical
-results.  The shifted quantitative sieve estimate still contains a
-documented `sorry` placeholder. The paper-internal numerical
-integrals (24) and (27) are complete and do not depend on `sorryAx`.
-Inequality (28), including its exceptional `x^0.91` tail, is complete.
-`Main.lean` itself has no
-proof placeholders: the numerical deduction of Theorem 1, extraction of an
-actual representation, and the infinitude argument for Theorem 2 are
-machine-checked from those named interfaces.  Lemmas 1, 2, 4, and 5 are
-complete machine-checked proofs.
+calculation is proved in `Lemma3/FourthMoment.lean`; the stronger printed
+log-`Q`-only claim is documented but not used.  Apart from
+`primitive_zero_free_region`, the Lemma 6 pipeline is machine-checked: the
+finite Mellin reduction, A/B decomposition, large-conductor regimes (19)–(20),
+the equation-(21) contour shift, and the final deduction
+`mTwo_le_log12 ⇒ mTwo_le`.
+
+The prime-number-theorem input behind Lemma 7 is discharged from
+`PrimeNumberTheoremAnd.WeakPNT''`.  The prime-reciprocal Mertens theorem used
+in Lemma 8 is likewise imported as a proved theorem from
+`PrimeNumberTheoremAnd`, and both Abel-summation steps and their uniform error
+estimates are proved locally; there is no longer a Lemma 8-specific axiom.
+Lemma 8 still transitively depends on the Lemma 6 zero-free-region input.
+Lemma 9 is machine-checked conditional on the single explicit
+`eventually_richert_bombieri_equation26` axiom.
+
+The paper-internal numerical integrals (24) and (27), inequality (28), the
+final numerical deduction and extraction of an actual representation for
+Theorem 1, and the infinitude deduction for Theorem 2 are complete.
+Consequently Theorem 1 is conditional only on the zero-free-region and
+Richert--Bombieri inputs above.  Theorem 2 additionally awaits the shifted
+quantitative sieve estimate.  Lemmas 1, 2, 4, 5, and 7 are complete
+machine-checked proofs; Lemma 3 is complete in the corrected form used by the
+argument.

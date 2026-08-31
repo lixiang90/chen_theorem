@@ -1,7 +1,8 @@
 # Chen's Theorem (1 + 2)
 
-A LaTeX transcription (Chinese original + English translation) and a Lean 4 /
-Mathlib formalization skeleton of Chen Jingrun's landmark 1973 paper:
+A LaTeX transcription (Chinese original + English translation) and an
+in-progress Lean 4 / Mathlib formalization of Chen Jingrun's landmark 1973
+paper:
 
 > 陈景润, 《大偶数表为一个素数及一个不超过二个素数的乘积之和》, 中国科学 **16** (1973), 111–128.
 >
@@ -21,7 +22,7 @@ linear sieve.
 | [`pages/`](pages) | Page scans (`page-01.png` … `page-18.png`) of the original journal article, pp. 111–128 |
 | [`pdf/`](pdf) | The original scanned PDF, plus compiled PDFs of the Chinese and English transcriptions |
 | [`latex/`](latex) | LaTeX sources: `main.tex`/`part{1,2,3}.tex` (Chinese, faithful transcription) and `main_en.tex`/`part{1,2,3}_en.tex` (English translation), sharing the same equation numbering |
-| [`formal/`](formal) | A Lean 4 / Mathlib formalization skeleton — see [`formal/README.md`](formal/README.md) for full details |
+| [`formal/`](formal) | A Lean 4 / Mathlib formalization — see [`formal/README.md`](formal/README.md) for full details |
 
 ## Building the LaTeX
 
@@ -40,21 +41,21 @@ Each may need to be run twice to resolve cross-references.
 
 `formal/` is a Lake project targeting Lean `v4.32.2` / Mathlib `v4.32.2`. It
 states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
-4, and 5 are fully proved. The final deductions in `Main.lean`—including the
-numerical deduction and qualitative extraction for Theorem 1 and the
-infinitude argument for Theorem 2—also contain no proof placeholders; their
-remaining analytic and shifted sieve inputs are isolated as named upstream
-targets.  For Lemmas 7–9 the missing Mathlib background (uniform smoothed PNT,
-prime-reciprocal Mertens/partial summation, and the Richert–Bombieri theorem
-specialization cited by Chen) is exposed as three named trust-boundary axioms;
-the lemma statements and all paper-internal reductions and constants contain
-no `sorry`. Inequality (28), including its nonsquarefree exceptional tail, is
-fully proved; the numerical integrals (24) and (27) are also proved
-independently without `sorryAx`. Lemma 6 is now decomposed into its exact
-conductor, fourth-moment, dyadic, and zero-free-region inputs, with its final
-logarithmic deduction proved. See [`formal/README.md`](formal/README.md) for
-the build instructions, the full correspondence table against the paper, and
-design notes.
+4, 5, and 7 are fully proved; the corrected height-logarithmic form of Lemma 3
+is also proved and is sufficient for the later argument.  The Mertens theorem
+and both prime-reciprocal partial-summation steps used in Lemma 8 have now been
+proved in Lean from `PrimeNumberTheoremAnd`, and the numerical integrals (24)
+and (27) and inequality (28) are machine-checked without `sorryAx`.
+
+Three explicit upstream targets remain. Lemma 6 depends on a documented
+classical zero-free-region and `L'/L` estimate proved by `sorry`; Lemma 9
+depends on one named axiom combining the Richert weighted-sieve and
+Bombieri--Vinogradov specializations cited by Chen; and the fixed-shift
+quantitative estimate used for Theorem 2 remains a documented `sorry`.  The
+final numerical deduction and representation extraction for Theorem 1, and
+the infinitude deduction for Theorem 2, are proved from those named inputs in
+`Main.lean`. See [`formal/README.md`](formal/README.md) for the build
+instructions, the full correspondence table, and design notes.
 
 ```
 cd formal

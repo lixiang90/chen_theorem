@@ -378,37 +378,8 @@ theorem chenPairs_kernel_le_integral
       ∑ q ∈ chenPairs x,
           ((q.1 : ℝ) * (q.2 : ℝ) *
             Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
-        (equation24Integral + δ) / Real.log x := by
-  let η : ℝ := δ / (equation24Integral + 1)
-  have hI0 : 0 ≤ equation24Integral := equation24Integral_nonneg
-  have hden : 0 < equation24Integral + 1 := by linarith
-  have hη : 0 < η := by
-    dsimp only [η]
-    exact div_pos hδ hden
-  have hpartial :=
-    eventually_chenPairs_kernel_le_one_add_mul_integral η hη
-  filter_upwards [hpartial, eventually_gt_atTop 1] with x hpartial hx
-  have hlog : 0 < Real.log (x : ℝ) :=
-    Real.log_pos (by exact_mod_cast hx)
-  have hfrac :
-      equation24Integral / (equation24Integral + 1) ≤ 1 :=
-    (div_le_one hden).2 (by linarith)
-  have hηI : η * equation24Integral ≤ δ := by
-    calc
-      η * equation24Integral =
-          δ * (equation24Integral / (equation24Integral + 1)) := by
-        dsimp only [η]
-        ring
-      _ ≤ δ * 1 := mul_le_mul_of_nonneg_left hfrac hδ.le
-      _ = δ := by ring
-  calc
-    ∑ q ∈ chenPairs x,
-        ((q.1 : ℝ) * (q.2 : ℝ) *
-          Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ ≤
-      (1 + η) * equation24Integral / Real.log x := hpartial
-    _ ≤ (equation24Integral + δ) / Real.log x := by
-      apply (div_le_div_iff_of_pos_right hlog).2
-      nlinarith
+        (equation24Integral + δ) / Real.log x :=
+  eventually_chenPairs_kernel_le_integral_add δ hδ
 
 /-- The numerical form of (23)--(24).  The extra `0.000001` absorbs the
 limiting error in the two partial-summation steps. -/
