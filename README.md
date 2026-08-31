@@ -54,11 +54,14 @@ Bombieri--Vinogradov specializations cited by Chen; and the fixed-shift
 quantitative estimate used for Theorem 2 remains a documented `sorry`.  Work
 toward the last target is now explicit rather than hidden behind the aggregate
 estimate: the fixed-shift definitions and the parallel forms of Lemmas 1--4
-are complete, and the weight bounds, small-third-prime tail, character
-orthogonality, and Selberg-square expansion needed for shifted Lemma 5 are
-proved.  The rest of shifted Lemma 5 and the shifted Lemmas 6--9 remain to be
-formalized.  The final numerical deduction and representation extraction for
-Theorem 1, and the infinitude deduction for Theorem 2, are proved from the
+are complete, and shifted Lemma 5 is now proved through its smoothing boundary,
+arithmetic error terms, and final `Omega <= M1 + M2` estimate.  Shifted Lemma 6
+has reached the conductor decomposition and the first equation-(12) reductions
+to the finite `N_m` majorant, including the harmonic-convolution bound for its
+modulus weights.  The remaining analytic estimates in shifted Lemma 6 and the
+shifted Lemmas 7--9 still need to be formalized.  The final numerical deduction
+and representation extraction for Theorem 1, and the infinitude deduction for
+Theorem 2, are proved from the
 named upstream estimates in `Main.lean`. See
 [`formal/README.md`](formal/README.md) for the build instructions, the full
 correspondence table, and design notes.
