@@ -1,5 +1,5 @@
 import ChenTheorem.Main.ShiftedSieveLemmas
-import ChenTheorem.Lemma5.Core
+import ChenTheorem.Lemma5.Smoothing
 
 open Filter Real
 open scoped ArithmeticFunction.Moebius Classical
@@ -330,6 +330,786 @@ theorem abs_shiftedSieveWeight_le_one
       if_neg (by simpa only [one_div] using hcut)]
     simp
 
+/-! ### Uniform lcm-coefficient bounds -/
+
+theorem sum_abs_shiftedSieveWeight_lcm_le
+    {h x d : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) (hd : Squarefree d) (hdh : d.Coprime h) :
+    ∑ q ∈ (d.divisors ×ˢ d.divisors).filter
+        (fun q : ℕ × ℕ => q.1.lcm q.2 = d),
+      |shiftedSieveWeight h x ε q.1 *
+        shiftedSieveWeight h x ε q.2| ≤
+        3 ^ distinctPrimeFactors d := by
+  calc
+    ∑ q ∈ (d.divisors ×ˢ d.divisors).filter
+        (fun q : ℕ × ℕ => q.1.lcm q.2 = d),
+      |shiftedSieveWeight h x ε q.1 *
+        shiftedSieveWeight h x ε q.2| ≤
+        ∑ _q ∈ (d.divisors ×ˢ d.divisors).filter
+          (fun q : ℕ × ℕ => q.1.lcm q.2 = d), (1 : ℝ) := by
+      apply Finset.sum_le_sum
+      intro q hq
+      have hqprod := (Finset.mem_filter.mp hq).1
+      have hqdiv := Finset.mem_product.mp hqprod
+      have hq1h : q.1.Coprime h :=
+        Nat.Coprime.of_dvd_left
+          (Nat.dvd_of_mem_divisors hqdiv.1) hdh
+      have hq2h : q.2.Coprime h :=
+        Nat.Coprime.of_dvd_left
+          (Nat.dvd_of_mem_divisors hqdiv.2) hdh
+      rw [abs_mul]
+      have hq1 := abs_shiftedSieveWeight_le_one hh hx1 hε0 hq1h
+      have hq2 := abs_shiftedSieveWeight_le_one hh hx1 hε0 hq2h
+      nlinarith [abs_nonneg (shiftedSieveWeight h x ε q.1),
+        abs_nonneg (shiftedSieveWeight h x ε q.2)]
+    _ = (((d.divisors ×ˢ d.divisors).filter
+          (fun q : ℕ × ℕ => q.1.lcm q.2 = d)).card : ℝ) := by
+      simp
+    _ = 3 ^ distinctPrimeFactors d := by
+      exact_mod_cast card_lcm_divisor_pairs hd
+
+theorem abs_shiftedSieveLcmCoeff_le
+    {h x d : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) (hd : Squarefree d) (hdh : d.Coprime h) :
+    |shiftedSieveLcmCoeff h x ε d| ≤
+      3 ^ distinctPrimeFactors d := by
+  exact (Finset.abs_sum_le_sum_abs _ _).trans
+    (sum_abs_shiftedSieveWeight_lcm_le hh hx1 hε0 hd hdh)
+
+private theorem shifted_squarefree_lcm {a b : ℕ}
+    (ha : Squarefree a) (hb : Squarefree b) :
+    Squarefree (a.lcm b) := by
+  rw [Nat.squarefree_iff_factorization_le_one
+    (Nat.lcm_ne_zero ha.ne_zero hb.ne_zero)]
+  intro p
+  rw [Nat.factorization_lcm ha.ne_zero hb.ne_zero]
+  exact sup_le (ha.natFactorization_le_one p)
+    (hb.natFactorization_le_one p)
+
+theorem shiftedSieveLcmCoeff_eq_zero_of_not_squarefree
+    {h x d : ℕ} {ε : ℝ} (hd : ¬Squarefree d) :
+    shiftedSieveLcmCoeff h x ε d = 0 := by
+  unfold shiftedSieveLcmCoeff
+  apply Finset.sum_eq_zero
+  intro q hq
+  have hlcm := (Finset.mem_filter.mp hq).2
+  by_cases hq1 : shiftedSieveWeight h x ε q.1 = 0
+  · simp [hq1]
+  by_cases hq2 : shiftedSieveWeight h x ε q.2 = 0
+  · simp [hq2]
+  have hsq1 := shiftedSieveWeight_support_squarefree hq1
+  have hsq2 := shiftedSieveWeight_support_squarefree hq2
+  exact (hd (hlcm ▸ shifted_squarefree_lcm hsq1 hsq2)).elim
+
+theorem abs_shiftedSieveLcmCoeff_le_moebius
+    {h x d : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) (hdh : d.Coprime h) :
+    |shiftedSieveLcmCoeff h x ε d| ≤
+      |((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        3 ^ distinctPrimeFactors d := by
+  by_cases hd : Squarefree d
+  · have hmu :
+        |((ArithmeticFunction.moebius d : ℤ) : ℝ)| = 1 := by
+      rw [← Int.cast_abs,
+        ArithmeticFunction.abs_moebius_eq_one_of_squarefree hd]
+      norm_num
+    rw [hmu, one_mul]
+    exact abs_shiftedSieveLcmCoeff_le hh hx1 hε0 hd hdh
+  · rw [shiftedSieveLcmCoeff_eq_zero_of_not_squarefree hd,
+      abs_zero,
+      ArithmeticFunction.moebius_eq_zero_of_not_squarefree hd]
+    norm_num
+
+theorem abs_sum_shiftedSieveLcmCoeff_div_totient_le
+    {h x : ℕ} {ε : ℝ} (D : Finset ℕ) (F : ℕ → ℝ)
+    (hh : Even h) (hx1 : 1 ≤ x) (hε0 : 0 ≤ ε)
+    (hD : ∀ d ∈ D, 1 ≤ d ∧ d.Coprime h) :
+    |∑ d ∈ D,
+        shiftedSieveLcmCoeff h x ε d /
+          (Nat.totient d : ℝ) * F d| ≤
+      ∑ d ∈ D,
+        (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+            3 ^ distinctPrimeFactors d /
+              (Nat.totient d : ℝ)) * |F d| := by
+  calc
+    |∑ d ∈ D,
+        shiftedSieveLcmCoeff h x ε d /
+          (Nat.totient d : ℝ) * F d| ≤
+        ∑ d ∈ D,
+          |shiftedSieveLcmCoeff h x ε d /
+            (Nat.totient d : ℝ) * F d| :=
+      Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ d ∈ D,
+        (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+            3 ^ distinctPrimeFactors d /
+              (Nat.totient d : ℝ)) * |F d| := by
+      apply Finset.sum_le_sum
+      intro d hd
+      have hddata := hD d hd
+      have hcoeff :=
+        abs_shiftedSieveLcmCoeff_le_moebius
+          hh hx1 hε0 hddata.2
+      have hφ : 0 ≤ (Nat.totient d : ℝ) := by positivity
+      rw [abs_mul, abs_div, abs_of_nonneg hφ]
+      exact mul_le_mul_of_nonneg_right
+        (div_le_div_of_nonneg_right hcoeff hφ) (abs_nonneg _)
+
+theorem abs_shiftedMThree_le_majorant
+    {h x : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) :
+    |shiftedMThree h x ε| ≤ shiftedMThreeMajorant h x ε := by
+  unfold shiftedMThree shiftedMThreeMajorant
+  apply abs_sum_shiftedSieveLcmCoeff_div_totient_le
+      (D := shiftedSieveModuli h x ε) (F := smoothedMBadMass x)
+      hh hx1 hε0
+  intro d hd
+  exact ⟨(Finset.mem_filter.mp hd).2.1,
+    (Finset.mem_filter.mp hd).2.2.1⟩
+
+theorem sum_shiftedSieveModuli_decay_of_dvd
+    {h x p : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (hp : 0 < p)
+    (hε : 0 ≤ ε) :
+    ∑ d ∈ (shiftedSieveModuli h x ε).filter (p ∣ ·),
+        (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+      (x : ℝ) ^ ((1 : ℝ) / 12) * (p : ℝ)⁻¹ *
+        (harmonic x : ℝ) := by
+  let S := (shiftedSieveModuli h x ε).filter (p ∣ ·)
+  let T := (Finset.Icc 1 x).filter (p ∣ ·)
+  have hx1R : (1 : ℝ) ≤ x := by exact_mod_cast hx1
+  have hpoint :
+      ∀ d ∈ S,
+        (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+          (x : ℝ) ^ ((1 : ℝ) / 12) * (d : ℝ)⁻¹ := by
+    intro d hd
+    have hdmod := (Finset.mem_filter.mp hd).1
+    have hddata := (Finset.mem_filter.mp hdmod).2
+    have hdpos : 0 < d := by omega
+    have hdposR : (0 : ℝ) < d := by exact_mod_cast hdpos
+    have hdcut :
+        (d : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 2 - ε) :=
+      hddata.2.2
+    have hdpow :
+        (d : ℝ) ^ ((1 : ℝ) / 6) ≤
+          (x : ℝ) ^ ((1 : ℝ) / 12) := by
+      calc
+        (d : ℝ) ^ ((1 : ℝ) / 6) ≤
+            ((x : ℝ) ^ ((1 : ℝ) / 2 - ε)) ^
+              ((1 : ℝ) / 6) :=
+          Real.rpow_le_rpow (by positivity) hdcut (by norm_num)
+        _ = (x : ℝ) ^ (((1 : ℝ) / 2 - ε) *
+              ((1 : ℝ) / 6)) := by
+          rw [← Real.rpow_mul (by positivity)]
+        _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) := by
+          apply Real.rpow_le_rpow_of_exponent_le hx1R
+          nlinarith
+    rw [show -(5 : ℝ) / 6 = (1 : ℝ) / 6 + (-1) by ring,
+      Real.rpow_add hdposR, Real.rpow_neg_one]
+    exact mul_le_mul_of_nonneg_right hdpow (by positivity)
+  have hST : S ⊆ T := by
+    intro d hd
+    have hdmod := (Finset.mem_filter.mp hd).1
+    have hpd := (Finset.mem_filter.mp hd).2
+    have hddata := Finset.mem_filter.mp hdmod
+    have hdrange := Finset.mem_range.mp hddata.1
+    apply Finset.mem_filter.mpr
+    exact ⟨Finset.mem_Icc.mpr ⟨hddata.2.1, by omega⟩, hpd⟩
+  have hsumS :
+      ∑ d ∈ S, (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+        (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ S, (d : ℝ)⁻¹ := by
+    calc
+      ∑ d ∈ S, (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+          ∑ d ∈ S,
+            (x : ℝ) ^ ((1 : ℝ) / 12) * (d : ℝ)⁻¹ := by
+        apply Finset.sum_le_sum
+        intro d hd
+        exact hpoint d hd
+      _ = (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ S, (d : ℝ)⁻¹ := by rw [Finset.mul_sum]
+  have hsumST :
+      ∑ d ∈ S, (d : ℝ)⁻¹ ≤ ∑ d ∈ T, (d : ℝ)⁻¹ := by
+    apply Finset.sum_le_sum_of_subset_of_nonneg hST
+    intro d hdT hdS
+    positivity
+  have hharmonic :
+      ∑ k ∈ Finset.Icc 1 (x / p), (k : ℝ)⁻¹ ≤
+        (harmonic x : ℝ) := by
+    have hharmX :
+        ∑ k ∈ Finset.Icc 1 x, (k : ℝ)⁻¹ =
+          (harmonic x : ℝ) := by
+      rw [harmonic_eq_sum_Icc, Rat.cast_sum]
+      simp only [Rat.cast_inv, Rat.cast_natCast]
+    rw [← hharmX]
+    apply Finset.sum_le_sum_of_subset_of_nonneg
+    · exact Finset.Icc_subset_Icc_right (Nat.div_le_self x p)
+    · intro k hk hk'
+      positivity
+  change (∑ d ∈ S, (d : ℝ) ^ (-(5 : ℝ) / 6)) ≤ _
+  calc
+    (∑ d ∈ S, (d : ℝ) ^ (-(5 : ℝ) / 6)) ≤
+        (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ S, (d : ℝ)⁻¹ := hsumS
+    _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) *
+          ∑ d ∈ T, (d : ℝ)⁻¹ := by gcongr
+    _ = (x : ℝ) ^ ((1 : ℝ) / 12) * (p : ℝ)⁻¹ *
+          ∑ k ∈ Finset.Icc 1 (x / p), (k : ℝ)⁻¹ := by
+      rw [show (∑ d ∈ T, (d : ℝ)⁻¹) =
+          (p : ℝ)⁻¹ *
+            ∑ k ∈ Finset.Icc 1 (x / p), (k : ℝ)⁻¹ by
+        exact sum_inv_multiples x p hp]
+      ring
+    _ ≤ (x : ℝ) ^ ((1 : ℝ) / 12) * (p : ℝ)⁻¹ *
+          (harmonic x : ℝ) := by gcongr
+
+theorem sum_shiftedSieveModuli_decay_not_coprime_le
+    {h x a : ℕ} {ε : ℝ} (hx1 : 1 ≤ x) (ha : a ≠ 0)
+    (hε : 0 ≤ ε) :
+    ∑ d ∈ (shiftedSieveModuli h x ε).filter
+        (fun d => ¬a.Coprime d),
+        (d : ℝ) ^ (-(5 : ℝ) / 6) ≤
+      (x : ℝ) ^ ((1 : ℝ) / 12) * (harmonic x : ℝ) *
+        ∑ p ∈ a.primeFactors, (p : ℝ)⁻¹ := by
+  let D := shiftedSieveModuli h x ε
+  let B := D.filter (fun d => ¬a.Coprime d)
+  let W : ℕ → ℝ := fun d => (d : ℝ) ^ (-(5 : ℝ) / 6)
+  have hbad :
+      ∀ d ∈ B, W d ≤
+        ∑ p ∈ a.primeFactors, if p ∣ d then W d else 0 := by
+    intro d hd
+    have hdcop : ¬a.Coprime d := (Finset.mem_filter.mp hd).2
+    have hgcd : a.gcd d ≠ 1 := by
+      simpa [Nat.coprime_iff_gcd_eq_one] using hdcop
+    obtain ⟨p, hpprime, hpgcd⟩ :=
+      Nat.ne_one_iff_exists_prime_dvd.mp hgcd
+    have hpa : p ∣ a := hpgcd.trans (Nat.gcd_dvd_left a d)
+    have hpd : p ∣ d := hpgcd.trans (Nat.gcd_dvd_right a d)
+    have hpmem : p ∈ a.primeFactors :=
+      Nat.mem_primeFactors.mpr ⟨hpprime, hpa, ha⟩
+    calc
+      W d = if p ∣ d then W d else 0 := by simp [hpd]
+      _ ≤ ∑ r ∈ a.primeFactors,
+          if r ∣ d then W d else 0 := by
+        exact Finset.single_le_sum
+          (s := a.primeFactors)
+          (f := fun r => if r ∣ d then W d else 0)
+          (fun r hr => by positivity) hpmem
+  have hunion :
+      ∑ d ∈ B, W d ≤
+        ∑ p ∈ a.primeFactors,
+          ∑ d ∈ D.filter (p ∣ ·), W d := by
+    calc
+      ∑ d ∈ B, W d ≤
+          ∑ d ∈ B, ∑ p ∈ a.primeFactors,
+            if p ∣ d then W d else 0 := by
+        apply Finset.sum_le_sum
+        intro d hd
+        exact hbad d hd
+      _ ≤ ∑ d ∈ D, ∑ p ∈ a.primeFactors,
+            if p ∣ d then W d else 0 := by
+        apply Finset.sum_le_sum_of_subset_of_nonneg
+        · exact Finset.filter_subset _ _
+        · intro d hdD hdB
+          positivity
+      _ = ∑ p ∈ a.primeFactors,
+          ∑ d ∈ D.filter (p ∣ ·), W d := by
+        rw [Finset.sum_comm]
+        apply Finset.sum_congr rfl
+        intro p hp
+        rw [Finset.sum_filter]
+  have hprime :
+      ∀ p ∈ a.primeFactors,
+        ∑ d ∈ D.filter (p ∣ ·), W d ≤
+          (x : ℝ) ^ ((1 : ℝ) / 12) * (p : ℝ)⁻¹ *
+            (harmonic x : ℝ) := by
+    intro p hp
+    exact sum_shiftedSieveModuli_decay_of_dvd hx1
+      (Nat.prime_of_mem_primeFactors hp).pos hε
+  change (∑ d ∈ B, W d) ≤ _
+  calc
+    (∑ d ∈ B, W d) ≤
+        ∑ p ∈ a.primeFactors,
+          ∑ d ∈ D.filter (p ∣ ·), W d := hunion
+    _ ≤ ∑ p ∈ a.primeFactors,
+          ((x : ℝ) ^ ((1 : ℝ) / 12) * (p : ℝ)⁻¹ *
+            (harmonic x : ℝ)) := by
+      apply Finset.sum_le_sum
+      intro p hp
+      exact hprime p hp
+    _ = (x : ℝ) ^ ((1 : ℝ) / 12) * (harmonic x : ℝ) *
+          ∑ p ∈ a.primeFactors, (p : ℝ)⁻¹ := by
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro p hp
+      ring
+
+/-- Explicit finite bound for the shifted bad-coprimality remainder `M₃`.
+The proof is uniform in the fixed shift: after reversing the finite sums, the
+only modulus input is the preceding decay estimate for `shiftedSieveModuli`. -/
+theorem shiftedMThreeMajorant_le_explicit {h x : ℕ} {ε : ℝ}
+    (hx1 : 2 ≤ x) (hε : 0 ≤ ε)
+    (hxlarge : Real.exp 3 ≤ (x : ℝ)) :
+    shiftedMThreeMajorant h x ε ≤
+      (6 : ℝ) ^ (46656 : ℝ) *
+        (x : ℝ) ^ ((1 : ℝ) / 12) * (harmonic x : ℝ) *
+          (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+              (harmonic x : ℝ) ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ)) := by
+  let C₀ : ℝ := (6 : ℝ) ^ (46656 : ℝ)
+  let D := shiftedSieveModuli h x ε
+  let T := smoothedMTriples x
+  let W : ((ℕ × ℕ) × ℕ) → ℝ :=
+    fun z => ArithmeticFunction.vonMangoldt z.2
+  let decay : ℕ → ℝ := fun d => (d : ℝ) ^ (-(5 : ℝ) / 6)
+  let P : ((ℕ × ℕ) × ℕ) → ℝ := fun z =>
+    ∑ p ∈ (smoothedMArgument z).primeFactors, (p : ℝ)⁻¹
+  have hH0 : (0 : ℝ) ≤ (harmonic x : ℝ) := by
+    simp_rw [harmonic_eq_sum_Icc, Rat.cast_sum, Rat.cast_inv,
+      Rat.cast_natCast]
+    positivity
+  have hfirst :
+      shiftedMThreeMajorant h x ε ≤
+        C₀ * ∑ d ∈ D, decay d *
+          ∑ z ∈ smoothedMBadTriples x d, W z := by
+    unfold shiftedMThreeMajorant
+    change (∑ d ∈ D,
+      (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+          3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+        |smoothedMBadMass x d|) ≤ _
+    rw [Finset.mul_sum]
+    apply Finset.sum_le_sum
+    intro d hd
+    have hcoeff := sieveCoefficient_le_decay_uniform d
+    have hmass := abs_smoothedMBadMass_le (d := d) hxlarge
+    have hdec0 : 0 ≤ C₀ * decay d := by
+      dsimp only [C₀, decay]
+      positivity
+    calc
+      (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+          3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+          |smoothedMBadMass x d| ≤
+          (C₀ * decay d) *
+            ∑ z ∈ smoothedMBadTriples x d, W z :=
+        mul_le_mul hcoeff hmass (abs_nonneg _) hdec0
+      _ = C₀ * (decay d *
+          ∑ z ∈ smoothedMBadTriples x d, W z) := by ring
+  have hswap :
+      (∑ d ∈ D, decay d *
+          ∑ z ∈ smoothedMBadTriples x d, W z) =
+        ∑ z ∈ T, W z *
+          ∑ d ∈ D.filter
+              (fun d => ¬(smoothedMArgument z).Coprime d),
+            decay d := by
+    simp only [smoothedMBadTriples, Finset.sum_filter]
+    simp_rw [Finset.mul_sum]
+    rw [Finset.sum_comm]
+    apply Finset.sum_congr rfl
+    intro z hz
+    apply Finset.sum_congr rfl
+    intro d hd
+    by_cases hbad : ¬(smoothedMArgument z).Coprime d
+    · simp [hbad]
+      ring
+    · simp [hbad]
+  have hinner :
+      ∀ z ∈ T,
+        W z * ∑ d ∈ D.filter
+            (fun d => ¬(smoothedMArgument z).Coprime d), decay d ≤
+          W z * ((x : ℝ) ^ ((1 : ℝ) / 12) *
+            (harmonic x : ℝ) * P z) := by
+    intro z hz
+    by_cases hn0 : z.2 = 0
+    · simp [W, hn0]
+    · have hzprod := (Finset.mem_filter.mp hz).1
+      have hqmem : z.1 ∈ chenPairs x :=
+        (Finset.mem_product.mp hzprod).1
+      have hq' := hqmem
+      simp only [chenPairs, Finset.mem_filter, Finset.mem_product,
+        Finset.mem_range] at hq'
+      rcases hq'.2 with ⟨hp₁, hp₂, _⟩
+      have harg : smoothedMArgument z ≠ 0 := by
+        exact mul_ne_zero
+          (mul_ne_zero hp₁.ne_zero hp₂.ne_zero) hn0
+      have hmod :=
+        sum_shiftedSieveModuli_decay_not_coprime_le
+          (h := h) (x := x) (a := smoothedMArgument z)
+          (show 1 ≤ x by omega) harg hε
+      exact mul_le_mul_of_nonneg_left hmod
+        ArithmeticFunction.vonMangoldt_nonneg
+  have htoP :
+      ∑ d ∈ D, decay d *
+          ∑ z ∈ smoothedMBadTriples x d, W z ≤
+        (x : ℝ) ^ ((1 : ℝ) / 12) * (harmonic x : ℝ) *
+          ∑ z ∈ T, W z * P z := by
+    rw [hswap]
+    calc
+      (∑ z ∈ T, W z *
+          ∑ d ∈ D.filter
+              (fun d => ¬(smoothedMArgument z).Coprime d),
+            decay d) ≤
+          ∑ z ∈ T, W z *
+            ((x : ℝ) ^ ((1 : ℝ) / 12) *
+              (harmonic x : ℝ) * P z) := by
+        apply Finset.sum_le_sum
+        intro z hz
+        exact hinner z hz
+      _ = (x : ℝ) ^ ((1 : ℝ) / 12) *
+          (harmonic x : ℝ) * ∑ z ∈ T, W z * P z := by
+        rw [Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro z hz
+        ring
+  have hprimeFactors :
+      ∑ z ∈ T, W z * P z ≤
+        ∑ q ∈ chenPairs x, ∑ n ∈ smoothedMIndices x q,
+          ArithmeticFunction.vonMangoldt n *
+            ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹ +
+              (n.minFac : ℝ)⁻¹) := by
+    change (∑ z ∈ smoothedMTriples x,
+      ArithmeticFunction.vonMangoldt z.2 *
+        (∑ p ∈ (z.1.1 * z.1.2 * z.2).primeFactors,
+          (p : ℝ)⁻¹)) ≤ _
+    rw [sum_smoothedMTriples_eq_nested x
+      (fun q n => ArithmeticFunction.vonMangoldt n *
+        (∑ p ∈ (q.1 * q.2 * n).primeFactors, (p : ℝ)⁻¹))]
+    apply Finset.sum_le_sum
+    intro q hq
+    have hq' := hq
+    simp only [chenPairs, Finset.mem_filter, Finset.mem_product,
+      Finset.mem_range] at hq'
+    rcases hq'.2 with ⟨hp₁, hp₂, _⟩
+    apply Finset.sum_le_sum
+    intro n hn
+    exact vonMangoldt_mul_sum_inv_primeFactors_le hp₁ hp₂
+  have hnested :
+      (∑ q ∈ chenPairs x, ∑ n ∈ smoothedMIndices x q,
+          ArithmeticFunction.vonMangoldt n *
+            ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹ +
+              (n.minFac : ℝ)⁻¹)) ≤
+        6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+            (harmonic x : ℝ) ^ 2 +
+          ((chenPairs x).card : ℝ) *
+            ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ)) := by
+    calc
+      (∑ q ∈ chenPairs x, ∑ n ∈ smoothedMIndices x q,
+          ArithmeticFunction.vonMangoldt n *
+            ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹ +
+              (n.minFac : ℝ)⁻¹)) =
+          ∑ q ∈ chenPairs x,
+            (((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) *
+                ∑ n ∈ smoothedMIndices x q,
+                  ArithmeticFunction.vonMangoldt n +
+              ∑ n ∈ smoothedMIndices x q,
+                ArithmeticFunction.vonMangoldt n *
+                  (n.minFac : ℝ)⁻¹) := by
+        apply Finset.sum_congr rfl
+        intro q hq
+        calc
+          (∑ n ∈ smoothedMIndices x q,
+              ArithmeticFunction.vonMangoldt n *
+                ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹ +
+                  (n.minFac : ℝ)⁻¹)) =
+              ∑ n ∈ smoothedMIndices x q,
+                (((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) *
+                    ArithmeticFunction.vonMangoldt n +
+                  ArithmeticFunction.vonMangoldt n *
+                    (n.minFac : ℝ)⁻¹) := by
+            apply Finset.sum_congr rfl
+            intro n hn
+            ring
+          _ = (((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) *
+                ∑ n ∈ smoothedMIndices x q,
+                  ArithmeticFunction.vonMangoldt n +
+              ∑ n ∈ smoothedMIndices x q,
+                ArithmeticFunction.vonMangoldt n *
+                  (n.minFac : ℝ)⁻¹) := by
+            rw [Finset.sum_add_distrib, Finset.mul_sum]
+      _ ≤ ∑ q ∈ chenPairs x,
+          ((((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+              Real.log x) *
+                ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) +
+            ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ))) := by
+        apply Finset.sum_le_sum
+        intro q hq
+        have hΛ := sum_smoothedMIndices_vonMangoldt_le hx1 q
+        have hpp :=
+          sum_smoothedMIndices_vonMangoldt_div_minFac_le hx1 q
+        apply add_le_add
+        · calc
+            ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) *
+                ∑ n ∈ smoothedMIndices x q,
+                  ArithmeticFunction.vonMangoldt n ≤
+                ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) *
+                  (((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+                    Real.log x) :=
+              mul_le_mul_of_nonneg_left hΛ
+                (add_nonneg (inv_nonneg.mpr (Nat.cast_nonneg _))
+                  (inv_nonneg.mpr (Nat.cast_nonneg _)))
+            _ = (((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+                    Real.log x) *
+                  ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹) := by ring
+        · exact hpp
+      _ = Real.log x *
+            ∑ q ∈ chenPairs x,
+              (((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+                ((q.1 : ℝ)⁻¹ + (q.2 : ℝ)⁻¹)) +
+          ((chenPairs x).card : ℝ) *
+            ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ)) := by
+        simp only [Finset.sum_add_distrib, Finset.sum_const,
+          nsmul_eq_mul]
+        rw [Finset.mul_sum]
+        congr 1
+        · apply Finset.sum_congr rfl
+          intro q hq
+          ring
+      _ ≤ Real.log x *
+            (6 * (x : ℝ) ^ ((9 : ℝ) / 10) *
+              (harmonic x : ℝ) ^ 2) +
+          ((chenPairs x).card : ℝ) *
+            ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ)) := by
+        exact add_le_add
+          (mul_le_mul_of_nonneg_left
+            (sum_pair_badPrimeFactor_weight_le x (by omega))
+            (Real.log_nonneg (by
+              exact_mod_cast (show 1 ≤ x by omega))))
+          le_rfl
+      _ = 6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+            (harmonic x : ℝ) ^ 2 +
+          ((chenPairs x).card : ℝ) *
+            ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ)) := by ring
+  have hcard := chenPairs_card_cast_le x (show 1 ≤ x by omega)
+  have htotal :
+      ∑ z ∈ T, W z * P z ≤
+          6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+              (harmonic x : ℝ) ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ) := by
+    calc
+      (∑ z ∈ T, W z * P z) ≤ _ := hprimeFactors.trans hnested
+      _ ≤ 6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+              (harmonic x : ℝ) ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ) := by
+        apply add_le_add le_rfl
+        have hfactor0 :
+            0 ≤ (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+              Real.log x * (harmonic x : ℝ) := by
+          exact mul_nonneg
+            (mul_nonneg (by positivity)
+              (Real.log_nonneg (by
+                exact_mod_cast (show 1 ≤ x by omega)))) hH0
+        calc
+          ((chenPairs x).card : ℝ) *
+              ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ)) ≤
+              (9 * (x : ℝ) ^ ((5 : ℝ) / 6)) *
+                ((⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                  Real.log x * (harmonic x : ℝ)) :=
+            mul_le_mul_of_nonneg_right hcard hfactor0
+          _ = 9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ) := by ring
+  change shiftedMThreeMajorant h x ε ≤ C₀ * _ * _ * _
+  calc
+    shiftedMThreeMajorant h x ε ≤
+        C₀ * ∑ d ∈ D, decay d *
+          ∑ z ∈ smoothedMBadTriples x d, W z := hfirst
+    _ ≤ C₀ * ((x : ℝ) ^ ((1 : ℝ) / 12) *
+          (harmonic x : ℝ) * ∑ z ∈ T, W z * P z) := by
+      gcongr
+    _ ≤ C₀ * ((x : ℝ) ^ ((1 : ℝ) / 12) *
+          (harmonic x : ℝ) *
+            (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+                (harmonic x : ℝ) ^ 2 +
+              9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+                (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                  Real.log x * (harmonic x : ℝ))) := by
+      apply mul_le_mul_of_nonneg_left
+      · exact mul_le_mul_of_nonneg_left htotal
+          (mul_nonneg (Real.rpow_nonneg (by positivity) _) hH0)
+      · dsimp only [C₀]
+        positivity
+    _ = C₀ * (x : ℝ) ^ ((1 : ℝ) / 12) * (harmonic x : ℝ) *
+          (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * Real.log x *
+              (harmonic x : ℝ) ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+                Real.log x * (harmonic x : ℝ)) := by ring
+
+theorem eventually_shiftedMThreeMajorant_le_rpow (h : ℕ)
+    {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε < 1 / 100) :
+    ∀ᶠ x : ℕ in atTop,
+      shiftedMThreeMajorant h x ε ≤
+        ((6 : ℝ) ^ (46656 : ℝ) *
+          (48 + 36 * ((Real.log 2)⁻¹ + 1))) *
+            (x : ℝ) ^ (1 - ε / 3) := by
+  have hlogOneReal :
+      ∀ᶠ y : ℝ in atTop, 1 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 1)
+  have hlogOne :
+      ∀ᶠ x : ℕ in atTop, 1 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hlogOneReal
+  have hxlargeEventually :
+      ∀ᶠ x : ℕ in atTop, Real.exp 3 ≤ (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually
+      (eventually_ge_atTop (Real.exp 3))
+  filter_upwards [eventually_log_pow_four_le_rpow, hlogOne,
+    hxlargeEventually, eventually_ge_atTop 2] with
+      x hlogFour hlogOne hxlarge hx2
+  have hxone : (1 : ℝ) ≤ (x : ℝ) := by
+    exact_mod_cast (show 1 ≤ x by omega)
+  have hxpos : (0 : ℝ) < (x : ℝ) := zero_lt_one.trans_le hxone
+  let L : ℝ := Real.log x
+  let H : ℝ := harmonic x
+  let K : ℝ := (Real.log 2)⁻¹ + 1
+  have hL0 : 0 ≤ L := by
+    dsimp only [L]
+    positivity
+  have hH0 : 0 ≤ H := by
+    dsimp only [H]
+    simp_rw [harmonic_eq_sum_Icc, Rat.cast_sum, Rat.cast_inv,
+      Rat.cast_natCast]
+    positivity
+  have hHle : H ≤ 2 * L := by
+    dsimp only [H, L]
+    have hH := harmonic_le_one_add_log x
+    linarith
+  have hK0 : 0 ≤ K := by
+    dsimp only [K]
+    positivity
+  have hceil :
+      (⌈L / Real.log 2⌉₊ : ℝ) ≤ K * L := by
+    have hy0 : 0 ≤ L / Real.log 2 := by positivity
+    calc
+      (⌈L / Real.log 2⌉₊ : ℝ) ≤ L / Real.log 2 + 1 :=
+        (Nat.ceil_lt_add_one hy0).le
+      _ = (Real.log 2)⁻¹ * L + 1 := by
+        rw [div_eq_mul_inv]
+        ring
+      _ ≤ (Real.log 2)⁻¹ * L + L := by
+        linarith
+      _ = K * L := by
+        dsimp only [K]
+        ring
+  have hHthree : L * H ^ 3 ≤ 8 * L ^ 4 := by
+    calc
+      L * H ^ 3 ≤ L * (2 * L) ^ 3 := by gcongr
+      _ = 8 * L ^ 4 := by ring
+  have hHtwo :
+      (⌈L / Real.log 2⌉₊ : ℝ) * L * H ^ 2 ≤
+        4 * K * L ^ 4 := by
+    calc
+      (⌈L / Real.log 2⌉₊ : ℝ) * L * H ^ 2 ≤
+          (K * L) * L * (2 * L) ^ 2 := by gcongr
+      _ = 4 * K * L ^ 4 := by ring
+  have hpowFirst :
+      (x : ℝ) ^ ((1 : ℝ) / 12) *
+          (x : ℝ) ^ ((9 : ℝ) / 10) =
+        (x : ℝ) ^ ((59 : ℝ) / 60) := by
+    rw [← Real.rpow_add hxpos]
+    congr 2
+    norm_num
+  have hpowSecond :
+      (x : ℝ) ^ ((1 : ℝ) / 12) *
+          (x : ℝ) ^ ((5 : ℝ) / 6) =
+        (x : ℝ) ^ ((11 : ℝ) / 12) := by
+    rw [← Real.rpow_add hxpos]
+    congr 2
+    norm_num
+  have hpowMono :
+      (x : ℝ) ^ ((11 : ℝ) / 12) ≤
+        (x : ℝ) ^ ((59 : ℝ) / 60) :=
+    Real.rpow_le_rpow_of_exponent_le hxone (by norm_num)
+  have hcollapse :
+      (x : ℝ) ^ ((1 : ℝ) / 12) * H *
+          (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * L * H ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈L / Real.log 2⌉₊ : ℝ) * L * H) ≤
+        (48 + 36 * K) * (x : ℝ) ^ ((59 : ℝ) / 60) *
+          L ^ 4 := by
+    calc
+      (x : ℝ) ^ ((1 : ℝ) / 12) * H *
+          (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * L * H ^ 2 +
+            9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+              (⌈L / Real.log 2⌉₊ : ℝ) * L * H) =
+          6 * ((x : ℝ) ^ ((1 : ℝ) / 12) *
+            (x : ℝ) ^ ((9 : ℝ) / 10)) * (L * H ^ 3) +
+          9 * ((x : ℝ) ^ ((1 : ℝ) / 12) *
+            (x : ℝ) ^ ((5 : ℝ) / 6)) *
+              ((⌈L / Real.log 2⌉₊ : ℝ) * L * H ^ 2) := by ring
+      _ = 6 * (x : ℝ) ^ ((59 : ℝ) / 60) * (L * H ^ 3) +
+          9 * (x : ℝ) ^ ((11 : ℝ) / 12) *
+            ((⌈L / Real.log 2⌉₊ : ℝ) * L * H ^ 2) := by
+        rw [hpowFirst, hpowSecond]
+      _ ≤ 6 * (x : ℝ) ^ ((59 : ℝ) / 60) * (8 * L ^ 4) +
+          9 * (x : ℝ) ^ ((59 : ℝ) / 60) *
+            (4 * K * L ^ 4) := by
+        gcongr
+      _ = (48 + 36 * K) * (x : ℝ) ^ ((59 : ℝ) / 60) *
+          L ^ 4 := by ring
+  have hexplicit := shiftedMThreeMajorant_le_explicit
+    (h := h) (x := x) (ε := ε) hx2 hε0.le hxlarge
+  have hfixed :
+      shiftedMThreeMajorant h x ε ≤
+        ((6 : ℝ) ^ (46656 : ℝ) * (48 + 36 * K)) *
+          (x : ℝ) ^ ((149 : ℝ) / 150) := by
+    calc
+      shiftedMThreeMajorant h x ε ≤
+          (6 : ℝ) ^ (46656 : ℝ) *
+            ((x : ℝ) ^ ((1 : ℝ) / 12) * H *
+              (6 * (x : ℝ) ^ ((9 : ℝ) / 10) * L * H ^ 2 +
+                9 * (x : ℝ) ^ ((5 : ℝ) / 6) *
+                  (⌈L / Real.log 2⌉₊ : ℝ) * L * H)) := by
+        simpa only [L, H, mul_assoc] using hexplicit
+      _ ≤ (6 : ℝ) ^ (46656 : ℝ) *
+          ((48 + 36 * K) * (x : ℝ) ^ ((59 : ℝ) / 60) *
+            L ^ 4) := by gcongr
+      _ ≤ (6 : ℝ) ^ (46656 : ℝ) *
+          ((48 + 36 * K) * (x : ℝ) ^ ((59 : ℝ) / 60) *
+            (x : ℝ) ^ ((1 : ℝ) / 100)) := by
+        dsimp only [L] at hlogFour ⊢
+        gcongr
+      _ = ((6 : ℝ) ^ (46656 : ℝ) * (48 + 36 * K)) *
+          ((x : ℝ) ^ ((59 : ℝ) / 60) *
+            (x : ℝ) ^ ((1 : ℝ) / 100)) := by ring
+      _ = ((6 : ℝ) ^ (46656 : ℝ) * (48 + 36 * K)) *
+          (x : ℝ) ^ ((149 : ℝ) / 150) := by
+        rw [← Real.rpow_add hxpos]
+        congr 2
+        norm_num
+  calc
+    shiftedMThreeMajorant h x ε ≤
+        ((6 : ℝ) ^ (46656 : ℝ) * (48 + 36 * K)) *
+          (x : ℝ) ^ ((149 : ℝ) / 150) := hfixed
+    _ ≤ ((6 : ℝ) ^ (46656 : ℝ) * (48 + 36 * K)) *
+          (x : ℝ) ^ (1 - ε / 3) := by
+      apply mul_le_mul_of_nonneg_left
+      · exact Real.rpow_le_rpow_of_exponent_le hxone (by linarith)
+      · positivity
+    _ = ((6 : ℝ) ^ (46656 : ℝ) *
+          (48 + 36 * ((Real.log 2)⁻¹ + 1))) *
+            (x : ℝ) ^ (1 - ε / 3) := by rfl
+
+/-- Absolute-value form of the shifted `M₃` power saving. -/
+theorem abs_shiftedMThree_power_bound
+    {h : ℕ} (hh : Even h) {ε : ℝ}
+    (hε0 : 0 < ε) (hε1 : ε < 1 / 100) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      |shiftedMThree h x ε| ≤ C * (x : ℝ) ^ (1 - ε / 3) := by
+  refine ⟨(6 : ℝ) ^ (46656 : ℝ) *
+      (48 + 36 * ((Real.log 2)⁻¹ + 1)), by positivity, ?_⟩
+  filter_upwards [eventually_shiftedMThreeMajorant_le_rpow h hε0 hε1,
+    eventually_ge_atTop 1] with x hx hx1
+  exact (abs_shiftedMThree_le_majorant hh hx1 hε0.le).trans hx
+
 /-! ### The elementary shifted `Ω → M` small-tail reduction -/
 
 theorem shiftedOmegaSmallThirdPrimes_card_le
@@ -531,6 +1311,52 @@ theorem shiftedSmoothedSieveExpansion_eq
     linarith
   rw [hgood]
   ring
+
+theorem abs_shiftedMFourSigned_le_shiftedMFour
+    {h x : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) :
+    |shiftedMFourSigned h x ε| ≤ shiftedMFour h x ε := by
+  unfold shiftedMFourSigned shiftedMFour
+  calc
+    |∑ d ∈ shiftedSieveModuli h x ε,
+        shiftedSieveLcmCoeff h x ε d / (Nat.totient d : ℝ) *
+          (shiftedImprimitiveCharacterContribution h x d).re| ≤
+        ∑ d ∈ shiftedSieveModuli h x ε,
+          (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+              3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+            |(shiftedImprimitiveCharacterContribution h x d).re| := by
+      apply abs_sum_shiftedSieveLcmCoeff_div_totient_le
+        (D := shiftedSieveModuli h x ε)
+        (F := fun d =>
+          (shiftedImprimitiveCharacterContribution h x d).re)
+        hh hx1 hε0
+      intro d hd
+      exact ⟨(Finset.mem_filter.mp hd).2.1,
+        (Finset.mem_filter.mp hd).2.2.1⟩
+    _ ≤ ∑ d ∈ shiftedSieveModuli h x ε,
+        (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+            3 ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+          ‖shiftedImprimitiveCharacterContribution h x d‖ := by
+      apply Finset.sum_le_sum
+      intro d hd
+      exact mul_le_mul_of_nonneg_left
+        (Complex.abs_re_le_norm _) (by positivity)
+
+/-- Shifted formula (7), before splitting `M₄` into `M₂ + M₅`. -/
+theorem shiftedSmoothedSieveExpansion_le
+    {h x : ℕ} {ε : ℝ} (hh : Even h) (hx1 : 1 ≤ x)
+    (hε0 : 0 ≤ ε) :
+    shiftedSmoothedSieveExpansion h x ε ≤
+      shiftedMOne h x ε + |shiftedMThree h x ε| +
+        shiftedMFour h x ε := by
+  rw [shiftedSmoothedSieveExpansion_eq]
+  have hthree : -shiftedMThree h x ε ≤
+      |shiftedMThree h x ε| := neg_le_abs _
+  have hfour : shiftedMFourSigned h x ε ≤
+      shiftedMFour h x ε :=
+    (le_abs_self _).trans
+      (abs_shiftedMFourSigned_le_shiftedMFour hh hx1 hε0)
+  linarith
 
 theorem shiftedMFour_le_shiftedMTwo_add_shiftedMFive
     (h x : ℕ) (ε : ℝ) :
@@ -1007,5 +1833,692 @@ theorem shiftedSmoothedRoughM_le_smoothedSieveExpansion
     _ = shiftedSmoothedSieveExpansion h x ε :=
       shiftedSquareSieveExpansion_eq_smoothedSieveExpansion
         (show 1 ≤ x by omega) hε0 hεhalf
+
+/-! ### Fixed-shift smoothing loss -/
+
+/-- Inserting `chenPhi` gives the same exact decomposition as in the
+unshifted argument; only the rough index set changes. -/
+theorem shiftedSieveM_eq_smoothedRoughM_add_smoothingError
+    (h x : ℕ) :
+    shiftedSieveM h x = shiftedSmoothedRoughM h x +
+      shiftedSieveMSmoothingError h x := by
+  unfold shiftedSieveM shiftedSmoothedRoughM
+    shiftedSieveMSmoothingError smoothedMKernel
+  rw [← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro q hq
+  simp only [mul_assoc]
+  rw [← Finset.mul_sum, ← mul_add, ← Finset.sum_add_distrib]
+  congr 1
+  apply Finset.sum_congr rfl
+  intro n hn
+  ring
+
+theorem shiftedSieveMSmoothingError_nonneg
+    {h x : ℕ} (hx : 1 < x) :
+    0 ≤ shiftedSieveMSmoothingError h x := by
+  unfold shiftedSieveMSmoothingError
+  apply Finset.sum_nonneg
+  intro q hq
+  have hY : 1 < (x : ℝ) / ((q.1 : ℝ) * q.2) :=
+    one_lt_pairQuotient hq
+  have hlog : 0 < Real.log
+      ((x : ℝ) / ((q.1 : ℝ) * q.2)) :=
+    Real.log_pos hY
+  apply mul_nonneg (inv_nonneg.mpr hlog.le)
+  apply Finset.sum_nonneg
+  intro n hn
+  have hy : 0 ≤
+      (x : ℝ) / ((q.1 : ℝ) * q.2 * n) := by positivity
+  exact mul_nonneg ArithmeticFunction.vonMangoldt_nonneg
+    (sub_nonneg.mpr (chenPhi_le_one x
+      (by exact_mod_cast hx) hy))
+
+theorem shiftedSmoothingBoundaryMass_eq_small_add_large
+    (h x : ℕ) :
+    shiftedSmoothingBoundaryMass h x =
+      shiftedSmoothingBoundarySmallBaseMass h x +
+        shiftedSmoothingBoundaryLargeBaseMass h x := by
+  unfold shiftedSmoothingBoundaryMass
+    shiftedSmoothingBoundarySmallBaseMass
+    shiftedSmoothingBoundaryLargeBaseMass
+  rw [← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro q hq
+  rw [← mul_add]
+  congr 1
+  simpa only using (Finset.sum_filter_add_sum_filter_not
+    (s := shiftedSmoothingBoundaryIndices h x q)
+    (p := fun n =>
+      (n.minFac : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 100))
+    (f := fun n => ArithmeticFunction.vonMangoldt n)).symm
+
+/-- Lemma 1 splits the shifted smoothing error into its uniform interior
+loss and the thin transition boundary. -/
+theorem shiftedSieveMSmoothingError_le_interior_add_boundary
+    {h x : ℕ} (hx1 : 1 < x)
+    (hxlog : (10 : ℝ) ^ 4 ≤ Real.log x) :
+    shiftedSieveMSmoothingError h x ≤
+      (x : ℝ) ^ (-(0.1 : ℝ)) * shiftedSieveM h x +
+        shiftedSmoothingBoundaryMass h x := by
+  unfold shiftedSieveMSmoothingError shiftedSieveM
+    shiftedSmoothingBoundaryMass
+  calc
+    ∑ q ∈ chenPairs x,
+        (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n *
+              (1 - chenPhi x
+                ((x : ℝ) / ((q.1 : ℝ) * q.2 * n))) ≤
+      ∑ q ∈ chenPairs x,
+        (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ((x : ℝ) ^ (-(0.1 : ℝ)) *
+              ∑ n ∈ shiftedSieveMIndices h x q,
+                ArithmeticFunction.vonMangoldt n +
+            ∑ n ∈ shiftedSmoothingBoundaryIndices h x q,
+              ArithmeticFunction.vonMangoldt n) := by
+      apply Finset.sum_le_sum
+      intro q hq
+      have hY : 1 < (x : ℝ) / ((q.1 : ℝ) * q.2) :=
+        one_lt_pairQuotient hq
+      have hlogY : 0 < Real.log
+          ((x : ℝ) / ((q.1 : ℝ) * q.2)) :=
+        Real.log_pos hY
+      apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr hlogY.le)
+      rw [Finset.mul_sum]
+      rw [show
+          (∑ n ∈ shiftedSmoothingBoundaryIndices h x q,
+              ArithmeticFunction.vonMangoldt n) =
+            ∑ n ∈ shiftedSieveMIndices h x q,
+              if (x : ℝ) / ((q.1 : ℝ) * q.2 * n) <
+                  Real.exp
+                    (2 * (Real.log x) ^ (-(0.1 : ℝ)))
+              then ArithmeticFunction.vonMangoldt n
+              else 0 by
+        unfold shiftedSmoothingBoundaryIndices
+        rw [Finset.sum_filter]]
+      rw [← Finset.sum_add_distrib]
+      apply Finset.sum_le_sum
+      intro n hn
+      let y : ℝ := (x : ℝ) / ((q.1 : ℝ) * q.2 * n)
+      have hy0 : 0 ≤ y := by
+        dsimp only [y]
+        positivity
+      have hphi0 : 0 ≤ chenPhi x y :=
+        chenPhi_nonneg x (by exact_mod_cast hx1) hy0
+      by_cases hboundary :
+          y < Real.exp
+            (2 * (Real.log x) ^ (-(0.1 : ℝ)))
+      · rw [if_pos hboundary]
+        change ArithmeticFunction.vonMangoldt n *
+            (1 - chenPhi x y) ≤
+          (x : ℝ) ^ (-(0.1 : ℝ)) *
+              ArithmeticFunction.vonMangoldt n +
+            ArithmeticFunction.vonMangoldt n
+        have hloss : 1 - chenPhi x y ≤ 1 := by linarith
+        calc
+          ArithmeticFunction.vonMangoldt n *
+              (1 - chenPhi x y) ≤
+            ArithmeticFunction.vonMangoldt n * 1 :=
+              mul_le_mul_of_nonneg_left hloss
+                ArithmeticFunction.vonMangoldt_nonneg
+          _ ≤ (x : ℝ) ^ (-(0.1 : ℝ)) *
+                ArithmeticFunction.vonMangoldt n +
+              ArithmeticFunction.vonMangoldt n := by
+            have hnonneg :
+                0 ≤ (x : ℝ) ^ (-(0.1 : ℝ)) *
+                  ArithmeticFunction.vonMangoldt n :=
+              mul_nonneg (Real.rpow_nonneg (by positivity) _)
+                ArithmeticFunction.vonMangoldt_nonneg
+            linarith
+      · rw [if_neg hboundary]
+        change ArithmeticFunction.vonMangoldt n *
+            (1 - chenPhi x y) ≤
+          (x : ℝ) ^ (-(0.1 : ℝ)) *
+              ArithmeticFunction.vonMangoldt n + 0
+        have hylarge :
+            Real.exp
+                (2 * (Real.log x) ^ (-(0.1 : ℝ))) ≤ y :=
+          le_of_not_gt hboundary
+        have hphi :=
+          chenPhi_ge (x := (x : ℝ)) (y := y)
+            (by exact_mod_cast hx1) hxlog hylarge
+        have hloss :
+            1 - chenPhi x y ≤
+              (x : ℝ) ^ (-(0.1 : ℝ)) := by
+          linarith
+        simpa only [add_zero, mul_comm] using
+          mul_le_mul_of_nonneg_left hloss
+            ArithmeticFunction.vonMangoldt_nonneg
+    _ = (x : ℝ) ^ (-(0.1 : ℝ)) *
+          ∑ q ∈ chenPairs x,
+            (Real.log
+              ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+              ∑ n ∈ shiftedSieveMIndices h x q,
+                ArithmeticFunction.vonMangoldt n +
+        ∑ q ∈ chenPairs x,
+          (Real.log
+            ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+            ∑ n ∈ shiftedSmoothingBoundaryIndices h x q,
+              ArithmeticFunction.vonMangoldt n := by
+      rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+      apply Finset.sum_congr rfl
+      intro q hq
+      ring
+
+/-- The crude estimate for `M` is residue-independent: the shifted rough
+indices are still a subset of the same unsifted interval. -/
+theorem shiftedSieveM_le_crude
+    {h x : ℕ} (hx2 : 2 ≤ x)
+    (hxlarge : Real.exp 3 ≤ (x : ℝ)) :
+    shiftedSieveM h x ≤
+      ((x : ℝ) * (harmonic x : ℝ) ^ 2 +
+        18 * (x : ℝ) ^ ((5 : ℝ) / 6)) *
+          Real.log x := by
+  unfold shiftedSieveM
+  have hxpos : (0 : ℝ) < x := (Real.exp_pos 3).trans_le hxlarge
+  have hxone : (1 : ℝ) ≤ x := by
+    have h : (1 : ℝ) < Real.exp 3 := by
+      rw [← Real.exp_zero]
+      exact Real.exp_lt_exp.mpr (by norm_num)
+    exact (h.trans_le hxlarge).le
+  have hlogx : (3 : ℝ) ≤ Real.log x := by
+    calc
+      (3 : ℝ) = Real.log (Real.exp 3) := by rw [Real.log_exp]
+      _ ≤ Real.log x := Real.strictMonoOn_log.monotoneOn
+        (Set.mem_Ioi.mpr (Real.exp_pos 3))
+        (Set.mem_Ioi.mpr hxpos) hxlarge
+  have hpair :
+      ∀ q ∈ chenPairs x,
+        (Real.log
+            ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n ≤
+        (((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+          Real.log x) := by
+    intro q hq
+    let Y : ℝ := (x : ℝ) / ((q.1 : ℝ) * q.2)
+    have hY : (x : ℝ) ^ ((1 : ℝ) / 3) < Y :=
+      rpow_third_lt_pairQuotient hq
+    have hlogY : (1 : ℝ) ≤ Real.log Y := by
+      have hlogpow :
+          Real.log ((x : ℝ) ^ ((1 : ℝ) / 3)) =
+            (1 : ℝ) / 3 * Real.log x := by
+        rw [Real.log_rpow hxpos]
+      have hpowpos :
+          0 < (x : ℝ) ^ ((1 : ℝ) / 3) := by positivity
+      have hmono :
+          Real.log ((x : ℝ) ^ ((1 : ℝ) / 3)) ≤
+            Real.log Y :=
+        Real.strictMonoOn_log.monotoneOn
+          (Set.mem_Ioi.mpr hpowpos)
+          (Set.mem_Ioi.mpr (hpowpos.trans hY)) hY.le
+      rw [hlogpow] at hmono
+      nlinarith
+    have hinvnonneg : 0 ≤ (Real.log Y)⁻¹ := by positivity
+    have hinvle : (Real.log Y)⁻¹ ≤ 1 :=
+      inv_le_one_of_one_le₀ hlogY
+    have hsubset :
+        shiftedSieveMIndices h x q ⊆ smoothedMIndices x q := by
+      intro n hn
+      have hn' := hn
+      simp only [shiftedSieveMIndices, Finset.mem_filter,
+        Finset.mem_range] at hn'
+      simp only [smoothedMIndices, Finset.mem_filter,
+        Finset.mem_range]
+      exact ⟨hn'.1, hn'.2.1⟩
+    have hrough :
+        ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n ≤
+          ∑ n ∈ smoothedMIndices x q,
+            ArithmeticFunction.vonMangoldt n :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsubset
+        (fun n _ _ => ArithmeticFunction.vonMangoldt_nonneg)
+    have hmass :
+        ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n ≤
+          (Y + 2) * Real.log x :=
+      hrough.trans (by
+        simpa only [Y] using
+          sum_smoothedMIndices_vonMangoldt_le hx2 q)
+    have hmass0 :
+        0 ≤ ∑ n ∈ shiftedSieveMIndices h x q,
+          ArithmeticFunction.vonMangoldt n := by
+      apply Finset.sum_nonneg
+      intro n hn
+      exact ArithmeticFunction.vonMangoldt_nonneg
+    calc
+      (Real.log
+          ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n =
+        (Real.log Y)⁻¹ *
+          ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n := by rfl
+      _ ≤ 1 * ((Y + 2) * Real.log x) :=
+        mul_le_mul hinvle hmass hmass0 (by norm_num)
+      _ = ((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+          Real.log x := by simp only [Y, one_mul]
+  calc
+    ∑ q ∈ chenPairs x,
+        (Real.log
+            ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ shiftedSieveMIndices h x q,
+            ArithmeticFunction.vonMangoldt n ≤
+      ∑ q ∈ chenPairs x,
+        (((x : ℝ) / ((q.1 : ℝ) * q.2) + 2) *
+          Real.log x) := by
+      apply Finset.sum_le_sum
+      exact hpair
+    _ = (∑ q ∈ chenPairs x,
+          ((x : ℝ) / ((q.1 : ℝ) * q.2) + 2)) *
+        Real.log x := by rw [Finset.sum_mul]
+    _ ≤ ((x : ℝ) * (harmonic x : ℝ) ^ 2 +
+          2 * ((chenPairs x).card : ℝ)) *
+        Real.log x := by
+      apply mul_le_mul_of_nonneg_right _ (by positivity)
+      rw [Finset.sum_add_distrib]
+      simp only [Finset.sum_const, nsmul_eq_mul]
+      have hYsum :
+          ∑ q ∈ chenPairs x,
+              (x : ℝ) / ((q.1 : ℝ) * q.2) ≤
+            (x : ℝ) * (harmonic x : ℝ) ^ 2 := by
+        simpa only [sub_zero, zero_div, Real.rpow_one] using
+        (sum_pairQuotient_rpow_le_harmonic
+          x (ε := 0) (by norm_num))
+      calc
+        (∑ q ∈ chenPairs x,
+            (x : ℝ) / ((q.1 : ℝ) * q.2)) +
+              ((chenPairs x).card : ℝ) * 2 =
+            2 * ((chenPairs x).card : ℝ) +
+              ∑ q ∈ chenPairs x,
+                (x : ℝ) / ((q.1 : ℝ) * q.2) := by ring
+        _ ≤ 2 * ((chenPairs x).card : ℝ) +
+              (x : ℝ) * (harmonic x : ℝ) ^ 2 :=
+          add_le_add_right hYsum _
+        _ = (x : ℝ) * (harmonic x : ℝ) ^ 2 +
+              2 * ((chenPairs x).card : ℝ) := by ring
+    _ ≤ ((x : ℝ) * (harmonic x : ℝ) ^ 2 +
+          18 * (x : ℝ) ^ ((5 : ℝ) / 6)) *
+        Real.log x := by
+      apply mul_le_mul_of_nonneg_right _ (by positivity)
+      have hcard := chenPairs_card_cast_le x
+        (show 1 ≤ x by omega)
+      have hcard' :
+          2 * ((chenPairs x).card : ℝ) ≤
+            18 * (x : ℝ) ^ ((5 : ℝ) / 6) := by
+        nlinarith
+      simpa [add_comm] using
+        add_le_add_left hcard'
+          ((x : ℝ) * (harmonic x : ℝ) ^ 2)
+
+/-- The small-base part of the shifted transition interval has the same
+power-saving majorant as in the original argument. -/
+theorem shiftedSmoothingBoundarySmallBaseMass_le_explicit
+    {h x : ℕ} (hx2 : 2 ≤ x)
+    (hxlarge : Real.exp 3 ≤ (x : ℝ)) :
+    shiftedSmoothingBoundarySmallBaseMass h x ≤
+      9 * (x : ℝ) ^ ((253 : ℝ) / 300) *
+        (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+          Real.log x * (harmonic x : ℝ) := by
+  unfold shiftedSmoothingBoundarySmallBaseMass
+  have hxpos : (0 : ℝ) < x := (Real.exp_pos 3).trans_le hxlarge
+  have hxone : (1 : ℝ) ≤ x := by
+    have h : (1 : ℝ) < Real.exp 3 := by
+      rw [← Real.exp_zero]
+      exact Real.exp_lt_exp.mpr (by norm_num)
+    exact (h.trans_le hxlarge).le
+  have hlogx : (3 : ℝ) ≤ Real.log x := by
+    calc
+      (3 : ℝ) = Real.log (Real.exp 3) := by rw [Real.log_exp]
+      _ ≤ Real.log x := Real.strictMonoOn_log.monotoneOn
+        (Set.mem_Ioi.mpr (Real.exp_pos 3))
+        (Set.mem_Ioi.mpr hxpos) hxlarge
+  let B : ℝ :=
+    (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+      Real.log x * (harmonic x : ℝ)
+  have hB0 : 0 ≤ B := by
+    dsimp only [B]
+    have hH : 0 ≤ (harmonic x : ℝ) := by
+      rw [harmonic_eq_sum_Icc, Rat.cast_sum]
+      positivity
+    exact mul_nonneg
+      (mul_nonneg (by positivity) (by linarith)) hH
+  have hpair :
+      ∀ q ∈ chenPairs x,
+        (Real.log
+            ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ (shiftedSmoothingBoundaryIndices h x q).filter
+              (fun n => (n.minFac : ℝ) ≤
+                (x : ℝ) ^ ((1 : ℝ) / 100)),
+            ArithmeticFunction.vonMangoldt n ≤
+          (x : ℝ) ^ ((1 : ℝ) / 100) * B := by
+    intro q hq
+    let Y : ℝ := (x : ℝ) / ((q.1 : ℝ) * q.2)
+    have hY : (x : ℝ) ^ ((1 : ℝ) / 3) < Y :=
+      rpow_third_lt_pairQuotient hq
+    have hlogY : (1 : ℝ) ≤ Real.log Y := by
+      have hlogpow :
+          Real.log ((x : ℝ) ^ ((1 : ℝ) / 3)) =
+            (1 : ℝ) / 3 * Real.log x := by
+        rw [Real.log_rpow hxpos]
+      have hpowpos :
+          0 < (x : ℝ) ^ ((1 : ℝ) / 3) := by positivity
+      have hmono :
+          Real.log ((x : ℝ) ^ ((1 : ℝ) / 3)) ≤
+            Real.log Y :=
+        Real.strictMonoOn_log.monotoneOn
+          (Set.mem_Ioi.mpr hpowpos)
+          (Set.mem_Ioi.mpr (hpowpos.trans hY)) hY.le
+      rw [hlogpow] at hmono
+      nlinarith
+    have hinv0 : 0 ≤ (Real.log Y)⁻¹ := by positivity
+    have hinvle : (Real.log Y)⁻¹ ≤ 1 :=
+      inv_le_one_of_one_le₀ hlogY
+    let S : Finset ℕ :=
+      (shiftedSmoothingBoundaryIndices h x q).filter
+        (fun n => (n.minFac : ℝ) ≤
+          (x : ℝ) ^ ((1 : ℝ) / 100))
+    have hSsubset : S ⊆ smoothedMIndices x q := by
+      intro n hn
+      have hnBoundary := (Finset.mem_filter.mp hn).1
+      have hnSieve := (Finset.mem_filter.mp hnBoundary).1
+      have hn' := hnSieve
+      simp only [shiftedSieveMIndices, Finset.mem_filter,
+        Finset.mem_range] at hn'
+      simp only [smoothedMIndices, Finset.mem_filter,
+        Finset.mem_range]
+      exact ⟨hn'.1, hn'.2.1⟩
+    have hsum :
+        ∑ n ∈ S, ArithmeticFunction.vonMangoldt n ≤
+          (x : ℝ) ^ ((1 : ℝ) / 100) *
+            ∑ n ∈ smoothedMIndices x q,
+              ArithmeticFunction.vonMangoldt n *
+                (n.minFac : ℝ)⁻¹ := by
+      calc
+        ∑ n ∈ S, ArithmeticFunction.vonMangoldt n ≤
+            ∑ n ∈ S,
+              (x : ℝ) ^ ((1 : ℝ) / 100) *
+                (ArithmeticFunction.vonMangoldt n *
+                  (n.minFac : ℝ)⁻¹) := by
+          apply Finset.sum_le_sum
+          intro n hn
+          exact vonMangoldt_le_rpow_mul_div_minFac
+            (Finset.mem_filter.mp hn).2
+        _ ≤ ∑ n ∈ smoothedMIndices x q,
+              (x : ℝ) ^ ((1 : ℝ) / 100) *
+                (ArithmeticFunction.vonMangoldt n *
+                  (n.minFac : ℝ)⁻¹) := by
+          apply Finset.sum_le_sum_of_subset_of_nonneg hSsubset
+          intro n hn _
+          exact mul_nonneg
+            (Real.rpow_nonneg hxpos.le _)
+            (mul_nonneg ArithmeticFunction.vonMangoldt_nonneg
+              (inv_nonneg.mpr (by positivity)))
+        _ = (x : ℝ) ^ ((1 : ℝ) / 100) *
+            ∑ n ∈ smoothedMIndices x q,
+              ArithmeticFunction.vonMangoldt n *
+                (n.minFac : ℝ)⁻¹ := by
+          rw [Finset.mul_sum]
+    have hsumB :
+        ∑ n ∈ S, ArithmeticFunction.vonMangoldt n ≤
+          (x : ℝ) ^ ((1 : ℝ) / 100) * B :=
+      hsum.trans (mul_le_mul_of_nonneg_left
+        (by simpa only [B] using
+          (sum_smoothedMIndices_vonMangoldt_div_minFac_le
+            hx2 q))
+        (Real.rpow_nonneg hxpos.le _))
+    have hsum0 :
+        0 ≤ ∑ n ∈ S,
+          ArithmeticFunction.vonMangoldt n := by
+      apply Finset.sum_nonneg
+      intro n hn
+      exact ArithmeticFunction.vonMangoldt_nonneg
+    have hmul :
+        (Real.log Y)⁻¹ *
+            ∑ n ∈ S, ArithmeticFunction.vonMangoldt n ≤
+          (x : ℝ) ^ ((1 : ℝ) / 100) * B := by
+      calc
+        (Real.log Y)⁻¹ *
+            ∑ n ∈ S, ArithmeticFunction.vonMangoldt n ≤
+          1 * ∑ n ∈ S,
+            ArithmeticFunction.vonMangoldt n :=
+          mul_le_mul_of_nonneg_right hinvle hsum0
+        _ ≤ 1 * ((x : ℝ) ^ ((1 : ℝ) / 100) * B) :=
+          mul_le_mul_of_nonneg_left hsumB (by norm_num)
+        _ = (x : ℝ) ^ ((1 : ℝ) / 100) * B := one_mul _
+    simpa only [Y, S] using hmul
+  calc
+    ∑ q ∈ chenPairs x,
+        (Real.log
+            ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+          ∑ n ∈ (shiftedSmoothingBoundaryIndices h x q).filter
+              (fun n => (n.minFac : ℝ) ≤
+                (x : ℝ) ^ ((1 : ℝ) / 100)),
+            ArithmeticFunction.vonMangoldt n ≤
+      ∑ q ∈ chenPairs x,
+        (x : ℝ) ^ ((1 : ℝ) / 100) * B := by
+      apply Finset.sum_le_sum
+      exact hpair
+    _ = ((chenPairs x).card : ℝ) *
+        ((x : ℝ) ^ ((1 : ℝ) / 100) * B) := by
+      simp only [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (9 * (x : ℝ) ^ ((5 : ℝ) / 6)) *
+        ((x : ℝ) ^ ((1 : ℝ) / 100) * B) := by
+      exact mul_le_mul_of_nonneg_right
+        (chenPairs_card_cast_le x (show 1 ≤ x by omega))
+        (mul_nonneg (Real.rpow_nonneg hxpos.le _) hB0)
+    _ = 9 * (x : ℝ) ^ ((253 : ℝ) / 300) *
+        (⌈Real.log x / Real.log 2⌉₊ : ℝ) *
+          Real.log x * (harmonic x : ℝ) := by
+      have hexp :
+          (253 : ℝ) / 300 =
+            (5 : ℝ) / 6 + (1 : ℝ) / 100 := by
+        norm_num
+      rw [hexp, Real.rpow_add hxpos]
+      dsimp only [B]
+      ring
+
+theorem eventually_shiftedSmoothingBoundarySmallBaseMass_le (h : ℕ) :
+    ∀ᶠ x : ℕ in atTop,
+      shiftedSmoothingBoundarySmallBaseMass h x ≤
+        (18 * ((Real.log 2)⁻¹ + 1)) *
+          (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+  have hlogOneReal :
+      ∀ᶠ y : ℝ in atTop, 1 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 1)
+  have hlogOne :
+      ∀ᶠ x : ℕ in atTop, 1 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hlogOneReal
+  have hxlargeEventually :
+      ∀ᶠ x : ℕ in atTop, Real.exp 3 ≤ (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually
+      (eventually_ge_atTop (Real.exp 3))
+  filter_upwards [eventually_log_pow_five_le_rpow, hlogOne,
+    hxlargeEventually, eventually_ge_atTop 2,
+    eventually_rpow_one_sub_le_div_log_rpow
+      (δ := (1 : ℝ) / 10) (r := (2.01 : ℝ))
+        (by norm_num)] with
+      x hlogFive hlogOne hxlarge hx2 hpower
+  have hxone : (1 : ℝ) ≤ (x : ℝ) := by
+    exact_mod_cast (show 1 ≤ x by omega)
+  have hxpos : (0 : ℝ) < (x : ℝ) := zero_lt_one.trans_le hxone
+  let L : ℝ := Real.log x
+  let H : ℝ := harmonic x
+  let K : ℝ := (Real.log 2)⁻¹ + 1
+  have hL0 : 0 ≤ L := by
+    dsimp only [L]
+    linarith
+  have hH0 : 0 ≤ H := by
+    dsimp only [H]
+    rw [harmonic_eq_sum_Icc, Rat.cast_sum]
+    positivity
+  have hHle : H ≤ 2 * L := by
+    dsimp only [H, L]
+    have hH := harmonic_le_one_add_log x
+    linarith
+  have hK0 : 0 ≤ K := by
+    dsimp only [K]
+    positivity
+  have hceil :
+      (⌈L / Real.log 2⌉₊ : ℝ) ≤ K * L := by
+    have hy0 : 0 ≤ L / Real.log 2 := by positivity
+    calc
+      (⌈L / Real.log 2⌉₊ : ℝ) ≤ L / Real.log 2 + 1 :=
+        (Nat.ceil_lt_add_one hy0).le
+      _ = (Real.log 2)⁻¹ * L + 1 := by
+        rw [div_eq_mul_inv]
+        ring
+      _ ≤ (Real.log 2)⁻¹ * L + L := by
+        linarith
+      _ = K * L := by
+        dsimp only [K]
+        ring
+  have hlogs :
+      (⌈L / Real.log 2⌉₊ : ℝ) * L * H ≤
+        2 * K * L ^ 5 := by
+    calc
+      (⌈L / Real.log 2⌉₊ : ℝ) * L * H ≤
+          (K * L) * L * (2 * L) := by gcongr
+      _ = 2 * K * L ^ 3 := by ring
+      _ ≤ 2 * K * L ^ 5 := by
+        exact mul_le_mul_of_nonneg_left
+          (pow_le_pow_right₀ (show 1 ≤ L by
+            simpa only [L] using hlogOne) (by norm_num))
+          (mul_nonneg (by norm_num) hK0)
+  have hexplicit :=
+    shiftedSmoothingBoundarySmallBaseMass_le_explicit
+      (h := h) hx2 hxlarge
+  calc
+    shiftedSmoothingBoundarySmallBaseMass h x ≤
+        9 * (x : ℝ) ^ ((253 : ℝ) / 300) *
+          ((⌈L / Real.log 2⌉₊ : ℝ) * L * H) := by
+      simpa only [L, H, mul_assoc] using hexplicit
+    _ ≤ 9 * (x : ℝ) ^ ((253 : ℝ) / 300) *
+          (2 * K * L ^ 5) := by
+      gcongr
+    _ ≤ 9 * (x : ℝ) ^ ((253 : ℝ) / 300) *
+          (2 * K * (x : ℝ) ^ ((1 : ℝ) / 100)) := by
+      dsimp only [L] at hlogFive ⊢
+      gcongr
+    _ = (18 * K) * (x : ℝ) ^ ((64 : ℝ) / 75) := by
+      have hexp :
+          (64 : ℝ) / 75 =
+            (253 : ℝ) / 300 + (1 : ℝ) / 100 := by
+        norm_num
+      rw [hexp, Real.rpow_add hxpos]
+      ring
+    _ ≤ (18 * K) * (x : ℝ) ^ (1 - (1 : ℝ) / 10) := by
+      apply mul_le_mul_of_nonneg_left
+      · exact Real.rpow_le_rpow_of_exponent_le hxone (by norm_num)
+      · exact mul_nonneg (by norm_num) hK0
+    _ ≤ (18 * K) *
+        ((x : ℝ) / (Real.log x) ^ (2.01 : ℝ)) := by
+      exact mul_le_mul_of_nonneg_left hpower
+        (mul_nonneg (by norm_num) hK0)
+    _ = (18 * ((Real.log 2)⁻¹ + 1)) *
+        (x : ℝ) / (Real.log x) ^ (2.01 : ℝ) := by
+      dsimp only [K]
+      ring
+
+theorem eventually_shiftedSmoothingInterior_le (h : ℕ) :
+    ∀ᶠ x : ℕ in atTop,
+      (x : ℝ) ^ (-(0.1 : ℝ)) * shiftedSieveM h x ≤
+        19 * (x : ℝ) /
+          (Real.log x) ^ (2.01 : ℝ) := by
+  have hlogOneReal :
+      ∀ᶠ y : ℝ in atTop, 1 ≤ Real.log y :=
+    Real.tendsto_log_atTop.eventually (eventually_ge_atTop 1)
+  have hlogOne :
+      ∀ᶠ x : ℕ in atTop, 1 ≤ Real.log (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually hlogOneReal
+  have hxlargeEventually :
+      ∀ᶠ x : ℕ in atTop, Real.exp 3 ≤ (x : ℝ) :=
+    tendsto_natCast_atTop_atTop.eventually
+      (eventually_ge_atTop (Real.exp 3))
+  have hδ01 : (0 : ℝ) < 1 / 100 := by norm_num
+  have hδ08 : (0 : ℝ) < 8 / 100 := by norm_num
+  filter_upwards [eventually_harmonic_sq_le_rpow hδ01,
+    eventually_log_pow_four_le_rpow, hlogOne,
+    hxlargeEventually, eventually_ge_atTop 2,
+    eventually_rpow_one_sub_le_div_log_rpow
+      (δ := (8 : ℝ) / 100) (r := (2.01 : ℝ)) hδ08] with
+      x hH hlogFour hlogOne hxlarge hx2 hpower
+  have hxone : (1 : ℝ) ≤ (x : ℝ) := by
+    exact_mod_cast (show 1 ≤ x by omega)
+  have hxpos : (0 : ℝ) < (x : ℝ) := zero_lt_one.trans_le hxone
+  have hpow01one :
+      (1 : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 100) :=
+    Real.one_le_rpow hxone (by norm_num)
+  have hlog :
+      Real.log x ≤ (x : ℝ) ^ ((1 : ℝ) / 100) := by
+    calc
+      Real.log x ≤ (Real.log x) ^ 4 := by
+        nlinarith [sq_nonneg (Real.log x),
+          sq_nonneg ((Real.log x) ^ 2 - Real.log x)]
+      _ ≤ (x : ℝ) ^ ((1 : ℝ) / 100) := hlogFour
+  have h56 :
+      (x : ℝ) ^ ((5 : ℝ) / 6) ≤ (x : ℝ) :=
+    (Real.rpow_le_rpow_of_exponent_le hxone (by norm_num)).trans_eq
+      (Real.rpow_one x)
+  have hM := shiftedSieveM_le_crude (h := h) hx2 hxlarge
+  have hxx :
+      (x : ℝ) ≤ (x : ℝ) *
+        (x : ℝ) ^ ((1 : ℝ) / 100) :=
+    le_mul_of_one_le_right hxpos.le hpow01one
+  have hinside :
+      (x : ℝ) * (harmonic x : ℝ) ^ 2 +
+          18 * (x : ℝ) ^ ((5 : ℝ) / 6) ≤
+        (x : ℝ) * (x : ℝ) ^ ((1 : ℝ) / 100) +
+          18 * ((x : ℝ) *
+            (x : ℝ) ^ ((1 : ℝ) / 100)) := by
+    exact add_le_add
+      (mul_le_mul_of_nonneg_left hH hxpos.le)
+      (mul_le_mul_of_nonneg_left (h56.trans hxx) (by norm_num))
+  have hM' :
+      shiftedSieveM h x ≤
+        19 * (x : ℝ) *
+          (x : ℝ) ^ ((1 : ℝ) / 100) *
+            (x : ℝ) ^ ((1 : ℝ) / 100) := by
+    calc
+      shiftedSieveM h x ≤
+          ((x : ℝ) * (harmonic x : ℝ) ^ 2 +
+            18 * (x : ℝ) ^ ((5 : ℝ) / 6)) *
+              Real.log x := hM
+      _ ≤ ((x : ℝ) * (x : ℝ) ^ ((1 : ℝ) / 100) +
+            18 * ((x : ℝ) *
+              (x : ℝ) ^ ((1 : ℝ) / 100))) *
+              (x : ℝ) ^ ((1 : ℝ) / 100) := by
+        exact mul_le_mul hinside hlog
+          (by linarith) (by positivity)
+      _ = 19 * (x : ℝ) *
+          (x : ℝ) ^ ((1 : ℝ) / 100) *
+            (x : ℝ) ^ ((1 : ℝ) / 100) := by ring
+  calc
+    (x : ℝ) ^ (-(0.1 : ℝ)) * shiftedSieveM h x ≤
+        (x : ℝ) ^ (-(0.1 : ℝ)) *
+          (19 * (x : ℝ) *
+            (x : ℝ) ^ ((1 : ℝ) / 100) *
+              (x : ℝ) ^ ((1 : ℝ) / 100)) :=
+      mul_le_mul_of_nonneg_left hM'
+        (Real.rpow_nonneg hxpos.le _)
+    _ = 19 * ((x : ℝ) ^ (-(0.1 : ℝ)) *
+          (x : ℝ) ^ (1 : ℝ) *
+            (x : ℝ) ^ ((1 : ℝ) / 100) *
+              (x : ℝ) ^ ((1 : ℝ) / 100)) := by
+      rw [Real.rpow_one]
+      ring
+    _ = 19 * (x : ℝ) ^ ((92 : ℝ) / 100) := by
+      rw [← Real.rpow_add hxpos, ← Real.rpow_add hxpos,
+        ← Real.rpow_add hxpos]
+      congr 2
+      norm_num
+    _ ≤ 19 * ((x : ℝ) /
+        (Real.log x) ^ (2.01 : ℝ)) := by
+      apply mul_le_mul_of_nonneg_left _ (by norm_num)
+      simpa only [show (92 : ℝ) / 100 =
+          1 - (8 : ℝ) / 100 by norm_num] using hpower
+    _ = 19 * (x : ℝ) /
+        (Real.log x) ^ (2.01 : ℝ) := by ring
 
 end Chen

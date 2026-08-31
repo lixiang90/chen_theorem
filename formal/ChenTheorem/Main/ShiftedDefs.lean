@@ -96,6 +96,46 @@ noncomputable def shiftedSmoothedRoughM (h x : ℕ) : ℝ :=
   ∑ q ∈ chenPairs x,
     ∑ n ∈ shiftedSieveMIndices h x q, smoothedMKernel x q n
 
+/-- The exact loss caused by inserting `chenPhi` into the fixed-shift
+von-Mangoldt sum. -/
+noncomputable def shiftedSieveMSmoothingError (h x : ℕ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ∑ n ∈ shiftedSieveMIndices h x q,
+        ArithmeticFunction.vonMangoldt n *
+          (1 - chenPhi x
+            ((x : ℝ) / ((q.1 : ℝ) * q.2 * n)))
+
+/-- The thin transition interval on which Lemma 1 does not yet give the
+uniform `x⁻⁰·¹` smoothing loss. -/
+noncomputable def shiftedSmoothingBoundaryIndices
+    (h x : ℕ) (q : ℕ × ℕ) : Finset ℕ :=
+  (shiftedSieveMIndices h x q).filter fun n =>
+    (x : ℝ) / ((q.1 : ℝ) * q.2 * n) <
+      Real.exp (2 * (Real.log x) ^ (-(0.1 : ℝ)))
+
+noncomputable def shiftedSmoothingBoundaryMass (h x : ℕ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ∑ n ∈ shiftedSmoothingBoundaryIndices h x q,
+        ArithmeticFunction.vonMangoldt n
+
+noncomputable def shiftedSmoothingBoundarySmallBaseMass
+    (h x : ℕ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ∑ n ∈ (shiftedSmoothingBoundaryIndices h x q).filter fun n =>
+          (n.minFac : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 100),
+        ArithmeticFunction.vonMangoldt n
+
+noncomputable def shiftedSmoothingBoundaryLargeBaseMass
+    (h x : ℕ) : ℝ :=
+  ∑ q ∈ chenPairs x,
+    (Real.log ((x : ℝ) / ((q.1 : ℝ) * q.2)))⁻¹ *
+      ∑ n ∈ (shiftedSmoothingBoundaryIndices h x q).filter fun n =>
+          ¬(n.minFac : ℝ) ≤ (x : ℝ) ^ ((1 : ℝ) / 100),
+        ArithmeticFunction.vonMangoldt n
+
 noncomputable def shiftedOmegaSmallThirdPrimes
     (h x : ℕ) (ε : ℝ) (q : ℕ × ℕ) : Finset ℕ :=
   (shiftedOmegaThirdPrimes h x q).filter fun p₃ =>
@@ -150,6 +190,13 @@ noncomputable def shiftedMThree (h x : ℕ) (ε : ℝ) : ℝ :=
   ∑ d ∈ shiftedSieveModuli h x ε,
     shiftedSieveLcmCoeff h x ε d / (Nat.totient d : ℝ) *
       smoothedMBadMass x d
+
+noncomputable def shiftedMThreeMajorant
+    (h x : ℕ) (ε : ℝ) : ℝ :=
+  ∑ d ∈ shiftedSieveModuli h x ε,
+    (|((ArithmeticFunction.moebius d : ℤ) : ℝ)| *
+        (3 : ℝ) ^ distinctPrimeFactors d / (Nat.totient d : ℝ)) *
+      |smoothedMBadMass x d|
 
 noncomputable def shiftedImprimitiveCharacterContribution
     (h x d : ℕ) : ℂ :=

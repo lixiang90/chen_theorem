@@ -1,6 +1,8 @@
 import ChenTheorem.MainEstimates
 import ChenTheorem.Main.ShiftedSieveLemmas
 import ChenTheorem.Main.ShiftedLemma5
+import ChenTheorem.Main.ShiftedLemma5Boundary
+import ChenTheorem.Main.ShiftedLemma5Arithmetic
 
 open Filter Real
 open scoped Classical
@@ -9,8 +11,8 @@ namespace Chen
 
 /-!
 The paper proves its shifted conclusion by repeating the preceding sieve
-argument with the fixed even shift `h`.  The shifted sieve infrastructure has
-not yet been split into analogues of Lemmas 5, 8, 9 and inequality (28), so the
+argument with the fixed even shift `h`.  The shifted analogue of Lemma 5 is
+now formalized; analogues of Lemmas 6--9 and inequality (28) remain, so the
 resulting quantitative estimate is kept here as one explicit upstream target.
 This lets `Main.lean` contain only deductions from named lemma interfaces.
 -/
