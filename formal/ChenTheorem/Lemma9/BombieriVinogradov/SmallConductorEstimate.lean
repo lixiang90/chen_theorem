@@ -285,17 +285,18 @@ conductor has an arbitrary logarithmic saving.  This is where the
 exponential gain from the shifted vertical side absorbs its growing
 polylogarithmic height. -/
 theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
-    (data : Chen.PrimitiveZeroFreeRegionData) (K : ℕ) :
+    {E : ℕ} (data : Chen.PrimitiveZeroFreeRegionDataAt E) (K R : ℕ)
+    (hR : 1 ≤ R) (hER : 3 * R ≤ E) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
       ∀ (q : ℕ) [NeZero q] (χ : DirichletCharacter ℂ q),
-        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ R →
           χ.IsPrimitive →
           ‖∫ t : ℝ,
               bvSmoothedLogDerivIntegrand K x χ
                 (Chen.lemma6AlphaPoint x t)‖ ≤
             C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
   let N : ℕ := 22 * (K + 1)
-  let D : ℝ := (((N + 104 : ℕ) : ℝ) ^ 2) * data.cLogDeriv
+  let D : ℝ := (((N + R + 4 : ℕ) : ℝ) ^ 2) * data.cLogDeriv
   let C : ℝ := 1 + 4 * Real.exp 1 * D + 4 * Real.exp 1 * Real.pi
   have hDpos : 0 < D := by
     dsimp only [D, N]
@@ -306,14 +307,15 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
   have hlogT : Tendsto (fun x : ℕ => Real.log (x : ℝ)) atTop atTop :=
     Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
   have hwidthAll :=
-    eventually_two_div_sqrt_log_lt_primitiveZeroFreeWidth_bvHeight data K
+    eventually_two_div_sqrt_log_lt_primitiveZeroFreeWidth_bvHeight
+      data K R hR hER
   have habsorb := eventually_const_mul_shifted_rpow_mul_log_pow_le
     (4 * D) (N + 2) K
   refine ⟨C, hCpos, ?_⟩
   filter_upwards [eventually_ge_atTop 2,
       hlogT.eventually (eventually_ge_atTop 10), hwidthAll, habsorb] with
       x hx hLten hwidthAll habsorb
-  intro q _ χ hq hq100 hχ
+  intro q _ χ hq hqR hχ
   let L : ℝ := Real.log (x : ℝ)
   have hLpos : 0 < L := by dsimp only [L]; linarith
   have hLone : 1 ≤ L := by dsimp only [L]; linarith
@@ -339,8 +341,8 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
     linarith
   have hwidth : ∀ t : ℝ, |t| ≤ bvSmoothingContourHeight K x →
       2 / Real.sqrt (Real.log (x : ℝ)) <
-        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q t :=
-    hwidthAll q hq hq100
+        Chen.primitiveZeroFreeWidthAt E data.cHeight data.cSiegel q t :=
+    hwidthAll q hq hqR
   have hfinite :=
     norm_integral_bvSmoothedLogDeriv_alpha_le_finite_classical
       data K hq hx hlarge hγpos hχ hwidth
@@ -349,13 +351,14 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
     rw [← pow_mul]
     congr 1
     omega
-  have hM : Chen.eq21ClassicalLogDerivMajorant data q
+  have hM : Chen.primitiveLogDerivMajorantAt data q
         (bvSmoothingContourHeight K x) ≤ D * L ^ 2 := by
     have hm := eq21ClassicalLogDerivMajorant_bvHeight_le
-      data K (by simpa only [L] using (show (4 : ℝ) ≤ L by linarith))
-        hq hq100
+      data K R hR hER
+        (by simpa only [L] using (show (4 : ℝ) ≤ L by linarith))
+        hq hqR
     simpa only [D, N, L] using hm
-  have hM0 := Chen.eq21ClassicalLogDerivMajorant_nonneg data q
+  have hM0 := Chen.primitiveLogDerivMajorantAt_nonneg data q
     (bvSmoothingContourHeight K x)
   have hwidthOne :
       |(1 + 1 / Real.log (x : ℝ)) -
@@ -375,13 +378,13 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
       4 * bvSmoothingContourHeight K x *
           ((x : ℝ) ^
             (1 - 1 / Real.sqrt (Real.log (x : ℝ))) *
-            Chen.eq21ClassicalLogDerivMajorant data q
+            Chen.primitiveLogDerivMajorantAt data q
               (bvSmoothingContourHeight K x)) ≤ Y := by
     calc
       4 * bvSmoothingContourHeight K x *
           ((x : ℝ) ^
             (1 - 1 / Real.sqrt (Real.log (x : ℝ))) *
-            Chen.eq21ClassicalLogDerivMajorant data q
+            Chen.primitiveLogDerivMajorantAt data q
               (bvSmoothingContourHeight K x)) ≤
         4 * bvSmoothingContourHeight K x *
           ((x : ℝ) ^
@@ -406,7 +409,7 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
     (p := 2) (n := 44 * (K + 1)) (k := K) (by omega)
   have hB2 :
       2 * (((2 * Real.exp 1 * (x : ℝ) *
-          Chen.eq21ClassicalLogDerivMajorant data q
+          Chen.primitiveLogDerivMajorantAt data q
             (bvSmoothingContourHeight K x)) *
           (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
         |(1 + 1 / Real.log (x : ℝ)) -
@@ -417,13 +420,13 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
     have hcoef0 : 0 ≤ 2 * Real.exp 1 * (x : ℝ) := by positivity
     have hZ0 : 0 ≤
         (2 * Real.exp 1 * (x : ℝ) *
-          Chen.eq21ClassicalLogDerivMajorant data q
+          Chen.primitiveLogDerivMajorantAt data q
             (bvSmoothingContourHeight K x)) *
           (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹ :=
       mul_nonneg (mul_nonneg hcoef0 hM0) hinv0
     have hZM :
         (2 * Real.exp 1 * (x : ℝ) *
-          Chen.eq21ClassicalLogDerivMajorant data q
+          Chen.primitiveLogDerivMajorantAt data q
             (bvSmoothingContourHeight K x)) *
             (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹ ≤
           (2 * Real.exp 1 * (x : ℝ) * (D * L ^ 2)) *
@@ -432,13 +435,13 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
         (mul_le_mul_of_nonneg_left hM hcoef0) hinv0
     calc
       2 * (((2 * Real.exp 1 * (x : ℝ) *
-          Chen.eq21ClassicalLogDerivMajorant data q
+          Chen.primitiveLogDerivMajorantAt data q
             (bvSmoothingContourHeight K x)) *
           (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
         |(1 + 1 / Real.log (x : ℝ)) -
           (1 - 1 / Real.sqrt (Real.log (x : ℝ)))|) ≤
         2 * (((2 * Real.exp 1 * (x : ℝ) *
-          Chen.eq21ClassicalLogDerivMajorant data q
+          Chen.primitiveLogDerivMajorantAt data q
             (bvSmoothingContourHeight K x)) *
           (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) * 1) :=
         mul_le_mul_of_nonneg_left
@@ -479,10 +482,10 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
     4 * bvSmoothingContourHeight K x *
           ((x : ℝ) ^
             (1 - 1 / Real.sqrt (Real.log (x : ℝ))) *
-            Chen.eq21ClassicalLogDerivMajorant data q
+            Chen.primitiveLogDerivMajorantAt data q
               (bvSmoothingContourHeight K x)) +
         2 * (((2 * Real.exp 1 * (x : ℝ) *
-            Chen.eq21ClassicalLogDerivMajorant data q
+            Chen.primitiveLogDerivMajorantAt data q
               (bvSmoothingContourHeight K x)) *
             (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
           |(1 + 1 / Real.log (x : ℝ)) -
@@ -499,27 +502,29 @@ theorem norm_integral_bvSmoothedLogDeriv_smallConductor_bound
 /-- The adjustable smoothed twisted von-Mangoldt sum inherits the same
 arbitrary logarithmic saving from its Perron representation. -/
 theorem norm_bvSmoothedTwistedPsi_smallConductor_bound
-    (data : Chen.PrimitiveZeroFreeRegionData) (K : ℕ) :
+    {E : ℕ} (data : Chen.PrimitiveZeroFreeRegionDataAt E) (K R : ℕ)
+    (hR : 1 ≤ R) (hER : 3 * R ≤ E) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
       ∀ (q : ℕ) [NeZero q] (χ : DirichletCharacter ℂ q),
-        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ R →
           χ.IsPrimitive →
           ‖bvSmoothedTwistedPsi K x χ‖ ≤
             C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
   obtain ⟨C, hC, hbound⟩ :=
-    norm_integral_bvSmoothedLogDeriv_smallConductor_bound data K
+    norm_integral_bvSmoothedLogDeriv_smallConductor_bound
+      data K R hR hER
   refine ⟨C, hC, ?_⟩
   filter_upwards [eventually_ge_atTop 2, hbound,
       (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop).eventually
         (eventually_ge_atTop 10)] with x hx hbound hlog
-  intro q _ χ hq hq100 hχ
+  intro q _ χ hq hqR hχ
   change 10 ≤ Real.log (x : ℝ) at hlog
   have hlarge : (10 : ℝ) ^ 4 ≤
       Real.log (x : ℝ) ^ (10 * (K + 1)) := by
     have hLone : (1 : ℝ) ≤ Real.log (x : ℝ) := by linarith
     exact (pow_le_pow_left₀ (by norm_num) hlog 4).trans
       (pow_le_pow_right₀ hLone (by omega))
-  have hint := hbound q χ hq hq100 hχ
+  have hint := hbound q χ hq hqR hχ
   rw [bvSmoothedTwistedPsi_eq_logDerivPerron K hx hlarge χ]
   unfold VerticalIntegral' VerticalIntegral
   simp only [smul_eq_mul]
@@ -702,26 +707,28 @@ theorem norm_twistedPsi_sub_bvSmoothedTwistedPsi_smallConductor_bound
 
 /-- **Siegel--Walfisz for the primitive characters needed by
 Bombieri--Vinogradov.**  Every fixed inverse logarithmic power is available,
-uniformly for conductors `q ≤ (log x)^100`. -/
+uniformly for conductors `q ≤ (log x)^R`, for every fixed `R`. -/
 theorem norm_twistedPsi_smallConductor_bound
-    (hzf : Chen.PrimitiveZeroFreeRegion) (K : ℕ) :
+    (hzf : Chen.PrimitiveZeroFreeRegion) (K R : ℕ) (hR : 1 ≤ R) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
       ∀ (q : ℕ) [NeZero q] (χ : DirichletCharacter ℂ q),
-        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ R →
           χ.IsPrimitive →
           ‖twistedPsi x χ‖ ≤
             C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
-  obtain ⟨data⟩ := hzf
+  rw [Chen.PrimitiveZeroFreeRegion] at hzf
+  obtain ⟨data⟩ := hzf.2 (3 * R) (by omega)
   obtain ⟨C₁, hC₁, hsmooth⟩ :=
-    norm_bvSmoothedTwistedPsi_smallConductor_bound data K
+    norm_bvSmoothedTwistedPsi_smallConductor_bound
+      data K R hR (by omega)
   obtain ⟨C₂, hC₂, herr⟩ :=
     norm_twistedPsi_sub_bvSmoothedTwistedPsi_smallConductor_bound K
   refine ⟨C₁ + C₂, add_pos hC₁ hC₂, ?_⟩
   filter_upwards [hsmooth, herr,
       (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop).eventually
         (eventually_gt_atTop 0)] with x hsmooth herr hlog
-  intro q _ χ hq hq100 hχ
-  have hS := hsmooth q χ hq hq100 hχ
+  intro q _ χ hq hqR hχ
+  have hS := hsmooth q χ hq hqR hχ
   have hE := herr q χ
   have hY0 : 0 ≤ (x : ℝ) / Real.log (x : ℝ) ^ K := by positivity
   calc
@@ -739,20 +746,21 @@ theorem norm_twistedPsi_smallConductor_bound
 /-- For primitive moduli at least two, the principal correction vanishes,
 so the same small-conductor estimate holds for `adjustedTwistedPsi`. -/
 theorem norm_adjustedTwistedPsi_smallConductor_bound
-    (hzf : Chen.PrimitiveZeroFreeRegion) (K : ℕ) :
+    (hzf : Chen.PrimitiveZeroFreeRegion) (K R : ℕ) (hR : 1 ≤ R) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
       ∀ (q : ℕ) [NeZero q] (χ : DirichletCharacter ℂ q),
-        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        2 ≤ q → (q : ℝ) ≤ Real.log (x : ℝ) ^ R →
           χ.IsPrimitive →
           ‖adjustedTwistedPsi x χ‖ ≤
             C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
-  obtain ⟨C, hC, hbound⟩ := norm_twistedPsi_smallConductor_bound hzf K
+  obtain ⟨C, hC, hbound⟩ :=
+    norm_twistedPsi_smallConductor_bound hzf K R hR
   refine ⟨C, hC, ?_⟩
   filter_upwards [hbound] with x hbound
-  intro q _ χ hq hq100 hχ
+  intro q _ χ hq hqR hχ
   rw [adjustedTwistedPsi, if_neg (Chen.primitiveCharacter_ne_one hq hχ),
     sub_zero]
-  exact hbound q χ hq hq100 hχ
+  exact hbound q χ hq hqR hχ
 
 /-- If every primitive character of conductor at most `H` is bounded by
 `M`, then the reciprocal-totient weights cancel the number of characters
@@ -806,20 +814,18 @@ theorem primitiveAdjustedMean_le_mul_of_character_bound
     _ = (H : ℝ) * M := by simp
 
 /-- The primitive small-conductor mean inherits an arbitrary logarithmic
-saving, with the number of conductors displayed explicitly.  The cutoff
-`H ≤ (log x)^100` is exactly the range supplied by the classical
-zero-free-region argument above. -/
+saving, with the number of conductors displayed explicitly. -/
 theorem primitiveAdjustedMean_smallConductor_bound
-    (hzf : Chen.PrimitiveZeroFreeRegion) (K : ℕ) :
+    (hzf : Chen.PrimitiveZeroFreeRegion) (K R : ℕ) (hR : 1 ≤ R) :
     ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
       ∀ H : ℕ,
-        (H : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        (H : ℝ) ≤ Real.log (x : ℝ) ^ R →
           primitiveAdjustedMean x 0 H ≤
             C * (H : ℝ) * (x : ℝ) /
               Real.log (x : ℝ) ^ K := by
   obtain ⟨C₁, hC₁, hone⟩ := norm_adjustedTwistedPsi_level_one_bound K
   obtain ⟨C₂, hC₂, hrest⟩ :=
-    norm_adjustedTwistedPsi_smallConductor_bound hzf K
+    norm_adjustedTwistedPsi_smallConductor_bound hzf K R hR
   let C : ℝ := C₁ + C₂
   have hC : 0 < C := by dsimp only [C]; exact add_pos hC₁ hC₂
   refine ⟨C, hC, ?_⟩
@@ -844,9 +850,9 @@ theorem primitiveAdjustedMean_smallConductor_bound
       · have hq2 : 2 ≤ q := by
           have : 0 < q := NeZero.pos q
           omega
-        have hq100 : (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 := by
+        have hqR : (q : ℝ) ≤ Real.log (x : ℝ) ^ R := by
           exact (by exact_mod_cast hqH : (q : ℝ) ≤ (H : ℝ)).trans hH
-        exact (hrest q χ hq2 hq100 hχ).trans (by
+        exact (hrest q χ hq2 hqR hχ).trans (by
           calc
             C₂ * (x : ℝ) / Real.log (x : ℝ) ^ K =
                 C₂ * ((x : ℝ) / Real.log (x : ℝ) ^ K) := by ring

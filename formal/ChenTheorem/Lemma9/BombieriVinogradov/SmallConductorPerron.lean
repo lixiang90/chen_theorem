@@ -749,7 +749,7 @@ theorem differentiableOn_perronSharpKernel_pos_re
 finite rectangle bounded by `α` and Chen's shifted line `γ`.  The mixed
 classical zero-free width is used only for heights `|t| ≤ T`. -/
 theorem sharpLogDeriv_finite_rectangle_classical
-    (data : Chen.PrimitiveZeroFreeRegionData)
+    {E : ℕ} (data : Chen.PrimitiveZeroFreeRegionDataAt E)
     {x q : ℕ} [NeZero q] (hq : 2 ≤ q) (hx : 2 ≤ x)
     (hγpos : (1 : ℝ) / 2 ≤
       1 - 1 / Real.sqrt (Real.log (x : ℝ)))
@@ -757,7 +757,7 @@ theorem sharpLogDeriv_finite_rectangle_classical
     {T : ℝ} (hT : 0 ≤ T)
     (hwidth : ∀ t : ℝ, |t| ≤ T →
       2 / Real.sqrt (Real.log (x : ℝ)) <
-        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q t) :
+        Chen.primitiveZeroFreeWidthAt E data.cHeight data.cSiegel q t) :
     let γ : ℝ := 1 - 1 / Real.sqrt (Real.log (x : ℝ))
     let α : ℝ := 1 + 1 / Real.log (x : ℝ)
     let F : ℂ → ℂ := sharpTwistedPsiLogDerivIntegrand x χ
@@ -810,15 +810,15 @@ theorem sharpLogDeriv_finite_rectangle_classical
         2 * (1 / Real.sqrt (Real.log (x : ℝ))) := by ring
     rw [htwoDiv] at hwidths
     have hhalfwidth : 1 / Real.sqrt (Real.log (x : ℝ)) <
-        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q s.im / 2 := by
+        Chen.primitiveZeroFreeWidthAt E data.cHeight data.cSiegel q s.im / 2 := by
       linarith
     have hhalf : 1 -
-        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q s.im / 2 < γ := by
+        Chen.primitiveZeroFreeWidthAt E data.cHeight data.cSiegel q s.im / 2 < γ := by
       dsimp only [γ]
       linarith
     have hregion : 1 -
-        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q s.im < s.re := by
-      have hwpos := Chen.primitiveZeroFreeWidth_pos data.cHeight_pos
+        Chen.primitiveZeroFreeWidthAt E data.cHeight data.cSiegel q s.im < s.re := by
+      have hwpos := Chen.primitiveZeroFreeWidthAt_pos (N := E) data.cHeight_pos
         data.cSiegel_pos hq s.im
       exact Chen.one_sub_width_lt_of_half_width_le hwpos
         (hhalf.le.trans hre.1)

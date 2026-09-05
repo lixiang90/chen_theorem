@@ -401,3 +401,22 @@ q^{1/150}\le(\log x)^{2/3}.
 - 如果未来要求所有常数有效或需要显式数值版本，就不能再用压缩后的
   Siegel 项隐藏 exceptional character，而应改用显式 exceptional-character
   接口并追踪可能的留数。当前 Lemma 6 的定性渐近目标不要求这一步。
+
+## 10. Bombieri--Vinogradov 所需的参数化扩展
+
+Lemmas 6 的实际调用仍固定使用 `N = 300`，因而上述计划和
+`q ≤ (log x)^100` 的损失计算保持不变。但是经典
+`BombieriVinogradov.Statement` 对任意对数节省 `A` 量化；固定
+`1/300` 的 Siegel 指数不足以支持随 `A` 增长的多对数导数截止。
+
+因此实现中将同一经典输入表述为按正整数分母 `N` 参数化的族：
+
+\[
+  \Delta_N(q,t)=\min\!\left(
+    \frac{c_0}{\log(q(|t|+2))},\ c_Nq^{-1/N}\right).
+\]
+
+对每个固定的导数次数 `R`，Bombieri--Vinogradov 管线取
+`N = 3R`；这使 `q ≤ (log x)^R` 时依然有统一的
+`(log x)^(-1/3)` Siegel 宽度。这只是对同一 Siegel 定理中
+“对任意固定正指数”量词的准确形式化，没有新增独立解析假设。

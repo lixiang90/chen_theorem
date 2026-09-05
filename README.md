@@ -51,20 +51,14 @@ Two explicit analytic trust-boundary declarations remain. Lemma 6 and its shifte
 counterpart share a documented classical zero-free-region and `L'/L` estimate
 proved by `sorry`; the original and fixed-shift forms of Lemma 9 are now both
 instances of one parameterized Richert weighted-sieve/Bombieri--Vinogradov
-interface.  The standalone Bombieri--Vinogradov development now contains the
-proved character reduction, standard Vaughan identity, Type-I
-Pólya--Vinogradov/Abel estimate, divisor-square `L²` bounds and dyadic
-rectangular large-sieve estimates for both the short Type-I coefficient and
-the Type-II coefficient.  The imprimitive-character step
-is now complete: the lift discrepancy is summed over ambient moduli, regrouped
-exactly by primitive conductor, and reduced to the primitive mean with a
-harmonic-square loss plus an explicit `O(Q² log x log₂ x)` error.  For Type II,
-the original sharp Vaughan sum now has an exact dyadic decomposition into
-interior and hyperbola-boundary rectangles: interior rectangles use the direct
-bilinear large sieve, while the smoothed boundary rectangles have a Mellin
-bound with the correct `Q²/x` scale.  The remaining core work is the stronger
-large-conductor Type-I mean, the explicit sharp-to-smooth boundary correction,
-the small-conductor range, and the final asymptotic parameter assembly.
+interface.  The standalone development now proves the full level-`1/2`
+Bombieri--Vinogradov statement.  It includes the exact character and primitive-
+conductor reductions, Vaughan decomposition, Type-I and Type-II large-sieve
+estimates, sharp hyperbola-boundary control, imprimitive-character errors,
+finite-contour Siegel--Walfisz estimate, and final asymptotic parameter
+assembly.  The theorem is conditional only on the same documented classical
+zero-free-region package already used by Lemma 6; no additional axiom or
+`sorry` was introduced.
 Everything
 else in the fixed-shift chain is now explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

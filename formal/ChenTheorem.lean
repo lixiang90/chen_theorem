@@ -13,5 +13,6 @@ import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorLogDeriv
 import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorEstimate
 import ChenTheorem.Lemma9.BombieriVinogradov.ConductorAssembly
 import ChenTheorem.Lemma9.BombieriVinogradov.AsymptoticAssembly
+import ChenTheorem.Lemma9.BombieriVinogradov.FinalEstimate
 import ChenTheorem.MainEstimates
 import ChenTheorem.Main

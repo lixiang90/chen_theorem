@@ -88,6 +88,16 @@ theorem primitiveZeroFreeWidth_pos
   · exact div_pos hcHeight (primitiveZeroFreeHeightLog_pos hq t)
   · exact mul_pos hcSiegel (Real.rpow_pos_of_pos (by positivity) _)
 
+/-- Positivity of the mixed width for an arbitrary fixed Siegel exponent. -/
+theorem primitiveZeroFreeWidthAt_pos
+    {N : ℕ} {cHeight cSiegel : ℝ} (hcHeight : 0 < cHeight)
+    (hcSiegel : 0 < cSiegel) {q : ℕ} (hq : 2 ≤ q) (t : ℝ) :
+    0 < primitiveZeroFreeWidthAt N cHeight cSiegel q t := by
+  unfold primitiveZeroFreeWidthAt
+  apply lt_min
+  · exact div_pos hcHeight (primitiveZeroFreeHeightLog_pos hq t)
+  · exact mul_pos hcSiegel (Real.rpow_pos_of_pos (by positivity) _)
+
 /-- A point in the closed half-width region lies strictly inside the
 nonvanishing region. -/
 theorem one_sub_width_lt_of_half_width_le
@@ -1047,7 +1057,7 @@ theorem norm_eq21LogDerivIntegrand_eq21Point_le_classical
       data.cLogDeriv *
         ((l : ℝ) ^ ((1 : ℝ) / 300) +
           Real.log ((l : ℝ) * (|ν| + 2)) + 1) ^ 2 := by
-    simpa only [lemma6Equation21Point_im] using hraw
+    simpa only [lemma6Equation21Point_im, Nat.cast_ofNat] using hraw
   have hargpos : 0 < (l : ℝ) * (|ν| + 2) := by positivity
   have hargle : (l : ℝ) * (|ν| + 2) ≤ (l : ℝ) * (T + 2) := by
     gcongr
@@ -1262,7 +1272,7 @@ theorem norm_eq21LogDerivIntegrand_horizontal_le_classical
       data.cLogDeriv *
         ((l : ℝ) ^ ((1 : ℝ) / 300) +
           Real.log ((l : ℝ) * (|τ| + 2)) + 1) ^ 2 := by
-    simpa only [him] using hraw
+    simpa only [him, Nat.cast_ofNat] using hraw
   have hargpos : 0 < (l : ℝ) * (|τ| + 2) := by positivity
   have hargle : (l : ℝ) * (|τ| + 2) ≤ (l : ℝ) * (T + 2) := by gcongr
   have hlogle : Real.log ((l : ℝ) * (|τ| + 2)) ≤
@@ -1996,7 +2006,8 @@ theorem eq21_characterIntegral_bound (hzf : PrimitiveZeroFreeRegion) :
               ∑ q ∈ chenPairs x,
                 ((x : ℝ) / ((q.1 : ℝ) * q.2)) ^
                   (1 - 1 / Real.sqrt (Real.log (x : ℝ))) := by
-  obtain ⟨data⟩ := hzf
+  rw [PrimitiveZeroFreeRegion] at hzf
+  obtain ⟨data⟩ := hzf.1
   have hlogT : Tendsto (fun x : ℕ => Real.log (x : ℝ)) atTop atTop :=
     Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
   have hev100 : ∀ᶠ x : ℕ in atTop, (100 : ℝ) ≤ Real.log (x : ℝ) :=

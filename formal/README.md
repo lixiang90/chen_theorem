@@ -43,7 +43,7 @@ lake build
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
 | `ChenTheorem/Lemma8/PrimeReciprocal.lean` | The prime-reciprocal Mertens theorem imported from `PrimeNumberTheoremAnd`, exact Abel-summation formulas, both partial-summation steps between (23) and (24), and uniform error control |
-| `ChenTheorem/Lemma9/BombieriVinogradov/` | The in-progress standalone Bombieri--Vinogradov proof: its level-`1/2` statement, exact character-orthogonality and primitive-conductor reductions, Vaughan decomposition, Type-I estimates, bilinear and maximal large sieves, and the completed imprimitive-character reduction.  The Type-II files now give an exact sharp dyadic decomposition into interior and boundary rectangles, direct interior large-sieve bounds, Mellin bounds for the smoothed boundary at the correct `Q²/x` scale, and an explicit sharp-to-smooth remainder interface |
+| `ChenTheorem/Lemma9/BombieriVinogradov/` | The completed standalone level-`1/2` Bombieri--Vinogradov proof: exact character and primitive-conductor reductions, Vaughan decomposition, Type-I and Type-II large-sieve estimates, sharp boundary and imprimitive-character errors, finite-contour Siegel--Walfisz estimates for arbitrary fixed polylogarithmic conductor ranges, and the final theorem `bombieriVinogradov : Statement`, conditional only on `primitive_zero_free_region` |
 | `ChenTheorem/Lemma9/RichertBombieri.lean` | The single parameterized trust-boundary interface for equations (25)–(26), with the original and fixed-shift forms derived as theorem wrappers |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
@@ -200,24 +200,18 @@ The project itself contains exactly one documented `sorry` declaration and
 one explicit non-foundational axiom:
 
 * `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`) supplies the
-  classical zero-free region and companion `L'/L` bound needed by Lemma 6;
+  classical zero-free region and companion `L'/L` bound needed by Lemma 6 and
+  the standalone Bombieri--Vinogradov proof.  Its family parameter records the
+  arbitrary fixed Siegel exponent required for arbitrary logarithmic saving;
 * `richert_bombieri_equation26` (`Lemma9/RichertBombieri.lean`) is parameterized
   by the original or fixed-shift sieve family.  The former declarations
   `eventually_richert_bombieri_equation26` and
   `eventually_shifted_richert_bombieri_equation26` are now proved wrappers,
-  rather than separate axioms.  The Bombieri--Vinogradov component is being
-  split out into the standalone modules under `Lemma9/BombieriVinogradov/`;
-  the character reduction, standard Vaughan identity, Type-I logarithmic
-  character-sum estimate, square means for the short Type-I and Type-II
-  coefficients, and both full and dyadic rectangular bilinear large-sieve
-  estimates there are already proved without new axioms.  The imprimitive lift
-  discrepancy, its sum over ambient moduli, the exact regrouping by primitive
-  conductor, and the reciprocal-totient weight bound are also complete.  The
-  sharp Type-II hyperbola is now decomposed exactly into direct interior and
-  Mellin boundary contributions, with the remaining correction isolated
-  pointwise.  The remaining core steps are the stronger Type-I conductor mean,
-  the global bound for that Type-II boundary correction, the small-conductor
-  Siegel--Walfisz range, and the final asymptotic parameter assembly.
+  rather than separate axioms.  The standalone modules under
+  `Lemma9/BombieriVinogradov/` now prove `BombieriVinogradov.Statement` from
+  `PrimitiveZeroFreeRegion`: all character reductions, Vaughan and large-sieve
+  estimates, small- and large-conductor ranges, and asymptotic parameter
+  assembly are machine-checked without a further trust boundary.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality
