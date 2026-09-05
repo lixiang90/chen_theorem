@@ -69,6 +69,16 @@ noncomputable def bvSmoothingWeight (K x n : ℕ) : ℝ :=
 noncomputable def bvSmoothingBoundaryRatio (K x : ℕ) : ℝ :=
   Real.exp (2 * Real.log (x : ℝ) ^ (-(K + 1 : ℝ)))
 
+/-- Polylogarithmic contour height chosen as the square of the adjustable
+Mellin scale. -/
+noncomputable def bvSmoothingContourHeight (K x : ℕ) : ℝ :=
+  (Real.log (x : ℝ) ^ (11 * (K + 1))) ^ 2
+
+theorem bvSmoothingContourHeight_nonneg (K x : ℕ) :
+    0 ≤ bvSmoothingContourHeight K x := by
+  unfold bvSmoothingContourHeight
+  positivity
+
 /-- Indices in the short interval next to `x` on which Lemma 1 does not
 yet force the smoothing weight to be power-close to one. -/
 noncomputable def bvSmoothingBoundaryIndices (K x : ℕ) : Finset ℕ :=
@@ -560,5 +570,124 @@ theorem norm_twistedPsi_sub_bvSmoothedTwistedPsi_le_explicit
   exact hsplit.trans (add_le_add_right
     (mul_le_mul_of_nonneg_right
       (card_bvSmoothingBoundaryIndices_le K hx) hlog0) _)
+
+/-- Exact mass of the Cauchy envelope after rescaling its horizontal
+variable. -/
+theorem integral_scaled_cauchy
+    {a : ℝ} (ha : 0 < a) :
+    (∫ ν : ℝ, (1 + (ν / a) ^ 2)⁻¹) = a * Real.pi := by
+  let g : ℝ → ℝ := fun u => (1 + u ^ 2)⁻¹
+  have hscale :=
+    MeasureTheory.Measure.integral_comp_mul_left g a⁻¹
+  calc
+    (∫ ν : ℝ, (1 + (ν / a) ^ 2)⁻¹) =
+        ∫ ν : ℝ, g (a⁻¹ * ν) := by
+      apply MeasureTheory.integral_congr_ae
+      filter_upwards with ν
+      dsimp only [g]
+      rw [div_eq_inv_mul]
+    _ = |(a⁻¹)⁻¹| * ∫ u : ℝ, g u := by
+      simpa only [smul_eq_mul] using hscale
+    _ = a * Real.pi := by
+      rw [integral_univ_inv_one_add_sq]
+      simp only [inv_inv, abs_of_pos ha]
+
+theorem integrable_scaled_quartic
+    {a : ℝ} (ha : 0 < a) :
+    MeasureTheory.Integrable (fun ν : ℝ =>
+      ((1 + (ν / a) ^ 2) ^ 2)⁻¹) := by
+  let h : ℝ → ℝ := fun ν => (1 + (ν / a) ^ 2)⁻¹
+  have hh : MeasureTheory.Integrable h := by
+    have hbase := integrable_inv_one_add_sq.comp_mul_left'
+      (R := a⁻¹) (inv_ne_zero ha.ne')
+    simpa only [h, div_eq_inv_mul] using hbase
+  apply hh.mono
+  · fun_prop
+  · filter_upwards with ν
+    have hu : 1 ≤ 1 + (ν / a) ^ 2 := by nlinarith [sq_nonneg (ν / a)]
+    have huPos : 0 < 1 + (ν / a) ^ 2 := by positivity
+    rw [Real.norm_of_nonneg (by positivity),
+      Real.norm_of_nonneg (by dsimp only [h]; positivity)]
+    dsimp only [h]
+    rw [pow_two, mul_inv]
+    exact mul_le_of_le_one_left (inv_nonneg.mpr huPos.le)
+      (inv_le_one_of_one_le₀ hu)
+
+/-- The quartic scaled kernel outside `[-T,T]` is bounded by one frozen
+decay factor times the total mass of a scaled Cauchy kernel. -/
+theorem integral_scaled_quartic_compl_Ioc_le
+    {a T : ℝ} (ha : 0 < a) (hT : 0 ≤ T) :
+    (∫ ν : ℝ in (Set.Ioc (-T) T)ᶜ,
+        ((1 + (ν / a) ^ 2) ^ 2)⁻¹) ≤
+      ((1 + (T / a) ^ 2)⁻¹) * (a * Real.pi) := by
+  let g : ℝ → ℝ := fun ν => ((1 + (ν / a) ^ 2) ^ 2)⁻¹
+  let h : ℝ → ℝ := fun ν => (1 + (ν / a) ^ 2)⁻¹
+  let E : ℝ := (1 + (T / a) ^ 2)⁻¹
+  have ha0 : a ≠ 0 := ha.ne'
+  have hh : MeasureTheory.Integrable h := by
+    have hbase := integrable_inv_one_add_sq.comp_mul_left'
+      (R := a⁻¹) (inv_ne_zero ha0)
+    simpa only [h, div_eq_inv_mul] using hbase
+  have hg : MeasureTheory.Integrable g := by
+    simpa only [g] using integrable_scaled_quartic ha
+  have hE0 : 0 ≤ E := by dsimp only [E]; positivity
+  have hmajor : MeasureTheory.Integrable (fun ν => E * h ν) :=
+    hh.const_mul E
+  have hpoint : ∀ ν ∈ (Set.Ioc (-T) T)ᶜ, g ν ≤ E * h ν := by
+    intro ν hνmem
+    have hνlarge : T ≤ |ν| := by
+      rw [Set.mem_compl_iff, Set.mem_Ioc] at hνmem
+      by_cases hleft : ν ≤ -T
+      · have : T ≤ -ν := by linarith
+        exact this.trans_eq (abs_of_nonpos (by linarith)).symm
+      · have hright : T < ν := by
+          by_contra hnot
+          exact hνmem ⟨lt_of_not_ge hleft, le_of_not_gt hnot⟩
+        exact hright.le.trans (le_abs_self ν)
+    have hsq : T ^ 2 ≤ ν ^ 2 := by
+      rw [← sq_abs ν]
+      nlinarith [sq_nonneg (|ν| - T)]
+    have hdivsq : (T / a) ^ 2 ≤ (ν / a) ^ 2 := by
+      rw [div_pow, div_pow]
+      exact div_le_div_of_nonneg_right hsq (sq_nonneg a)
+    have hu : 1 + (T / a) ^ 2 ≤ 1 + (ν / a) ^ 2 := by linarith
+    have hinv : (1 + (ν / a) ^ 2)⁻¹ ≤
+        (1 + (T / a) ^ 2)⁻¹ := by
+      exact (inv_le_inv₀ (by positivity) (by positivity)).mpr hu
+    dsimp only [g, E, h]
+    rw [pow_two, mul_inv]
+    exact mul_le_mul_of_nonneg_right hinv (by positivity)
+  calc
+    (∫ ν : ℝ in (Set.Ioc (-T) T)ᶜ, g ν) ≤
+        ∫ ν : ℝ in (Set.Ioc (-T) T)ᶜ, E * h ν := by
+      apply MeasureTheory.integral_mono_ae hg.integrableOn
+        hmajor.integrableOn
+      filter_upwards [MeasureTheory.ae_restrict_mem
+        measurableSet_Ioc.compl] with ν hνmem
+      exact hpoint ν hνmem
+    _ ≤ ∫ ν : ℝ, E * h ν := by
+      exact MeasureTheory.integral_mono_measure
+        MeasureTheory.Measure.restrict_le_self
+        (Filter.Eventually.of_forall (fun ν => by
+          exact mul_nonneg hE0 (by dsimp only [h]; positivity))) hmajor
+    _ = E * (a * Real.pi) := by
+      rw [MeasureTheory.integral_const_mul, integral_scaled_cauchy ha]
+    _ = ((1 + (T / a) ^ 2)⁻¹) * (a * Real.pi) := rfl
+
+/-- At height `|tau| = a^2`, the quartic kernel contributes `a^-4`. -/
+theorem scaled_quartic_at_sq_le_inv_four
+    {a τ : ℝ} (ha : 0 < a) (hτ : |τ| = a ^ 2) :
+    ((1 + (τ / a) ^ 2) ^ 2)⁻¹ ≤ (a ^ 4)⁻¹ := by
+  have hτsq : τ ^ 2 = a ^ 4 := by
+    rw [← sq_abs τ, hτ]
+    ring
+  have hratio : (τ / a) ^ 2 = a ^ 2 := by
+    rw [div_pow, hτsq]
+    field_simp [ha.ne']
+  rw [hratio]
+  have hden : a ^ 4 ≤ (1 + a ^ 2) ^ 2 := by
+    nlinarith [sq_nonneg a, sq_nonneg (a ^ 2)]
+  simpa only [one_div] using
+    one_div_le_one_div_of_le (pow_pos ha 4) hden
 
 end Chen.BombieriVinogradov
