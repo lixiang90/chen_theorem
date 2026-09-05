@@ -1,5 +1,6 @@
 import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorLogDeriv
-import ChenTheorem.Lemma9.BombieriVinogradov.Characters
+import ChenTheorem.Lemma9.BombieriVinogradov.MeanValue
+import PrimeNumberTheoremAnd.MediumPNT
 
 open Filter Real
 open scoped Classical Interval
@@ -13,6 +14,43 @@ This file absorbs the explicit errors obtained from the finite classical
 zero-free contour.  Its endpoint is the Siegel--Walfisz estimate required
 for the small primitive-conductor part of Bombieri--Vinogradov.
 -/
+
+/-- The unique character at level one turns the twisted von-Mangoldt sum
+back into the ordinary Chebyshev `psi` function. -/
+theorem twistedPsi_level_one_eq (x : ℕ)
+    (χ : DirichletCharacter ℂ 1) :
+    twistedPsi x χ = (Chebyshev.psi x : ℂ) := by
+  have hχ : χ = 1 := Subsingleton.elim _ _
+  subst χ
+  have hpsi : (∑ n ∈ Finset.Icc 1 x,
+      ArithmeticFunction.vonMangoldt n) = Chebyshev.psi x := by
+    rw [Chebyshev.psi_eq_sum_Icc]
+    simp only [Nat.floor_natCast]
+    apply Finset.sum_subset
+    · intro n hn
+      exact Finset.mem_Icc.mpr ⟨by omega, (Finset.mem_Icc.mp hn).2⟩
+    · intro n hn hnnot
+      have hnData := Finset.mem_Icc.mp hn
+      have hn0 : n = 0 := by
+        by_contra hnne
+        exact hnnot (Finset.mem_Icc.mpr
+          ⟨Nat.one_le_iff_ne_zero.mpr hnne, hnData.2⟩)
+      subst n
+      simp
+  unfold twistedPsi
+  calc
+    ∑ n ∈ Finset.Icc 1 x,
+        (ArithmeticFunction.vonMangoldt n : ℂ) *
+          (1 : DirichletCharacter ℂ 1) n =
+        ∑ n ∈ Finset.Icc 1 x,
+          (ArithmeticFunction.vonMangoldt n : ℂ) := by
+      apply Finset.sum_congr rfl
+      intro n hn
+      rw [MulChar.one_apply]
+      · simp
+      · rw [show (n : ZMod 1) = 1 from Subsingleton.elim _ _]
+        exact isUnit_one
+    _ = (Chebyshev.psi x : ℂ) := by exact_mod_cast hpsi
 
 /-- Moving to `1 - 1/sqrt(log x)` produces exactly the exponential saving
 `exp (-sqrt(log x))`. -/
@@ -75,6 +113,117 @@ theorem eventually_const_mul_log_pow_le_exp_sqrt_log
       rw [Real.rpow_natCast]
     _ ≤ Real.exp y := hmain
     _ = Real.exp (Real.sqrt (Real.log (x : ℝ))) := by rfl
+
+/-- The medium-strength prime-number-theorem decay beats every inverse
+power of the logarithm. -/
+theorem eventually_exp_neg_mul_log_rpow_le_log_inv_pow
+    {c : ℝ} (hc : 0 < c) (K : ℕ) :
+    ∀ᶠ x : ℕ in atTop,
+      Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10)) ≤
+        (Real.log (x : ℝ) ^ K)⁻¹ := by
+  have hyT : Tendsto
+      (fun x : ℕ => Real.log (x : ℝ) ^ ((1 : ℝ) / 10))
+      atTop atTop :=
+    (tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 10)).comp
+      (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop)
+  have hratioReal : ∀ᶠ y : ℝ in atTop,
+      1 ≤ Real.exp (c * y) / y ^ ((10 * K : ℕ) : ℝ) :=
+    (tendsto_exp_mul_div_rpow_atTop
+      (((10 * K : ℕ) : ℝ)) c hc).eventually
+        (eventually_ge_atTop 1)
+  filter_upwards [hyT.eventually hratioReal,
+      hyT.eventually (eventually_gt_atTop 0),
+      (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop).eventually
+        (eventually_gt_atTop 0)] with x hratio hypos hlog
+  change 0 < Real.log (x : ℝ) at hlog
+  let L : ℝ := Real.log (x : ℝ)
+  let y : ℝ := L ^ ((1 : ℝ) / 10)
+  have hpowpos : 0 < y ^ ((10 * K : ℕ) : ℝ) :=
+    Real.rpow_pos_of_pos (by simpa only [y, L] using hypos) _
+  have hratio' : 1 ≤ Real.exp (c * y) /
+      y ^ ((10 * K : ℕ) : ℝ) := by
+    simpa only [y, L] using hratio
+  have hmain : y ^ ((10 * K : ℕ) : ℝ) ≤ Real.exp (c * y) := by
+    simpa only [one_mul] using (le_div_iff₀ hpowpos).mp hratio'
+  have hLpow : L ^ K = y ^ ((10 * K : ℕ) : ℝ) := by
+    calc
+      L ^ K = L ^ (K : ℝ) := (Real.rpow_natCast L K).symm
+      _ = L ^ (((1 : ℝ) / 10) * (10 * K : ℕ)) := by
+        congr 1
+        push_cast
+        ring
+      _ = (L ^ ((1 : ℝ) / 10)) ^ ((10 * K : ℕ) : ℝ) :=
+        Real.rpow_mul (by positivity) _ _
+      _ = y ^ ((10 * K : ℕ) : ℝ) := by rfl
+  have hmain' : L ^ K ≤ Real.exp (c * y) := hLpow.trans_le hmain
+  have hLpowpos : 0 < L ^ K := pow_pos (by simpa only [L] using hlog) _
+  have hexppos : 0 < Real.exp (c * y) := Real.exp_pos _
+  calc
+    Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10)) =
+        (Real.exp (c * y))⁻¹ := by
+      rw [← Real.exp_neg]
+      dsimp only [y, L]
+      congr 1
+      ring
+    _ ≤ (L ^ K)⁻¹ := (inv_le_inv₀ hexppos hLpowpos).mpr hmain'
+    _ = (Real.log (x : ℝ) ^ K)⁻¹ := by rfl
+
+/-- The ordinary prime number theorem supplies the missing level-one
+character estimate with any inverse logarithmic saving. -/
+theorem abs_psi_sub_self_log_pow_bound (K : ℕ) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      |Chebyshev.psi x - (x : ℝ)| ≤
+        C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
+  obtain ⟨c, hc, hpnt⟩ := MediumPNT
+  rw [Asymptotics.isBigO_iff] at hpnt
+  obtain ⟨M, hM⟩ := hpnt
+  let C : ℝ := |M| + 1
+  have hCpos : 0 < C := by dsimp only [C]; linarith [abs_nonneg M]
+  have hMn := tendsto_natCast_atTop_atTop.eventually hM
+  have hdecay := eventually_exp_neg_mul_log_rpow_le_log_inv_pow hc K
+  refine ⟨C, hCpos, ?_⟩
+  filter_upwards [eventually_ge_atTop 2, hMn, hdecay] with
+      x hx hM hdecay
+  have hx0 : (0 : ℝ) ≤ x := Nat.cast_nonneg x
+  have hLpos : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast (show 1 < x by omega))
+  have hfactor0 : 0 ≤ (x : ℝ) *
+      Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10)) := by
+    positivity
+  have hraw : |Chebyshev.psi x - (x : ℝ)| ≤
+      M * ((x : ℝ) *
+        Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10))) := by
+    simpa only [Pi.sub_apply, id_eq, Real.norm_eq_abs,
+      abs_of_nonneg hfactor0] using hM
+  calc
+    |Chebyshev.psi x - (x : ℝ)| ≤
+        M * ((x : ℝ) *
+          Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10))) := hraw
+    _ ≤ C * ((x : ℝ) *
+          Real.exp (-c * Real.log (x : ℝ) ^ ((1 : ℝ) / 10))) :=
+      mul_le_mul_of_nonneg_right
+        (show M ≤ C by dsimp only [C]; linarith [le_abs_self M]) hfactor0
+    _ ≤ C * ((x : ℝ) * (Real.log (x : ℝ) ^ K)⁻¹) := by
+      exact mul_le_mul_of_nonneg_left
+        (mul_le_mul_of_nonneg_left hdecay hx0) hCpos.le
+    _ = C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
+      rw [div_eq_mul_inv]
+      ring
+
+/-- At level one, `adjustedTwistedPsi` is exactly the ordinary PNT error. -/
+theorem norm_adjustedTwistedPsi_level_one_bound (K : ℕ) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      ∀ χ : DirichletCharacter ℂ 1,
+        ‖adjustedTwistedPsi x χ‖ ≤
+          C * (x : ℝ) / Real.log (x : ℝ) ^ K := by
+  obtain ⟨C, hC, hpnt⟩ := abs_psi_sub_self_log_pow_bound K
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [hpnt] with x hpnt
+  intro χ
+  have hχ : χ = 1 := Subsingleton.elim _ _
+  rw [adjustedTwistedPsi, if_pos hχ, twistedPsi_level_one_eq]
+  simpa only [← Complex.ofReal_natCast, ← Complex.ofReal_sub,
+    Complex.norm_real, Real.norm_eq_abs] using hpnt
 
 /-- A convenient quotient form of the preceding absorption lemma. -/
 theorem eventually_const_mul_shifted_rpow_mul_log_pow_le
@@ -604,5 +753,112 @@ theorem norm_adjustedTwistedPsi_smallConductor_bound
   rw [adjustedTwistedPsi, if_neg (Chen.primitiveCharacter_ne_one hq hχ),
     sub_zero]
   exact hbound q χ hq hq100 hχ
+
+/-- If every primitive character of conductor at most `H` is bounded by
+`M`, then the reciprocal-totient weights cancel the number of characters
+and the whole small-conductor mean is at most `H * M`. -/
+theorem primitiveAdjustedMean_le_mul_of_character_bound
+    (x H : ℕ) (M : ℝ) (hM : 0 ≤ M)
+    (hchar : ∀ (q : ℕ) [NeZero q]
+      (χ : DirichletCharacter ℂ q), q ≤ H → χ.IsPrimitive →
+        ‖adjustedTwistedPsi x χ‖ ≤ M) :
+    primitiveAdjustedMean x 0 H ≤ (H : ℝ) * M := by
+  rw [primitiveAdjustedMean]
+  calc
+    (∑ q ∈ Finset.Ioc 0 H, (Nat.totient q : ℝ)⁻¹ *
+        ∑ χ : DirichletCharacter ℂ q,
+          if χ.IsPrimitive then ‖adjustedTwistedPsi x χ‖ else 0) ≤
+        ∑ _q ∈ Finset.Ioc 0 H, M := by
+      apply Finset.sum_le_sum
+      intro q hqmem
+      have hqdata := Finset.mem_Ioc.mp hqmem
+      letI : NeZero q := ⟨by omega⟩
+      have hpoint :
+          ∀ χ : DirichletCharacter ℂ q,
+            (if χ.IsPrimitive then ‖adjustedTwistedPsi x χ‖ else 0) ≤ M := by
+        intro χ
+        by_cases hχ : χ.IsPrimitive
+        · rw [if_pos hχ]
+          exact hchar q χ hqdata.2 hχ
+        · rw [if_neg hχ]
+          exact hM
+      have hsum :
+          (∑ χ : DirichletCharacter ℂ q,
+              if χ.IsPrimitive then ‖adjustedTwistedPsi x χ‖ else 0) ≤
+            ∑ _χ : DirichletCharacter ℂ q, M :=
+        Finset.sum_le_sum fun χ _ => hpoint χ
+      have hcard : Fintype.card (DirichletCharacter ℂ q) = q.totient := by
+        rw [← Nat.card_eq_fintype_card]
+        exact DirichletCharacter.card_eq_totient_of_hasEnoughRootsOfUnity ℂ q
+      have htot : (0 : ℝ) < q.totient := by
+        exact_mod_cast Nat.totient_pos.mpr hqdata.1
+      calc
+        (q.totient : ℝ)⁻¹ *
+            (∑ χ : DirichletCharacter ℂ q,
+              if χ.IsPrimitive then ‖adjustedTwistedPsi x χ‖ else 0) ≤
+            (q.totient : ℝ)⁻¹ *
+              ∑ _χ : DirichletCharacter ℂ q, M :=
+          mul_le_mul_of_nonneg_left hsum (inv_nonneg.mpr htot.le)
+        _ = M := by
+          rw [Finset.sum_const, nsmul_eq_mul, Finset.card_univ, hcard]
+          field_simp
+    _ = ((Finset.Ioc 0 H).card : ℝ) * M := by simp
+    _ = (H : ℝ) * M := by simp
+
+/-- The primitive small-conductor mean inherits an arbitrary logarithmic
+saving, with the number of conductors displayed explicitly.  The cutoff
+`H ≤ (log x)^100` is exactly the range supplied by the classical
+zero-free-region argument above. -/
+theorem primitiveAdjustedMean_smallConductor_bound
+    (hzf : Chen.PrimitiveZeroFreeRegion) (K : ℕ) :
+    ∃ C : ℝ, 0 < C ∧ ∀ᶠ x : ℕ in atTop,
+      ∀ H : ℕ,
+        (H : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+          primitiveAdjustedMean x 0 H ≤
+            C * (H : ℝ) * (x : ℝ) /
+              Real.log (x : ℝ) ^ K := by
+  obtain ⟨C₁, hC₁, hone⟩ := norm_adjustedTwistedPsi_level_one_bound K
+  obtain ⟨C₂, hC₂, hrest⟩ :=
+    norm_adjustedTwistedPsi_smallConductor_bound hzf K
+  let C : ℝ := C₁ + C₂
+  have hC : 0 < C := by dsimp only [C]; exact add_pos hC₁ hC₂
+  refine ⟨C, hC, ?_⟩
+  filter_upwards [hone, hrest,
+      (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop).eventually
+        (eventually_gt_atTop 0)] with x hone hrest hlog
+  intro H hH
+  let M : ℝ := C * (x : ℝ) / Real.log (x : ℝ) ^ K
+  have hM : 0 ≤ M := by dsimp only [M]; positivity
+  have hmean := primitiveAdjustedMean_le_mul_of_character_bound x H M hM
+    (fun q _ χ hqH hχ => by
+      by_cases hq1 : q = 1
+      · subst q
+        exact (hone χ).trans (by
+          calc
+            C₁ * (x : ℝ) / Real.log (x : ℝ) ^ K =
+                C₁ * ((x : ℝ) / Real.log (x : ℝ) ^ K) := by ring
+            _ ≤ C * ((x : ℝ) / Real.log (x : ℝ) ^ K) :=
+              mul_le_mul_of_nonneg_right
+                (show C₁ ≤ C by dsimp only [C]; linarith) (by positivity)
+            _ = C * (x : ℝ) / Real.log (x : ℝ) ^ K := by ring)
+      · have hq2 : 2 ≤ q := by
+          have : 0 < q := NeZero.pos q
+          omega
+        have hq100 : (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 := by
+          exact (by exact_mod_cast hqH : (q : ℝ) ≤ (H : ℝ)).trans hH
+        exact (hrest q χ hq2 hq100 hχ).trans (by
+          calc
+            C₂ * (x : ℝ) / Real.log (x : ℝ) ^ K =
+                C₂ * ((x : ℝ) / Real.log (x : ℝ) ^ K) := by ring
+            _ ≤ C * ((x : ℝ) / Real.log (x : ℝ) ^ K) :=
+              mul_le_mul_of_nonneg_right
+                (show C₂ ≤ C by dsimp only [C]; linarith) (by positivity)
+            _ = C * (x : ℝ) / Real.log (x : ℝ) ^ K := by ring))
+  dsimp only [M] at hmean
+  calc
+    primitiveAdjustedMean x 0 H ≤
+        (H : ℝ) * (C * (x : ℝ) / Real.log (x : ℝ) ^ K) := hmean
+    _ = C * (H : ℝ) * (x : ℝ) /
+        Real.log (x : ℝ) ^ K := by ring
 
 end Chen.BombieriVinogradov
