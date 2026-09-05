@@ -148,6 +148,59 @@ theorem bvSmoothingOrder_one_le
   rw [Nat.one_le_floor_iff]
   exact hlogR
 
+/-- The Mellin scale attached to the adjustable parameter is still a
+plain power of `log x`; its exponent is `11 * (K+1)`. -/
+theorem bvSmoothingScale_eq
+    (K : ℕ) {x : ℕ} (hx : 2 ≤ x) :
+    Chen.lemma6SmoothingScale (bvSmoothingParameter K x) =
+      Real.log (x : ℝ) ^ (11 * (K + 1)) := by
+  have hlog : 0 < Real.log (x : ℝ) :=
+    Real.log_pos (by exact_mod_cast (show 1 < x by omega))
+  unfold Chen.lemma6SmoothingScale
+  rw [log_bvSmoothingParameter]
+  calc
+    (Real.log (x : ℝ) ^ (10 * (K + 1))) ^ (1.1 : ℝ) =
+        (Real.log (x : ℝ) ^ ((10 * (K + 1) : ℕ) : ℝ)) ^
+          (1.1 : ℝ) := by rw [Real.rpow_natCast]
+    _ = Real.log (x : ℝ) ^
+          (((10 * (K + 1) : ℕ) : ℝ) * (1.1 : ℝ)) :=
+      (Real.rpow_mul hlog.le _ _).symm
+    _ = Real.log (x : ℝ) ^ (((11 * (K + 1) : ℕ) : ℝ)) := by
+      congr 1
+      push_cast
+      norm_num
+      ring
+    _ = Real.log (x : ℝ) ^ (11 * (K + 1)) :=
+      Real.rpow_natCast _ _
+
+theorem bvSmoothingOrder_three_le
+    (K : ℕ) {x : ℕ}
+    (hlarge : (10 : ℝ) ^ 4 ≤
+      Real.log (x : ℝ) ^ (10 * (K + 1))) :
+    3 ≤ Chen.lemma6SmoothingOrder (bvSmoothingParameter K x) := by
+  have hlogR : (3 : ℝ) ≤ Real.log (bvSmoothingParameter K x) := by
+    rw [log_bvSmoothingParameter]
+    exact (by norm_num : (3 : ℝ) ≤ 10 ^ 4).trans hlarge
+  unfold Chen.lemma6SmoothingOrder
+  exact (Nat.le_floor_iff (show 0 ≤
+    Real.log (bvSmoothingParameter K x) by linarith)).2 hlogR
+
+/-- Quartic tail bound for the adjustable Mellin kernel, with its scale
+displayed as a power of `log x`. -/
+theorem norm_bvSmoothingMellinKernel_le_quartic
+    (K : ℕ) {x : ℕ} (hx : 2 ≤ x)
+    (hlarge : (10 : ℝ) ^ 4 ≤
+      Real.log (x : ℝ) ^ (10 * (K + 1)))
+    {σ : ℝ} (hσ : 0 < σ) (ν : ℝ) :
+    ‖Chen.lemma6SmoothingMellinKernel (bvSmoothingParameter K x)
+        ((σ : ℂ) + (ν : ℂ) * Complex.I)‖ ≤
+      σ⁻¹ *
+        ((1 + (ν / Real.log (x : ℝ) ^ (11 * (K + 1))) ^ 2) ^ 2)⁻¹ := by
+  simpa only [bvSmoothingScale_eq K hx] using
+    (Chen.norm_lemma6SmoothingMellinKernel_le_quartic
+      (bvSmoothingScale_pos K hlarge)
+      (bvSmoothingOrder_three_le K hlarge) hσ ν)
+
 /-- Mellin inversion for the adjustable weight.  This is a direct
 specialization of the smoothing theorem already proved for Lemma 6, with
 its parameter replaced by `bvSmoothingParameter K x`. -/

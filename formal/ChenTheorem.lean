@@ -9,6 +9,7 @@ import ChenTheorem.Lemma9.BombieriVinogradov.TypeIIAssembly
 import ChenTheorem.Lemma9.BombieriVinogradov.PerronTypeII
 import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorPerron
 import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorSmoothing
+import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorLogDeriv
 import ChenTheorem.Lemma9.BombieriVinogradov.ConductorAssembly
 import ChenTheorem.Lemma9.BombieriVinogradov.AsymptoticAssembly
 import ChenTheorem.MainEstimates
