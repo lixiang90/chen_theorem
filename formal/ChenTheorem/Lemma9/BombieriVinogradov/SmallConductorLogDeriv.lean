@@ -305,6 +305,27 @@ theorem tsum_integral_bvSmoothedAlphaTerm_eq_integral_tsum {q : ℕ}
     (integrable_bvSmoothedAlphaTerm K hx hlarge χ)
     (summable_integral_norm_bvSmoothedAlphaTerm K hx hlarge χ)
 
+/-- The logarithmic-derivative integrand itself is integrable on the
+initial `alpha`-line.  This is the form needed to split the improper
+integral into a finite segment and its complement. -/
+theorem integrable_bvSmoothedLogDerivIntegrand_alpha
+    {q : ℕ} [NeZero q] (K : ℕ) {x : ℕ} (hx : 2 ≤ x)
+    (hlarge : (10 : ℝ) ^ 4 ≤
+      Real.log (x : ℝ) ^ (10 * (K + 1)))
+    (χ : DirichletCharacter ℂ q) :
+    MeasureTheory.Integrable (fun t : ℝ =>
+      bvSmoothedLogDerivIntegrand K x χ
+        (Chen.lemma6AlphaPoint x t)) := by
+  have hsum : MeasureTheory.Integrable (fun t : ℝ =>
+      ∑' n : ℕ, bvSmoothedAlphaTerm K x χ n t) :=
+    Chen.integrable_tsum_of_summable_integral_norm_complex
+      (integrable_bvSmoothedAlphaTerm K hx hlarge χ)
+      (summable_integral_norm_bvSmoothedAlphaTerm K hx hlarge χ)
+  exact hsum.congr (by
+    filter_upwards with t
+    exact tsum_bvSmoothedFullTerm_eq_logDeriv K x χ
+      (Chen.one_lt_lemma6AlphaPoint_re hx t))
+
 /-- Terms outside `[1,x]` have zero Mellin integral because the adjustable
 smoothing weight itself vanishes there. -/
 theorem integral_bvSmoothedAlphaTerm_eq_zero_of_not_mem {q : ℕ}
@@ -525,6 +546,269 @@ theorem bvSmoothedLogDeriv_finite_rectangle_classical
   rw [hzre, hwre, hzim, hwim] at hrect
   dsimp only [F] at hrect
   simpa only [γ, α, sub_eq_add_neg, Complex.ofReal_neg, neg_mul] using hrect
+
+/-! ### Quantitative specialization of the classical zero-free region -/
+
+/-- At the adjustable square-scale contour height and for conductors at
+most `(log x)^100`, the shifted line eventually lies in the half-width
+classical zero-free region.  The threshold may depend on the requested
+logarithmic saving `K` and on the constants in `data`, but is uniform in the
+conductor and in every height inside the finite rectangle. -/
+theorem eventually_two_div_sqrt_log_lt_primitiveZeroFreeWidth_bvHeight
+    (data : Chen.PrimitiveZeroFreeRegionData) (K : ℕ) :
+    ∀ᶠ x : ℕ in atTop,
+      ∀ (q : ℕ), 2 ≤ q →
+        (q : ℝ) ≤ Real.log (x : ℝ) ^ 100 →
+        ∀ t : ℝ, |t| ≤ bvSmoothingContourHeight K x →
+          2 / Real.sqrt (Real.log (x : ℝ)) <
+            Chen.primitiveZeroFreeWidth
+              data.cHeight data.cSiegel q t := by
+  let N : ℕ := 22 * (K + 1) + 101
+  let E : ℝ := (N : ℝ)
+  have hEpos : 0 < E := by
+    dsimp only [E, N]
+    positivity
+  have hsmallReal : ∀ᶠ y : ℝ in atTop,
+      ‖Real.log y ^ (1 : ℝ)‖ ≤
+        (data.cHeight / (4 * E)) *
+          ‖y ^ ((1 : ℝ) / 2)‖ :=
+    (isLittleO_log_rpow_rpow_atTop (1 : ℝ)
+      (by norm_num : (0 : ℝ) < 1 / 2)).def
+        (div_pos data.cHeight_pos (mul_pos (by norm_num) hEpos))
+  have hlogT : Tendsto (fun x : ℕ => Real.log (x : ℝ)) atTop atTop :=
+    Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
+  have hheight : ∀ᶠ x : ℕ in atTop,
+      2 * E * Real.log (Real.log (x : ℝ)) <
+        data.cHeight * Real.sqrt (Real.log (x : ℝ)) := by
+    filter_upwards [hlogT.eventually hsmallReal,
+        hlogT.eventually (eventually_gt_atTop 1)] with x hx hL1
+    have hlogLpos : 0 < Real.log (Real.log (x : ℝ)) := Real.log_pos hL1
+    have hLpos : 0 < Real.log (x : ℝ) := zero_lt_one.trans hL1
+    have hrpowpos : 0 <
+        Real.log (x : ℝ) ^ ((1 : ℝ) / 2) :=
+      Real.rpow_pos_of_pos hLpos _
+    have hx' : Real.log (Real.log (x : ℝ)) ≤
+        (data.cHeight / (4 * E)) *
+          Real.log (x : ℝ) ^ ((1 : ℝ) / 2) := by
+      rw [Real.rpow_one, Real.norm_eq_abs, abs_of_pos hlogLpos,
+        Real.norm_eq_abs, abs_of_pos hrpowpos] at hx
+      exact hx
+    have hscaled :
+        2 * E * Real.log (Real.log (x : ℝ)) ≤
+          2 * E * ((data.cHeight / (4 * E)) *
+            Real.log (x : ℝ) ^ ((1 : ℝ) / 2)) :=
+      mul_le_mul_of_nonneg_left hx'
+        (mul_nonneg (by norm_num) hEpos.le)
+    have heq :
+        2 * E * ((data.cHeight / (4 * E)) *
+          Real.log (x : ℝ) ^ ((1 : ℝ) / 2)) =
+        data.cHeight / 2 *
+          Real.log (x : ℝ) ^ ((1 : ℝ) / 2) := by
+      field_simp [hEpos.ne']; ring
+    rw [heq] at hscaled
+    rw [Real.sqrt_eq_rpow]
+    nlinarith [mul_pos data.cHeight_pos hrpowpos]
+  have hsiegelReal : ∀ᶠ y : ℝ in atTop,
+      2 < data.cSiegel * y ^ ((1 : ℝ) / 6) := by
+    have ht := tendsto_rpow_atTop (show (0 : ℝ) < 1 / 6 by norm_num)
+    have hev := ht.eventually
+      (eventually_gt_atTop (2 / data.cSiegel))
+    filter_upwards [hev, eventually_gt_atTop 0] with y hy hy0
+    calc
+      (2 : ℝ) = data.cSiegel * (2 / data.cSiegel) := by
+        field_simp [data.cSiegel_pos.ne']
+      _ < data.cSiegel * y ^ ((1 : ℝ) / 6) :=
+        mul_lt_mul_of_pos_left hy data.cSiegel_pos
+  have hsiegel := hlogT.eventually hsiegelReal
+  have hLtwo := hlogT.eventually (eventually_ge_atTop 2)
+  filter_upwards [hheight, hsiegel, hLtwo] with x hheight hsiegel hLtwo
+  intro q hq hq100 t ht
+  let L : ℝ := Real.log (x : ℝ)
+  let B : ℕ := 22 * (K + 1)
+  have hLpos : 0 < L := by dsimp only [L]; linarith
+  have hLone : 1 ≤ L := by dsimp only [L]; linarith
+  have hBpos : 1 ≤ B := by dsimp only [B]; omega
+  have hheight_eq : bvSmoothingContourHeight K x = L ^ B := by
+    dsimp only [bvSmoothingContourHeight, L, B]
+    rw [← pow_mul]
+    congr 1
+    omega
+  have hpowtwo : (2 : ℝ) ≤ L ^ B := by
+    calc
+      (2 : ℝ) ≤ L := hLtwo
+      _ = L ^ 1 := by ring
+      _ ≤ L ^ B := pow_le_pow_right₀ hLone hBpos
+  have ht2 : |t| + 2 ≤ L ^ (B + 1) := by
+    calc
+      |t| + 2 ≤ bvSmoothingContourHeight K x + 2 := by linarith
+      _ = L ^ B + 2 := by rw [hheight_eq]
+      _ ≤ 2 * L ^ B := by linarith
+      _ ≤ L * L ^ B :=
+        mul_le_mul_of_nonneg_right hLtwo (pow_nonneg hLpos.le _)
+      _ = L ^ (B + 1) := by rw [pow_succ']
+  have harg : (q : ℝ) * (|t| + 2) ≤ L ^ N := by
+    calc
+      (q : ℝ) * (|t| + 2) ≤ L ^ 100 * L ^ (B + 1) :=
+        mul_le_mul hq100 ht2 (by positivity) (by positivity)
+      _ = L ^ N := by
+        rw [← pow_add]
+        congr 1
+        dsimp only [N, B]
+        omega
+  have hargpos : 0 < (q : ℝ) * (|t| + 2) := by positivity
+  have hlogarg : Real.log ((q : ℝ) * (|t| + 2)) ≤
+      E * Real.log L := by
+    have hlogle := Real.log_le_log hargpos harg
+    rw [Real.log_pow] at hlogle
+    simpa only [E] using hlogle
+  have hlogargpos := Chen.primitiveZeroFreeHeightLog_pos hq t
+  have hheightWidth : 2 / Real.sqrt L <
+      data.cHeight / Real.log ((q : ℝ) * (|t| + 2)) := by
+    rw [div_lt_div_iff₀ (Real.sqrt_pos.2 hLpos) hlogargpos]
+    calc
+      2 * Real.log ((q : ℝ) * (|t| + 2)) ≤
+          2 * E * Real.log L := by
+        simpa only [mul_assoc] using
+          (mul_le_mul_of_nonneg_left hlogarg (by norm_num : (0 : ℝ) ≤ 2))
+      _ < data.cHeight * Real.sqrt L := by
+        simpa only [L] using hheight
+  have hpowq : L ^ ((-1 : ℝ) / 3) ≤
+      (q : ℝ) ^ ((-1 : ℝ) / 300) := by
+    have hp := Real.rpow_le_rpow_of_nonpos (by positivity : (0 : ℝ) < q)
+      hq100 (by norm_num : ((-1 : ℝ) / 300) ≤ 0)
+    have hpow : (L ^ 100) ^ ((-1 : ℝ) / 300) =
+        L ^ ((-1 : ℝ) / 3) := by
+      rw [← Real.rpow_natCast L 100, ← Real.rpow_mul hLpos.le]
+      congr 1
+      norm_num
+    exact hpow ▸ hp
+  have hsiegelWidth : 2 / Real.sqrt L <
+      data.cSiegel * (q : ℝ) ^ ((-1 : ℝ) / 300) := by
+    have hpowid : L ^ ((-1 : ℝ) / 2) * L ^ ((1 : ℝ) / 6) =
+        L ^ ((-1 : ℝ) / 3) := by
+      rw [← Real.rpow_add hLpos]
+      congr 1
+      ring
+    have hinvSqrt : 1 / Real.sqrt L = L ^ ((-1 : ℝ) / 2) := by
+      rw [Real.sqrt_eq_rpow, one_div, ← Real.rpow_neg hLpos.le]
+      congr 1
+      ring
+    have hinvSqrt' : (Real.sqrt L)⁻¹ = L ^ ((-1 : ℝ) / 2) := by
+      simpa only [one_div] using hinvSqrt
+    calc
+      2 / Real.sqrt L = 2 * L ^ ((-1 : ℝ) / 2) := by
+        rw [div_eq_mul_inv, hinvSqrt']
+      _ < data.cSiegel * L ^ ((1 : ℝ) / 6) *
+          L ^ ((-1 : ℝ) / 2) := by
+        exact mul_lt_mul_of_pos_right hsiegel
+          (Real.rpow_pos_of_pos hLpos _)
+      _ = data.cSiegel * L ^ ((-1 : ℝ) / 3) := by
+        rw [← hpowid]
+        ring
+      _ ≤ data.cSiegel * (q : ℝ) ^ ((-1 : ℝ) / 300) :=
+        mul_le_mul_of_nonneg_left hpowq data.cSiegel_pos.le
+  unfold Chen.primitiveZeroFreeWidth
+  exact lt_min hheightWidth hsiegelWidth
+
+/-- The logarithmic-derivative majorant at the adjustable contour height
+still costs only two powers of `log x`; all dependence on the desired
+saving is isolated in the explicit coefficient. -/
+theorem eq21ClassicalLogDerivMajorant_bvHeight_le
+    (data : Chen.PrimitiveZeroFreeRegionData) (K : ℕ) {x q : ℕ}
+    (hxlog : 4 ≤ Real.log (x : ℝ)) (hq : 2 ≤ q)
+    (hq100 : (q : ℝ) ≤ Real.log (x : ℝ) ^ 100) :
+    Chen.eq21ClassicalLogDerivMajorant data q
+        (bvSmoothingContourHeight K x) ≤
+      (((22 * (K + 1) + 104 : ℕ) : ℝ) ^ 2) *
+        data.cLogDeriv * Real.log (x : ℝ) ^ 2 := by
+  let L : ℝ := Real.log (x : ℝ)
+  let N : ℕ := 22 * (K + 1)
+  have hLpos : 0 < L := by dsimp only [L]; linarith
+  have hLone : 1 ≤ L := by dsimp only [L]; linarith
+  have hqpos : (0 : ℝ) < q := by exact_mod_cast (show 0 < q by omega)
+  have hqpow : (q : ℝ) ^ ((1 : ℝ) / 300) ≤ L := by
+    calc
+      (q : ℝ) ^ ((1 : ℝ) / 300) ≤
+          (L ^ 100) ^ ((1 : ℝ) / 300) :=
+        Real.rpow_le_rpow hqpos.le hq100 (by norm_num)
+      _ = L ^ ((1 : ℝ) / 3) := by
+        rw [← Real.rpow_natCast L 100, ← Real.rpow_mul hLpos.le]
+        congr 1
+        norm_num
+      _ ≤ L ^ (1 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le hLone (by norm_num)
+      _ = L := Real.rpow_one L
+  have hlogL : Real.log L ≤ L :=
+    (Real.log_le_sub_one_of_pos hLpos).trans (by linarith)
+  have hlogq : Real.log (q : ℝ) ≤ 100 * Real.log L := by
+    have hle := Real.log_le_log hqpos hq100
+    rw [Real.log_pow] at hle
+    exact hle
+  have hheight_eq : bvSmoothingContourHeight K x = L ^ N := by
+    dsimp only [bvSmoothingContourHeight, L, N]
+    rw [← pow_mul]
+    congr 1
+    omega
+  have hTone : (1 : ℝ) ≤ L ^ N := one_le_pow₀ hLone
+  have hTtwo : L ^ N + 2 ≤ 3 * L ^ N := by linarith
+  have hlog3 : Real.log (3 : ℝ) ≤ 2 := by
+    nlinarith [Real.log_le_sub_one_of_pos
+      (show (0 : ℝ) < 3 by norm_num)]
+  have hNlog : (N : ℝ) * Real.log L ≤ (N : ℝ) * L :=
+    mul_le_mul_of_nonneg_left hlogL (Nat.cast_nonneg N)
+  have hlogTtwo : Real.log (L ^ N + 2) ≤ ((N : ℝ) + 2) * L := by
+    have hpos : 0 < L ^ N + 2 := by positivity
+    have hmono : Real.log (L ^ N + 2) ≤ Real.log (3 * L ^ N) :=
+      Real.log_le_log hpos hTtwo
+    have heq : Real.log (3 * L ^ N) =
+        Real.log 3 + (N : ℝ) * Real.log L := by
+      rw [Real.log_mul (by norm_num) (by positivity), Real.log_pow]
+    rw [heq] at hmono
+    nlinarith
+  have hlogarg : Real.log ((q : ℝ) *
+        (bvSmoothingContourHeight K x + 2)) ≤
+      ((N : ℝ) + 102) * L := by
+    have heq : Real.log ((q : ℝ) *
+          (bvSmoothingContourHeight K x + 2)) =
+        Real.log (q : ℝ) + Real.log (L ^ N + 2) := by
+      have hh : 0 < bvSmoothingContourHeight K x + 2 := by
+        linarith [bvSmoothingContourHeight_nonneg K x]
+      rw [Real.log_mul hqpos.ne' hh.ne', hheight_eq]
+    rw [heq]
+    have hqL : 100 * Real.log L ≤ 100 * L := by linarith
+    linarith
+  have hbase : (q : ℝ) ^ ((1 : ℝ) / 300) +
+        Real.log ((q : ℝ) *
+          (bvSmoothingContourHeight K x + 2)) + 1 ≤
+      ((N : ℝ) + 104) * L := by linarith
+  have hbase0 : 0 ≤ (q : ℝ) ^ ((1 : ℝ) / 300) +
+      Real.log ((q : ℝ) *
+        (bvSmoothingContourHeight K x + 2)) + 1 := by
+    have hheight0 : 0 ≤ bvSmoothingContourHeight K x :=
+      bvSmoothingContourHeight_nonneg K x
+    have hlogpos := Chen.primitiveZeroFreeHeightLog_pos hq
+      (bvSmoothingContourHeight K x)
+    rw [abs_of_nonneg hheight0] at hlogpos
+    have hrpow : 0 ≤ (q : ℝ) ^ ((1 : ℝ) / 300) :=
+      Real.rpow_nonneg (by positivity) _
+    linarith
+  have hsquare : ((q : ℝ) ^ ((1 : ℝ) / 300) +
+        Real.log ((q : ℝ) *
+          (bvSmoothingContourHeight K x + 2)) + 1) ^ 2 ≤
+      (((N : ℝ) + 104) * L) ^ 2 :=
+    pow_le_pow_left₀ hbase0 hbase 2
+  unfold Chen.eq21ClassicalLogDerivMajorant
+  calc
+    data.cLogDeriv * ((q : ℝ) ^ ((1 : ℝ) / 300) +
+          Real.log ((q : ℝ) *
+            (bvSmoothingContourHeight K x + 2)) + 1) ^ 2 ≤
+        data.cLogDeriv * (((N : ℝ) + 104) * L) ^ 2 :=
+      mul_le_mul_of_nonneg_left hsquare data.cLogDeriv_pos.le
+    _ = (((22 * (K + 1) + 104 : ℕ) : ℝ) ^ 2) *
+        data.cLogDeriv * Real.log (x : ℝ) ^ 2 := by
+      dsimp only [N, L]
+      push_cast
+      ring
 
 /-- Pointwise product bound inside the half-width classical zero-free
 region.  All three analytic costs (`x^s`, the Mellin kernel, and `L'/L`)
@@ -1102,5 +1386,130 @@ theorem norm_integral_bvSmoothedLogDeriv_alpha_tail_le
           (a * Real.pi)) := by ring
     _ ≤ C * (a⁻¹ * Real.pi) :=
       mul_le_mul_of_nonneg_left htail hC0
+
+/-- Finite-contour replacement for the full adjustable Perron integral.
+The shifted vertical segment, both horizontal sides, and the original-line
+tail are all retained as explicit errors at the chosen contour height. -/
+theorem norm_integral_bvSmoothedLogDeriv_alpha_le_finite_classical
+    (data : Chen.PrimitiveZeroFreeRegionData)
+    {x q : ℕ} [NeZero q] (K : ℕ) (hq : 2 ≤ q) (hx : 2 ≤ x)
+    (hlarge : (10 : ℝ) ^ 4 ≤
+      Real.log (x : ℝ) ^ (10 * (K + 1)))
+    (hγpos : (1 : ℝ) / 2 ≤
+      1 - 1 / Real.sqrt (Real.log (x : ℝ)))
+    {χ : DirichletCharacter ℂ q} (hχ : χ.IsPrimitive)
+    (hwidth : ∀ t : ℝ, |t| ≤ bvSmoothingContourHeight K x →
+      2 / Real.sqrt (Real.log (x : ℝ)) <
+        Chen.primitiveZeroFreeWidth data.cHeight data.cSiegel q t) :
+    ‖∫ t : ℝ,
+        bvSmoothedLogDerivIntegrand K x χ
+          (Chen.lemma6AlphaPoint x t)‖ ≤
+      4 * bvSmoothingContourHeight K x *
+          ((x : ℝ) ^
+            (1 - 1 / Real.sqrt (Real.log (x : ℝ))) *
+            Chen.eq21ClassicalLogDerivMajorant data q
+              (bvSmoothingContourHeight K x)) +
+        2 * (((2 * Real.exp 1 * (x : ℝ) *
+            Chen.eq21ClassicalLogDerivMajorant data q
+              (bvSmoothingContourHeight K x)) *
+            (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
+          |(1 + 1 / Real.log (x : ℝ)) -
+            (1 - 1 / Real.sqrt (Real.log (x : ℝ)))|) +
+        (4 * Real.exp 1 * (x : ℝ) * Real.log (x : ℝ) ^ 2) *
+          ((Real.log (x : ℝ) ^ (11 * (K + 1)))⁻¹ * Real.pi) := by
+  let T : ℝ := bvSmoothingContourHeight K x
+  let γ : ℝ := 1 - 1 / Real.sqrt (Real.log (x : ℝ))
+  let α : ℝ := 1 + 1 / Real.log (x : ℝ)
+  let F : ℂ → ℂ := bvSmoothedLogDerivIntegrand K x χ
+  let A : ℂ := ∫ t : ℝ in (-T)..T,
+    F ((α : ℂ) + (t : ℂ) * Complex.I)
+  let G : ℂ := ∫ t : ℝ in (-T)..T,
+    F ((γ : ℂ) + (t : ℂ) * Complex.I)
+  let bot : ℂ := ∫ σ : ℝ in γ..α,
+    F ((σ : ℂ) - (T : ℂ) * Complex.I)
+  let top : ℂ := ∫ σ : ℝ in γ..α,
+    F ((σ : ℂ) + (T : ℂ) * Complex.I)
+  let tail : ℂ := ∫ t : ℝ in (Set.Ioc (-T) T)ᶜ,
+    F ((α : ℂ) + (t : ℂ) * Complex.I)
+  have hT : 0 ≤ T := by
+    dsimp only [T]
+    exact bvSmoothingContourHeight_nonneg K x
+  have hαI := integrable_bvSmoothedLogDerivIntegrand_alpha
+    K hx hlarge χ
+  have hsplit : A + tail = ∫ t : ℝ,
+      bvSmoothedLogDerivIntegrand K x χ
+        (Chen.lemma6AlphaPoint x t) := by
+    have hs := MeasureTheory.integral_add_compl
+      (s := Set.Ioc (-T) T) measurableSet_Ioc hαI
+    rw [← intervalIntegral.integral_of_le (by linarith : -T ≤ T)] at hs
+    simpa only [A, tail, F, α, Chen.lemma6AlphaPoint] using hs
+  have hrect : bot - top + Complex.I • A - Complex.I • G = 0 := by
+    simpa only [bot, top, A, G, F, γ, α] using
+      (bvSmoothedLogDeriv_finite_rectangle_classical
+        data K hq hx hγpos hχ hT hwidth)
+  have hIA : Complex.I • A = Complex.I • G - bot + top := by
+    linear_combination hrect
+  have hAG : ‖A‖ ≤ ‖G‖ + ‖bot‖ + ‖top‖ := by
+    calc
+      ‖A‖ = ‖Complex.I • A‖ := by simp
+      _ = ‖Complex.I • G - bot + top‖ := congrArg norm hIA
+      _ ≤ ‖Complex.I • G - bot‖ + ‖top‖ := norm_add_le _ _
+      _ ≤ (‖Complex.I • G‖ + ‖bot‖) + ‖top‖ := by
+        linarith [norm_sub_le (Complex.I • G) bot]
+      _ = ‖G‖ + ‖bot‖ + ‖top‖ := by simp
+  have hG : ‖G‖ ≤
+      4 * T * ((x : ℝ) ^ γ *
+        Chen.eq21ClassicalLogDerivMajorant data q T) := by
+    simpa only [G, F, γ, T, Chen.lemma6Equation21Point] using
+      (norm_intervalIntegral_bvSmoothedLogDeriv_gamma_le_classical
+        data K hq hx hlarge hγpos hχ hT hwidth)
+  have htop : ‖top‖ ≤
+      ((2 * Real.exp 1 * (x : ℝ) *
+          Chen.eq21ClassicalLogDerivMajorant data q T) *
+        (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
+        |α - γ| := by
+    simpa only [top, F, γ, α, T, abs_of_nonneg hT] using
+      (norm_intervalIntegral_bvSmoothedLogDeriv_horizontal_at_height_le
+        data K hq hx hlarge hγpos hχ
+          (abs_of_nonneg hT) (hwidth T (by rw [abs_of_nonneg hT])))
+  have hbot : ‖bot‖ ≤
+      ((2 * Real.exp 1 * (x : ℝ) *
+          Chen.eq21ClassicalLogDerivMajorant data q T) *
+        (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
+        |α - γ| := by
+    have hb :=
+      norm_intervalIntegral_bvSmoothedLogDeriv_horizontal_at_height_le
+        data K hq hx hlarge hγpos hχ
+          (show |-T| = bvSmoothingContourHeight K x by
+            rw [abs_neg, abs_of_nonneg hT])
+          (hwidth (-T) (by rw [abs_neg, abs_of_nonneg hT]))
+    simpa only [bot, F, γ, α, T, Complex.ofReal_neg, neg_mul,
+      sub_eq_add_neg] using hb
+  have htail : ‖tail‖ ≤
+      (4 * Real.exp 1 * (x : ℝ) * Real.log (x : ℝ) ^ 2) *
+        ((Real.log (x : ℝ) ^ (11 * (K + 1)))⁻¹ * Real.pi) := by
+    simpa only [tail, F, α, T, Chen.lemma6AlphaPoint] using
+      (norm_integral_bvSmoothedLogDeriv_alpha_tail_le
+        K hx hlarge χ)
+  calc
+    ‖∫ t : ℝ,
+        bvSmoothedLogDerivIntegrand K x χ
+          (Chen.lemma6AlphaPoint x t)‖ = ‖A + tail‖ :=
+      congrArg norm hsplit.symm
+    _ ≤ ‖A‖ + ‖tail‖ := norm_add_le _ _
+    _ ≤ (‖G‖ + ‖bot‖ + ‖top‖) + ‖tail‖ := by linarith
+    _ ≤
+        4 * T * ((x : ℝ) ^ γ *
+          Chen.eq21ClassicalLogDerivMajorant data q T) +
+          2 * (((2 * Real.exp 1 * (x : ℝ) *
+              Chen.eq21ClassicalLogDerivMajorant data q T) *
+              (Real.log (x : ℝ) ^ (44 * (K + 1)))⁻¹) *
+            |α - γ|) +
+          (4 * Real.exp 1 * (x : ℝ) * Real.log (x : ℝ) ^ 2) *
+            ((Real.log (x : ℝ) ^ (11 * (K + 1)))⁻¹ *
+              Real.pi) := by
+      linarith [hG, hbot, htop, htail]
+    _ = _ := by
+      dsimp only [T, γ, α]
 
 end Chen.BombieriVinogradov
