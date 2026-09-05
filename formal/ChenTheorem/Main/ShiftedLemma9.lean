@@ -10,24 +10,10 @@ namespace Chen
 As in the original Lemma 9, the only non-elementary input is the combined
 specialization of Richert's weighted sieve and Bombieri--Vinogradov.  The
 fixed residue `-h` changes the progression but not the sieve calculation.
-The external specialization is isolated below; equation (27), loss
-management, and the numerical constant are checked in Lean.
+The external specialization is obtained from the common parameterized
+interface in `Lemma9/RichertBombieri.lean`; equation (27), loss management,
+and the numerical constant are checked in Lean.
 -/
-
-/-- Fixed-shift specialization of Richert's weighted sieve and the
-Bombieri--Vinogradov averaged progression estimate, corresponding to equations
-(25)--(26). -/
-axiom eventually_shifted_richert_bombieri_equation26
-    (h : ℕ) (hh0 : 0 < h) (hhEven : Even h)
-    (δ : ℝ) (hδ : 0 < δ) :
-    ∀ᶠ x : ℕ in atTop, Even x →
-      (8 - δ) *
-          ((x : ℝ) * chenConst h / Real.log (x : ℝ) ^ 2) *
-          (Real.log 4 - Real.log 8 / 2 + equation27Integral) ≤
-        (shiftedSievedPrimeCount h x : ℝ) -
-          (1 / 2) *
-            ∑ p' ∈ midPrimes x,
-              (shiftedSievedPrimeCountAt h x p' : ℝ)
 
 /-- The named fixed-shift Richert--Bombieri interface. -/
 theorem shifted_richert_weighted_sieve_estimate

@@ -43,7 +43,8 @@ lake build
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
 | `ChenTheorem/Lemma8/PrimeReciprocal.lean` | The prime-reciprocal Mertens theorem imported from `PrimeNumberTheoremAnd`, exact Abel-summation formulas, both partial-summation steps between (23) and (24), and uniform error control |
-| `ChenTheorem/Lemma9/RichertBombieri.lean` | The explicit trust-boundary specialization of Richert's weighted sieve and Bombieri--Vinogradov used in equations (25)–(26) |
+| `ChenTheorem/Lemma9/BombieriVinogradov/` | The in-progress standalone Bombieri--Vinogradov proof: its level-`1/2` statement, exact character-orthogonality and primitive-conductor reductions, Vaughan decomposition, Type-I estimates, bilinear and maximal large sieves, and the completed imprimitive-character reduction.  The Type-II files now give an exact sharp dyadic decomposition into interior and boundary rectangles, direct interior large-sieve bounds, Mellin bounds for the smoothed boundary at the correct `Q²/x` scale, and an explicit sharp-to-smooth remainder interface |
+| `ChenTheorem/Lemma9/RichertBombieri.lean` | The single parameterized trust-boundary interface for equations (25)–(26), with the original and fixed-shift forms derived as theorem wrappers |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
 | `ChenTheorem/Main/ShiftedDefs.lean` | Fixed-shift versions of the roughness predicate, sieve weights, divisor and character expansions, error terms, and sifted counting functions; the shift `h` is kept separate from the scale `x` |
@@ -55,7 +56,7 @@ lake build
 | `ChenTheorem/Main/ShiftedLemma7.lean` | The shifted Lemmas 5--6 combination and the algebraic part of shifted Lemma 7, including Selberg diagonalization, the shifted Moebius transform, and the exact normalization identity (22) |
 | `ChenTheorem/Main/ShiftedLemma7Normalization.lean` | Dyadic comparison of the fixed-shift normalization with the unshifted Lemma 7 normalization, the coefficient bound, and the completed shifted `M1` estimate with coefficient `8 + 24 * epsilon` |
 | `ChenTheorem/Main/ShiftedLemma8.lean` | The completed shifted Lemma 8, reusing the shift-independent prime-pair kernel and proving `shiftedSieveOmega ≤ 3.9404 x C_h/(log x)^2` |
-| `ChenTheorem/Main/ShiftedLemma9.lean` | The completed numerical deduction for shifted Lemma 9 from its explicitly isolated fixed-residue Richert--Bombieri specialization |
+| `ChenTheorem/Main/ShiftedLemma9.lean` | The completed numerical deduction for shifted Lemma 9 from the fixed-shift instance of the common Richert--Bombieri interface |
 | `ChenTheorem/Main/ShiftedKeyInequality.lean` | Fixed-shift inequality (28): prime-factor classification, two-witness injection, endpoint and nonsquarefree exception bounds, and the final `x^0.91` loss |
 | `ChenTheorem/Main/ShiftedEstimate.lean` | Complete aggregation of shifted Lemmas 1--9 and inequality (28), including the `0.67` numerical gap and the even-floor argument removing the auxiliary parity restriction on the scale |
 | `ChenTheorem/Main.lean` | Completed deductions of inequality (28), Theorem 1 (`P_x(1,2) ≥ 0.67 xC_x/(log x)²` and Chen's theorem proper), and Theorem 2 (twin analogue) from the named upstream estimates |
@@ -196,16 +197,27 @@ lake build
 
 Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
 The project itself contains exactly one documented `sorry` declaration and
-two explicit non-foundational axioms:
+one explicit non-foundational axiom:
 
 * `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`) supplies the
   classical zero-free region and companion `L'/L` bound needed by Lemma 6;
-* `eventually_richert_bombieri_equation26`
-  (`Lemma9/RichertBombieri.lean`) supplies the combined Richert weighted-sieve
-  and Bombieri--Vinogradov specialization needed by Lemma 9;
-* `eventually_shifted_richert_bombieri_equation26`
-  (`Main/ShiftedLemma9.lean`) is the corresponding fixed-residue specialization
-  used by shifted Lemma 9.
+* `richert_bombieri_equation26` (`Lemma9/RichertBombieri.lean`) is parameterized
+  by the original or fixed-shift sieve family.  The former declarations
+  `eventually_richert_bombieri_equation26` and
+  `eventually_shifted_richert_bombieri_equation26` are now proved wrappers,
+  rather than separate axioms.  The Bombieri--Vinogradov component is being
+  split out into the standalone modules under `Lemma9/BombieriVinogradov/`;
+  the character reduction, standard Vaughan identity, Type-I logarithmic
+  character-sum estimate, square means for the short Type-I and Type-II
+  coefficients, and both full and dyadic rectangular bilinear large-sieve
+  estimates there are already proved without new axioms.  The imprimitive lift
+  discrepancy, its sum over ambient moduli, the exact regrouping by primitive
+  conductor, and the reciprocal-totient weight bound are also complete.  The
+  sharp Type-II hyperbola is now decomposed exactly into direct interior and
+  Mellin boundary contributions, with the remaining correction isolated
+  pointwise.  The remaining core steps are the stronger Type-I conductor mean,
+  the global bound for that Type-II boundary correction, the small-conductor
+  Siegel--Walfisz range, and the final asymptotic parameter assembly.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

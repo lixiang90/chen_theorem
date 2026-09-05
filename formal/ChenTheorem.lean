@@ -1,4 +1,11 @@
 import ChenTheorem.Defs
 import ChenTheorem.SieveLemmas
+import ChenTheorem.Lemma9.BombieriVinogradov.MeanValue
+import ChenTheorem.Lemma9.BombieriVinogradov.Imprimitive
+import ChenTheorem.Lemma9.BombieriVinogradov.Maximal
+import ChenTheorem.Lemma9.BombieriVinogradov.MellinTypeII
+import ChenTheorem.Lemma9.BombieriVinogradov.DyadicTypeII
+import ChenTheorem.Lemma9.BombieriVinogradov.TypeIIAssembly
+import ChenTheorem.Lemma9.BombieriVinogradov.PerronTypeII
 import ChenTheorem.MainEstimates
 import ChenTheorem.Main

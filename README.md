@@ -47,10 +47,25 @@ and both prime-reciprocal partial-summation steps used in Lemma 8 have now been
 proved in Lean from `PrimeNumberTheoremAnd`, and the numerical integrals (24)
 and (27) and inequality (28) are machine-checked without `sorryAx`.
 
-Three explicit analytic trust boundaries remain. Lemma 6 and its shifted
+Two explicit analytic trust-boundary declarations remain. Lemma 6 and its shifted
 counterpart share a documented classical zero-free-region and `L'/L` estimate
-proved by `sorry`; the original and fixed-shift forms of Lemma 9 each depend on
-a named Richert weighted-sieve/Bombieri--Vinogradov specialization.  Everything
+proved by `sorry`; the original and fixed-shift forms of Lemma 9 are now both
+instances of one parameterized Richert weighted-sieve/Bombieri--Vinogradov
+interface.  The standalone Bombieri--Vinogradov development now contains the
+proved character reduction, standard Vaughan identity, Type-I
+Pólya--Vinogradov/Abel estimate, divisor-square `L²` bounds and dyadic
+rectangular large-sieve estimates for both the short Type-I coefficient and
+the Type-II coefficient.  The imprimitive-character step
+is now complete: the lift discrepancy is summed over ambient moduli, regrouped
+exactly by primitive conductor, and reduced to the primitive mean with a
+harmonic-square loss plus an explicit `O(Q² log x log₂ x)` error.  For Type II,
+the original sharp Vaughan sum now has an exact dyadic decomposition into
+interior and hyperbola-boundary rectangles: interior rectangles use the direct
+bilinear large sieve, while the smoothed boundary rectangles have a Mellin
+bound with the correct `Q²/x` scale.  The remaining core work is the stronger
+large-conductor Type-I mean, the explicit sharp-to-smooth boundary correction,
+the small-conductor range, and the final asymptotic parameter assembly.
+Everything
 else in the fixed-shift chain is now explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
 passage from even auxiliary scales to every sufficiently large scale are all
