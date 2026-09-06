@@ -22,3 +22,4 @@ import ChenTheorem.Analysis.CompactZeroFreeStrip
 import ChenTheorem.Lemma6.DirichletLogDerivativePositivity
 import ChenTheorem.Lemma6.CompactDirichletFamily
 import ChenTheorem.Lemma6.LFunctionZeroCount
+import ChenTheorem.Lemma6.LFunctionLocalZeroScale

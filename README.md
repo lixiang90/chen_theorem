@@ -75,6 +75,8 @@ analysis now derives the full half-width logarithmic-derivative estimate
 from mixed-region nonvanishing, using disk geometry, Euler/Möbius bounds,
 and explicit conductor-height estimates. Compact local zero-free strips and
 the classical three-four-one logarithmic-derivative inequality are also proved.
+Finite zero factorization now yields a primitive L-function local zero-pole
+expansion with an absolute conductor-height logarithmic error bound.
 The uniform height-dependent zero-free region and Siegel estimates remain unproved.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the

@@ -50,6 +50,8 @@ lake env lean Audit.lean          # completion gate; currently fails on the zero
 | `ChenTheorem/Lemma6/CompactDirichletFamily.lean` | A common strip for all nonprincipal characters with bounded conductor and height, and extension of a mixed region across a bounded conductor-height box |
 | `ChenTheorem/Lemma6/{DirichletPhase,DirichletLogDerivativePositivity}.lean` | The classical three-four-one logarithmic-derivative inequality, proved from nonnegative von Mangoldt series terms |
 | `ChenTheorem/Lemma6/LFunctionZeroCount.lean` | An unconditional Jensen bound for zeros with multiplicity in disks centered at `5/4+it` and reaching to the left of one |
+| `ChenTheorem/Analysis/{BlaschkeFactor,DiskBlaschkeProduct,AnalyticZeroFactorization,ZeroFreeFactorBounds,BlaschkeLogDerivative,DiskZeroLogDerivative,DiskZeroCount,LocalZeroLogDerivative,LocalZeroLogDerivativeBound}.lean` | Exact finite zero factorization, boundary and center norm control, and a local logarithmic-derivative expansion with all zero-count and remainder bounds proved |
+| `ChenTheorem/Lemma6/{LFunctionLocalZeroLogDerivative,LFunctionLocalZeroScale}.lean` | A primitive L-function local zero-pole expansion with error at most `60000 log(q(abs(t)+2))`, without assuming a zero-free disk |
 | `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The single remaining `sorry`: uniform mixed-region nonvanishing at every fixed Siegel exponent; the companion derivative bound is supplied by the proved assembly theorem |
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
@@ -294,8 +296,10 @@ subdisk. Euler/Möbius series bounds and primitive L-function growth supply
 an explicit arithmetic specialization. Disk containment and scale estimates
 now extend it to the entire requested half-width region. The remaining
 goal is precisely nonvanishing in the full mixed region. Additional proved
-tools include compact local strips and the three-four-one inequality;
-the uniform height-dependent region and Siegel estimates remain open.
+tools include compact local strips and the three-four-one inequality.
+Finite Blaschke factorization and Jensen now give a local zero-pole expansion
+with an absolute `60000 log(q(abs(t)+2))` remainder for primitive L-functions.
+The uniform height-dependent region and Siegel estimates remain open.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

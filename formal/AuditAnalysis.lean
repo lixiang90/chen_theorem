@@ -3,6 +3,7 @@ import ChenTheorem.Analysis.CompactZeroFreeStrip
 import ChenTheorem.Lemma6.DirichletLogDerivativePositivity
 import ChenTheorem.Lemma6.CompactDirichletFamily
 import ChenTheorem.Lemma6.LFunctionZeroCount
+import ChenTheorem.Lemma6.LFunctionLocalZeroScale
 import ChenTheorem.Lemma6.LFunctionDiskLogDerivative
 import ChenTheorem.Analysis.PrimeNumberTheorem
 import ChenTheorem.Analysis.PNT.PerronFormula
@@ -60,7 +61,45 @@ run_cmd do
       ``Chen.exists_LFunction_common_compact_strip,
       ``Chen.exists_LFunction_bounded_conductor_strip,
       ``Chen.exists_mixed_region_of_nonvanishing_outside_compact,
-      ``Chen.LFunction_zero_count_le] do
+      ``Chen.LFunction_zero_count_le,
+      ``Chen.eqOn_of_continuousOn_codiscrete,
+      ``Chen.analyticOnNhd_of_canonicalDecomp,
+      ``Chen.canonicalDecomp_eqOn_closedBall,
+      ``Chen.exists_analytic_blaschke_factorization,
+      ``Chen.blaschkeFactor_eq_inv_canonicalFactor,
+      ``Chen.blaschke_denominator_ne_zero,
+      ``Chen.analyticOnNhd_blaschkeFactor,
+      ``Chen.norm_blaschkeFactor_on_sphere,
+      ``Chen.norm_le_of_analyticOnNhd_closedBall,
+      ``Chen.norm_blaschkeFactor_le_one,
+      ``Chen.blaschkeFactor_ne_zero,
+      ``Chen.logDeriv_blaschkeFactor,
+      ``Chen.norm_blaschke_logDeriv_correction_le,
+      ``Chen.diskBlaschkeProduct_eq_prod,
+      ``Chen.analyticOnNhd_diskBlaschkeProduct,
+      ``Chen.norm_diskBlaschkeProduct_le_one,
+      ``Chen.norm_diskBlaschkeProduct_on_sphere,
+      ``Chen.canonical_product_eq_diskBlaschkeProduct,
+      ``Chen.diskZeroCount_nonneg,
+      ``Chen.diskZeroCount_le_closedBall,
+      ``Chen.diskZeroCount_le_of_outer_bound,
+      ``Chen.diskZeroPoleSum_eq_sum,
+      ``Chen.diskZeroCount_eq_sum,
+      ``Chen.ne_zero_point_ne_divisor_support,
+      ``Chen.logDeriv_diskBlaschkeProduct,
+      ``Chen.norm_logDeriv_diskBlaschkeProduct_sub_poles_le,
+      ``Chen.logDeriv_eq_blaschke_add_factor,
+      ``Chen.norm_logDeriv_sub_diskZeroPoleSum_le,
+      ``Chen.norm_logDeriv_sub_zero_poles_le_of_outer_bound,
+      ``Chen.exists_bounded_analytic_zeroFree_factor,
+      ``Chen.exists_analytic_factor_with_logDeriv_bound,
+      ``Chen.dirichletZeroDiskCenter_re,
+      ``Chen.dirichletZeroDiskBound_ge_one,
+      ``Chen.norm_LFunction_centered_disk_le,
+      ``Chen.norm_LFunction_zero_disk_center_ge,
+      ``Chen.norm_LFunction_logDeriv_sub_local_zero_poles_le,
+      ``Chen.dirichletZeroDisk_log_bound_le,
+      ``Chen.norm_LFunction_logDeriv_sub_local_zero_poles_le_log] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then
