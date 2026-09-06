@@ -306,7 +306,9 @@ logarithmic derivatives, the zeta pole bound, and the three-four-one inequality.
 characters. Their nonexceptional region and Siegel estimates remain open.
 For primitive real characters, conjugate-zero pairing now proves that any
 zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
-the possible exceptional real zero is not excluded by this result.
+any such zero is now also proved unique and simple in a uniform smaller box.
+The possible exceptional real zero is not excluded, and its Siegel distance
+bound remains unproved.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

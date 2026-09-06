@@ -84,7 +84,9 @@ primitive real characters. Their nonexceptional region and Siegel estimates
 remain unproved.
 For primitive real characters, conjugate-zero pairing now proves that any
 zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
-the possible exceptional real zero is not excluded by this result.
+any such zero is now also proved unique and simple in a uniform smaller box.
+The possible exceptional real zero is not excluded, and its Siegel distance
+bound remains unproved.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

@@ -1,3 +1,4 @@
+import ChenTheorem.Lemma6.RealZeroSimplicity
 import ChenTheorem.Lemma6.RealZeroBox
 import ChenTheorem.Analysis.ZeroPoleSubsetRealPart
 import ChenTheorem.Lemma6.RealCharacterConjugation
@@ -154,7 +155,17 @@ run_cmd do
       ``Chen.primitive_real_zero_inequality,
       ``Chen.real_character_logDeriv_real_axis_le,
       ``Chen.conjugate_pair_gap_contradiction,
-      ``Chen.exists_primitive_real_zero_box_im_eq_zero] do
+      ``Chen.exists_primitive_real_zero_box_im_eq_zero,
+      ``Chen.two_le_disk_divisor_of_zero_deriv,
+      ``Chen.two_div_re_gap_le_diskZeroPoleSum_re_of_zero_deriv,
+      ``Chen.primitive_LFunction_logDeriv_re_ge_two_real_zeros,
+      ``Chen.two_real_zero_gaps_contradiction,
+      ``Chen.exists_real_character_logDeriv_real_axis_bound,
+      ``Chen.primitive_LFunction_logDeriv_re_ge_multiple_real_zero,
+      ``Chen.exists_primitive_real_zero_unique,
+      ``Chen.exists_primitive_real_zero_box_subsingleton,
+      ``Chen.exists_primitive_real_zero_deriv_ne_zero,
+      ``Chen.exists_primitive_real_zero_box_unique_real_simple] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then
