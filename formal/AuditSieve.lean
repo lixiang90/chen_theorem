@@ -1,3 +1,4 @@
+import ChenTheorem.Lemma9.LinearSieve.CountProfileBounds
 import ChenTheorem.Lemma9.LinearSieve.CountCutoff
 import ChenTheorem.Lemma9.LinearSieve.CalibratedRosserBounds
 import ChenTheorem.Lemma9.LinearSieve.ProfileContinuity
@@ -918,7 +919,50 @@ run_cmd do
       ``Chen.LinearSieve.chenContinuousSieveProfile_half,
       ``Chen.LinearSieve.exists_chenContinuousSieveProfile_near_half,
       ``Chen.LinearSieve.chen_equation26_bracket_pos,
-      ``Chen.LinearSieve.exists_chenContinuousSieveProfile_relative_loss] do
+      ``Chen.LinearSieve.exists_chenContinuousSieveProfile_relative_loss,
+      ``Chen.LinearSieve.eventually_log_childLevel_error_le,
+      ``Chen.LinearSieve.eventually_childLevel_ge,
+      ``Chen.LinearSieve.eventually_childSieveParameter_error_lt,
+      ``Chen.LinearSieve.eventually_chen_count_profile_lower,
+      ``Chen.LinearSieve.eventually_shifted_chen_count_profile_lower,
+      ``Chen.LinearSieve.integral_normalizedLog_weight,
+      ``Chen.LinearSieve.integral_upperSievePrimeWeight,
+      ``Chen.LinearSieve.midPrimes_eq_chenFirstPrimes,
+      ``Chen.LinearSieve.upperSievePrimeSum_eq_midPrimes,
+      ``Chen.LinearSieve.weighted_totient_reciprocal_error,
+      ``Chen.LinearSieve.upperSieveMidPrimeSum_error_bounds,
+      ``Chen.LinearSieve.tendsto_upperSieveMidPrimeSum_error,
+      ``Chen.LinearSieve.tendsto_upperSieveMidPrimeSum,
+      ``Chen.LinearSieve.exists_sieve_profile_error,
+      ``Chen.LinearSieve.eventually_powerRosserMainTerm_lower,
+      ``Chen.LinearSieve.powerSieveCutoff_succ_div_rpow_tendsto,
+      ``Chen.LinearSieve.log_powerSieveCutoff_succ_div_log_tendsto,
+      ``Chen.LinearSieve.log_div_smallCutoff_succ_tendsto,
+      ``Chen.LinearSieve.sieveParameter_powerSieveCutoff_tendsto,
+      ``Chen.LinearSieve.eventually_childSieveParameter_compact,
+      ``Chen.LinearSieve.eventually_upperSieveChildWeight_error_lt,
+      ``Chen.LinearSieve.eventually_rosser_upper_child_power,
+      ``Chen.LinearSieve.eventually_rosser_lower_parent_power,
+      ``Chen.LinearSieve.abs_primeReciprocal_abel_error_le,
+      ``Chen.LinearSieve.nat_div_half_bounds,
+      ``Chen.LinearSieve.powerSieveCutoff_half_bounds,
+      ``Chen.LinearSieve.roundedChildLevel_bounds,
+      ``Chen.LinearSieve.log_roundedChildLevel_bounds,
+      ``Chen.LinearSieve.eventually_upperSievePrimeSum_error_lt,
+      ``Chen.LinearSieve.tendsto_upperSievePrimeSum,
+      ``Chen.LinearSieve.hasDerivAt_upperLinearSieveFunction_deriv,
+      ``Chen.LinearSieve.deriv_upperLinearSieveFunction_eq,
+      ``Chen.LinearSieve.continuousOn_deriv_upperLinearSieveFunction,
+      ``Chen.LinearSieve.hasDerivAt_normalizedLog_pos,
+      ``Chen.LinearSieve.normalizedLog_rpow,
+      ``Chen.LinearSieve.normalizedLog_power_interval,
+      ``Chen.LinearSieve.upperSievePrimeWeight_argument,
+      ``Chen.LinearSieve.upperSievePrimeWeight_bounds,
+      ``Chen.LinearSieve.hasDerivAt_upperSievePrimeWeight,
+      ``Chen.LinearSieve.deriv_upperSievePrimeWeight_nonneg,
+      ``Chen.LinearSieve.continuousOn_deriv_upperSievePrimeWeight,
+      ``Chen.LinearSieve.upperSieveMidPrimeSum_nonneg,
+      ``Chen.LinearSieve.eventually_weighted_rosser_child_sum] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

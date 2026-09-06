@@ -2,14 +2,14 @@
 
 审计日期：2026-09-07。Lean / Mathlib：`v4.32.2`。
 
-**项目尚未完成无条件形式化。** 主定理仍依赖一个 `sorry` 和一个额外公理。
-这两项都是实质数学输入，不能用构建成功、隐藏警告、改名或将它们移为参数来宣称完成。
+**项目尚未完成无条件形式化。** 主定理仍依赖 `primitive_zero_free_region` 中的一个 `sorry`；项目已无额外 `axiom` 声明。
+此项是实质数学输入，不能用构建成功、隐藏警告、改名或将其移为参数来宣称完成。
 
 ## 已核实的进度
 
 原有 `ChenTheorem/` 数学部分有 96 个模块、约 74,000 行源码（不含本次迁入内容）。
 以下区分证明本身与上游尚未证明的输入；源码行数不表示数学完成百分比。
-各阶段记录中的“仍待完成”描述该阶段；当前状态以本表、最后的已完成阶段和两项缺口清单为准。
+各阶段记录中的“仍待完成”描述该阶段；当前状态以本表、最后的已完成阶段和零点区域缺口清单为准；早期阶段记录保留当时状态。
 
 | 部分 | 状态与依赖 |
 | --- | --- |
@@ -19,9 +19,9 @@
 | 引理 7 | 已有证明；PNT 输入现在来自项目内的完整证明 |
 | 引理 8 | Mertens、两次 Abel 求和与积分估计已有证明；通过引理 6 继承零点区域缺口 |
 | 独立 Bombieri–Vinogradov 证明 | `statement_of_primitiveZeroFreeRegion` 是有明确假设的已证推论；无条件包装 `bombieriVinogradov` 仍含 `sorryAx` |
-| 引理 9 | 有限 Rosser 筛、BV 余项控制、计数转换、筛乘积归一化、误差吸收及总缺陷的全局归纳均已证明；已有 `F/f` 统一多项式渐近界、`2e^γ` 校准、`f(5)` 显式公式及方程 (26) 的连续主项恒等式与端点逼近；实际素数加权和的渐近组装仍未完成，原专门化仍是公理 |
+| 引理 9 | 有限 Rosser 筛、BV 余项控制、计数转换、筛乘积归一化、误差吸收及总缺陷的全局归纳均已证明；已有 `F/f` 统一多项式渐近界、`2e^γ` 校准、连续主项、实际素数和与取整参数的完整组装；方程 (26) 已由定理证明，继承 BV 的零点区域缺口 |
 | 积分 (24)、(27)、组合不等式 (28) | 已有证明 |
-| 定理 1、定理 2及其定量形式 | 推导已有证明，但都继承下面两项未证明输入 |
+| 定理 1、定理 2及其定量形式 | 推导已有证明，但都继承下面的零点区域未证明输入 |
 
 ## 本次完成的依赖迁移
 
@@ -1381,8 +1381,7 @@ s = s(D,z+1) > 2  ⇒  lower total defect ≤ L(s) + M E_lower(D,s)
 证明括号系数严格为正，并对每个 `δ>0` 选择 `29/60<a<1/2`，使连续主项
 严格超过 `(8−δ)` 乘以该括号。新增 26 项定理均纳入内核公理审计。
 
-尚需证明实际素数加权和趋向此积分，统一控制主筛及全部中间素数子筛的取整
-参数，并与两类计数/BV余项接口合并。这些步骤不能由连续主项恒等式替代。
+本阶段之后所需的实际素数和、取整参数及两类计数组装，已由下面的新阶段完成。
 
 ## 尚未完成：零点自由区域
 
@@ -1402,48 +1401,33 @@ s = s(D,z+1) > 2  ⇒  lower total defect ≤ L(s) + M E_lower(D,s)
 后续应从非例外区域、例外零点的 Siegel 界及对数导数估计分别建立证明，
 再组装现有 `PrimitiveZeroFreeRegionDataAt N` 接口。
 
-## 尚未完成：Richert 加权筛
+## 已完成：实际素数和、取整参数及 Richert 公理消除
 
-位置：`ChenTheorem/Lemma9/RichertBombieri.lean`，
-`axiom richert_bombieri_equation26`。
+`richert_bombieri_equation26` 已由 `axiom` 改为具有相同陈述的 `theorem`。
+没有更改计数定义、最终常数或主定理假设，也没有将原公理改名隐藏。
+本阶段新增 12 个模块、43 项支持定理，证明链如下：
 
-它断言原变量与固定平移两类问题的联合筛下界，承载了论文引理 9 的核心内容。
-两个 `eventually_...` 声明只是该公理的专门化包装。
+1. `PrimeAbelAbsolute` 给出双向 Abel 误差。`UpperPrimeWeight` 验证实际权重
+   `F(10a−10 log(p)/log(x))` 的可微性、符号和统一界；`LogPowerSubstitution`
+   严格证明积分换元。`UpperPrimeSumLimit` 由 Mertens 误差推出一致素数和极限，
+   `MidPrimeSumLimit` 控制 `1/φ(p)−1/p`，得到实际中间素数和趋向连续积分。
+2. `RoundedLevelBounds` 控制 `Q=floor(x^a)` 及 `floor(Q/p)` 的上下界。
+   `PowerParameterLimits` 给出主筛参数极限；`ChildParameterApproximation`
+   证明全部中间素数的子水平一致趋于无穷，且子筛参数一致逼近
+   `10a−10 log(p)/log(x)`。
+3. `PowerRosserBounds` 用紧区间一致连续性与既有多项式渐近界，证明实际
+   父筛下界和全体子筛上界。`WeightedRosserSum` 将子筛和控制为
+   `x V (1+ε)` 乘以已证明极限的 totient 加权素数和。
+4. `NormalizedRosserProfile` 与筛乘积归一化、计数截断对数极限结合，
+   得到每个严格小于连续主项的常数。`CountProfileBounds` 将原变量和
+   固定平移的 BV 余项与计数损失吸收，证明两类计数下界。
+5. `RichertBombieri.lean` 选择 `a<1/2` 使连续主项超过所需 `(8−δ)` 系数，
+   应用上述计数定理及已有 BV 定理，证明原方程 (26)。
 
-对照 `../latex/part2_en.tex` 引理 9 与 `../latex/part3_en.tex` 开头，剩余工作包括：
-
-1. 将实际素数加权和转成已计算的连续积分，并统一控制主筛与全部子筛的取整参数。
-   `s=5` 显式主项及与方程 (26) 的连续恒等式已经证明。
-   `rosserEval` 与构造出的 `F`、`f` 的紧参数区间统一渐近界已经证明。
-   有限上下筛权、截断支集、精确主项恒等式、
-   实端点定量一维密度条件、非负误差递推及可微权重的带权分部求和已完成；
-   筛参数换元、条件化的单步连续比较和固定截断前缀误差消失也已完成；
-   实际连续递推项、形状性质和奇偶有限和的延迟微分关系也已证明；
-   连续级数的收敛、一致收敛、极限连续性及延迟微分方程也已证明；
-   无穷远衰减、下筛端点值与初始区间公式也已证明；
-   上筛误差在 `s=3` 的导数拼接及实际误差函数的单步比较已证明；
-   上支小参数区间已一致归约到严格立方根截断处的 `s>3` 估计；
-   停止深度的精确展开、阶乘尾项及大参数粗界也已证明；
-   深度奇偶结构、所有固定正深度及固定有限深度和的统一比较已证明；
-   任意固定上筛深度从大于三到整个大于一区间的比较转移已证明；
-   递归连续深度项跨拼接点的 Buchstab 比较已证明；
-   增长深度以后的统一消失尾界已证明；完整误差吸收和截止点强归纳现已
-   给出总缺陷的统一估计，且 `A=2e^γ` 已由 Buchstab 变换证明。
-2. 原变量和固定平移两种对数加权序列的乘法密度、精确余项、普通计数
-   转换及方程 (25) 所需的奇异级数归一化均已完成。这些输入仍需与
-   已完成常数校准的主项界连接。
-3. 两种情形的 BV 余项、`T = x/log⁴ x` 截断及非既约类损失已经统一
-   吸收到相应奇异级数尺度上的任意小误差，并为 `Q = floor(x^a)`、
-   `1/3 < a < 1/2` 验证了主筛与全部中间素数的子筛水平。仍需将
-   尖锐主项界与筛乘积归一化合并，令参数趋近论文所用端点。
-4. 连续主项的精确组合及 `a→1/2−` 的任意正扣损已完成；仍需把上述
-   离散渐近界代入原变量与固定平移的计数接口，得到现有公理的原陈述。
-
-仅证明 BV 及其上述有限加权筛推论仍不会自动消除这一公理；
-完整渐近参数组装仍必须证明；常数校准已完成。
-
-原始参考文献为 Richert, *Selberg's sieve with weights*, Mathematika 16 (1969),
-1–22（[期刊页面](https://www.cambridge.org/core/journals/mathematika/article/abs/selbergs-sieve-with-weights/045BB37A164D6FF9F44469FD8742D824)）。
+前述 43 项支持定理的公理审计仅允许标准公理；涉及 BV 的支持定理显式取
+`BombieriVinogradov.Statement` 为参数。最终 `richert_bombieri_equation26`
+使用项目中的 BV 定理，因此只继承零点区域的 `sorryAx`。筛法本身的额外公理
+已消除，整个陈定理仍不能标为无条件完成。
 
 ## 可重复验证
 
@@ -1462,17 +1446,18 @@ lake env lean Audit.lean
 `propext`、`Classical.choice`、`Quot.sound`。这八项已经通过审计。
 
 `Audit.lean` 是整个项目的完成门槛：主定理或定量形式只要仍含额外公理就会报错。
-最新完整构建通过（4055 个构建任务），依赖检查通过（323 个源码文件），
-`AuditAnalysis.lean` 的 8 项与 `AuditSieve.lean` 的 887 项均通过。最新 `Audit.lean` 的六个
-有限筛检查通过，五个最终定理检查仍明确失败（退出码 1），不能忽略。
+最新完整构建通过（4067 个构建任务），依赖检查通过（335 个源码文件），
+`AuditAnalysis.lean` 的 8 项与 `AuditSieve.lean` 的 930 项均通过。最新 `Audit.lean` 的六个
+有限筛检查通过；方程 (26) 及五个最终定理检查均仅因 `sorryAx` 失败（共六项，退出码 1）。
 这是当前最终定理的实际内核结果：
 
 | 定理 | 标准公理以外的依赖 |
 | --- | --- |
-| `Chen.chen_theorem` | `sorryAx`、`Chen.richert_bombieri_equation26` |
-| `Chen.chen_twin` | `sorryAx`、`Chen.richert_bombieri_equation26` |
-| `Chen.chenCount_lower` | `sorryAx`、`Chen.richert_bombieri_equation26` |
-| `Chen.chenCountShift_lower` | `sorryAx`、`Chen.richert_bombieri_equation26` |
+| `Chen.richert_bombieri_equation26` | `sorryAx` |
+| `Chen.chen_theorem` | `sorryAx` |
+| `Chen.chen_twin` | `sorryAx` |
+| `Chen.chenCount_lower` | `sorryAx` |
+| `Chen.chenCountShift_lower` | `sorryAx` |
 | `Chen.BombieriVinogradov.bombieriVinogradov` | `sorryAx` |
 
 只有这些额外依赖全部消失且完整构建通过，才满足本项目的最终完成目标。

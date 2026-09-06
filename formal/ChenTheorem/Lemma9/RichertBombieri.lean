@@ -28,6 +28,8 @@ import ChenTheorem.Lemma9.LinearSieve.RosserBoundedLevel
 import ChenTheorem.Lemma9.LinearSieve.RosserAsymptoticError
 import ChenTheorem.Lemma9.LinearSieve.CalibratedRosserBounds
 import ChenTheorem.Lemma9.LinearSieve.ProfileContinuity
+import ChenTheorem.Lemma9.LinearSieve.CountProfileBounds
+import ChenTheorem.Lemma9.BombieriVinogradov.FinalEstimate
 
 open Filter Real
 open scoped Classical
@@ -35,19 +37,15 @@ open scoped Classical
 namespace Chen
 
 /-!
-# Lemma 9: parameterized Richert--Bombieri input
+# Lemma 9: proved Richert--Bombieri specialization
 
-Chen's proof of Lemma 9 is not self-contained: equation (26) invokes
-Theorem A of Richert [11], including formulas (2.18), (2.19), (3.24), and
-(4.18), and uses Bombieri's averaged prime-progression theorem [9].  Neither
-external theorem is currently available in Mathlib 4.32.2.
+Equation (26) follows from the finite Rosser sieve, its uniformly controlled
+continuous limits, the calibrated constant `2 exp gamma`, Mertens prime
+summation, and the Bombieri--Vinogradov progression estimate. Both the
+original Goldbach family and the fixed-shift family are covered below.
 
-The declaration below records exactly their combined specialization after
-the two applications displayed in the scan.  The original Goldbach problem
-and the fixed-shift problem are two values of one parameter type, so there is
-only one trust-boundary declaration.  The change of variables, equation (27),
-loss management, and the numerical constant `2.6408` are proved in Lean in
-`MainEstimates.lean` and `Main/NumericalBounds.lean`.
+The sieve specialization introduces no axiom. The unconditional BV theorem
+still inherits the explicitly recorded primitive zero-free-region gap.
 -/
 
 /-- The two sieve families to which Chen applies the same Richert--Bombieri
@@ -100,14 +98,34 @@ def RichertBombieriEquation26
             ∑ p' ∈ midPrimes x,
               (richertBombieriCountAt problem x p' : ℝ)
 
-/-- Combined specialization of Richert's weighted sieve Theorem A and the
-Bombieri--Vinogradov averaged progression estimate, corresponding to (25)
-and (26) in Chen's paper.  This is the sole Richert--Bombieri trust boundary;
-both concrete forms below are derived from it. -/
-axiom richert_bombieri_equation26
+open LinearSieve in
+/-- Equation (26), obtained by choosing a power level below the square root
+whose continuous profile exceeds the requested constant, then applying
+the proved count bounds. -/
+theorem richert_bombieri_equation26
     (problem : RichertBombieriParameter)
     (hproblem : problem.Admissible) :
-    RichertBombieriEquation26 problem
+    RichertBombieriEquation26 problem := by
+  intro δ hδ
+  obtain ⟨a, ha, ha', hprofile⟩ := exists_chenContinuousSieveProfile_relative_loss δ hδ
+  cases problem with
+  | original =>
+      filter_upwards [eventually_chen_count_profile_lower BombieriVinogradov.bombieriVinogradov
+        a _ ha ha' hprofile, eventually_ge_atTop (3 : ℕ)] with x hc hx
+      intro heven
+      have hnp : ¬x.Prime := by
+        intro hp
+        have := hp.even_iff.mp heven
+        omega
+      simpa only [richertBombieriConstant, richertBombieriCount, richertBombieriCountAt,
+        mul_right_comm] using hc hnp
+  | shifted h =>
+      have hh : h ≠ 0 := (show 0 < h from hproblem.1).ne'
+      filter_upwards [eventually_shifted_chen_count_profile_lower BombieriVinogradov.bombieriVinogradov
+        h hh a _ ha ha' hprofile] with x hc
+      intro _
+      simpa only [richertBombieriConstant, richertBombieriCount, richertBombieriCountAt,
+        mul_right_comm] using hc
 
 /-- Original-variable specialization of the common Richert--Bombieri
 interface. -/

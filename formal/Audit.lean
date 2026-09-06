@@ -12,6 +12,7 @@ run_cmd do
       ``Chen.LinearSieve.errSum_le_sum_of_level,
       ``Chen.LinearSieve.exists_rosser_sieve_weights,
       ``Chen.LinearSieve.rosser_sieve_bounds_of_remainders,
+      ``Chen.richert_bombieri_equation26,
       ``Chen.chen_theorem, ``Chen.chen_twin,
       ``Chen.chenCount_lower, ``Chen.chenCountShift_lower,
       ``Chen.BombieriVinogradov.bombieriVinogradov] do
