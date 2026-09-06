@@ -1383,6 +1383,29 @@ s = s(D,z+1) > 2  ⇒  lower total defect ≤ L(s) + M E_lower(D,s)
 
 本阶段之后所需的实际素数和、取整参数及两类计数组装，已由下面的新阶段完成。
 
+## 已完成：无零点圆盘上的对数导数估计
+
+本阶段新增四个模块、十项定理，为剩余 Dirichlet 零点区域证明提供定量分析工具。
+
+- `Analysis/AnalyticLogBranch.lean` 从连续对数分支构造圆盘上的全纯分支，
+  将其规范化为中心处取零，并证明分支的导数等于 `f'/f`。
+- `Analysis/ZeroFreeLogDerivative.lean` 结合 Borel–Carathéodory 与 Schwarz
+  导数估计，证明：若整个半径 `R` 的圆盘无零点，且
+  `‖f(w)‖ ≤ exp(M) ‖f(c)‖`，则在 `dist(z,c) ≤ 3R/4` 内有
+  `‖f'(z)/f(z)‖ ≤ 224M/R`。
+- `Lemma6/LFunctionEulerBounds.lean` 用积分比较与 Möbius 扭曲逆级数证明，
+  对任意 Dirichlet 特征以及 `σ=Re(s)>1`，
+  `(σ−1)/σ ≤ ‖L(s,χ)‖ ≤ 1+1/(σ−1)`。
+- `Lemma6/LFunctionDiskLogDerivative.lean` 将圆盘通用估计用于本原 L 函数，
+  用已有 Pólya–Vinogradov 增长界及新的中心值下界消除增长假设，得到
+  `224/R * log(48 sqrt(q) log(2q) (‖c‖+R)/R + 1)` 的显式界。
+  条件为 `0<R≤1/4`、`1+R/4≤Re(c)≤2`、整个圆盘无零点，
+  结论适用于中心距离不超过 `3R/4` 的点。
+
+这些定理只依赖标准公理。**无零点圆盘仍是最后一项定理的假设**，并没有以此
+代替零点自由区域的证明。还须证明高度相关区域及 Siegel 界，并验证区域内的
+圆盘包含关系和参数界，才能完成 `PrimitiveZeroFreeRegion` 的全局对数导数条件。
+
 ## 尚未完成：零点自由区域
 
 位置：`ChenTheorem/Lemma6/ZeroFreeRegion.lean`，
@@ -1443,11 +1466,11 @@ lake env lean Audit.lean
 
 `AuditAnalysis.lean` 验证 PNT、Mertens 第二及第三定理、Perron 公式及自然数
 截断 Euler 素数乘积归一化的实际内核公理闭包，允许且仅允许
-`propext`、`Classical.choice`、`Quot.sound`。这八项已经通过审计。
+`propext`、`Classical.choice`、`Quot.sound`。原有八项加上本阶段十项圆盘/级数定理，共十八项通过审计。
 
 `Audit.lean` 是整个项目的完成门槛：主定理或定量形式只要仍含额外公理就会报错。
-最新完整构建通过（4067 个构建任务），依赖检查通过（335 个源码文件），
-`AuditAnalysis.lean` 的 8 项与 `AuditSieve.lean` 的 930 项均通过。最新 `Audit.lean` 的六个
+最新完整构建通过（4099 个构建任务），依赖检查通过（339 个源码文件），
+`AuditAnalysis.lean` 的 18 项与 `AuditSieve.lean` 的 930 项均通过。最新 `Audit.lean` 的六个
 有限筛检查通过；方程 (26) 及五个最终定理检查均仅因 `sorryAx` 失败（共六项，退出码 1）。
 这是当前最终定理的实际内核结果：
 

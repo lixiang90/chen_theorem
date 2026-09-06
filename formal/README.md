@@ -43,6 +43,8 @@ lake env lean Audit.lean          # completion gate; currently fails on the zero
 | `ChenTheorem/Lemma5/Boundary/{Sieve,Selberg,Weights,Mass,Analytic}.lean` | The dimension-two boundary sieve, Selberg diagonalization and optimal weights, the lower bound for `G(R)`, and the final short-interval estimate |
 | `ChenTheorem/Lemma6/FourthMoment.lean` | The dyadic, totient-weighted `L'` fourth moment required after equation (15), with one rigorous logarithmic slack over the paper's displayed exponent, explicitly derived from the corrected Lemma 3 interface |
 | `ChenTheorem/Lemma6/{PairBlockEstimate,LargePairBlock}.lean` | The full dyadic-block analysis of equations (13)–(20): block-summed A/B contour bounds, the remainder majorant scale bounds, and the pointwise regime estimates closing each occupied `(l,k)` block by `O(x/(log x)^20)` |
+| `ChenTheorem/Analysis/{AnalyticLogBranch,ZeroFreeLogDerivative}.lean` | Holomorphic normalized logarithms and the bound `224 M/R` for logarithmic derivatives on a three-quarter subdisk of a zero-free disk |
+| `ChenTheorem/Lemma6/{LFunctionEulerBounds,LFunctionDiskLogDerivative}.lean` | Two-sided Euler/Möbius series bounds to the right of one and an explicit primitive L-function logarithmic-derivative bound conditional only on a zero-free disk |
 | `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The classical zero-free region for primitive `L(s,χ)` with the companion `L'/L` bound, recorded as the honest unproved interface `PrimitiveZeroFreeRegion` (the single intentional `sorry` of Lemma 6) |
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
@@ -279,6 +281,13 @@ theorems are covered by `AuditSieve.lean`; the count-profile theorems take the
 BV statement explicitly, and their kernel closures use only standard axioms.
 The final unconditional wrappers use the existing BV theorem and therefore
 still inherit the single zero-free-region `sorryAx`.
+
+The remaining analytic work now has a proved disk estimate: a normalized
+holomorphic logarithm and Borel--Carathéodory give `224 M/R` on a three-quarter
+subdisk. Euler/Möbius series bounds and primitive L-function growth supply
+an explicit arithmetic specialization. Its zero-free-disk hypothesis still
+needs to be supplied by the height-dependent region and Siegel estimates;
+it does not discharge `primitive_zero_free_region` by itself.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

@@ -69,7 +69,10 @@ establishes equation (26) for both original and fixed-shift families.
 
 The new sieve and parameter-assembly proofs introduce no mathematical axioms.
 The main theorems still inherit `sorryAx` from the single zero-free-region
-gap, so this project is not yet a completed unconditional formalization.
+gap, so this project is not yet a completed unconditional formalization. The remaining
+analysis now includes a proved logarithmic-derivative estimate on zero-free
+disks and two-sided Euler/Möbius bounds for L-functions to the right of one.
+The height-dependent zero-free region and Siegel estimates remain unproved.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
