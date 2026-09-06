@@ -176,8 +176,13 @@ losses and the small-prime prefix are now absorbed. The resulting active
 step retains the strict factor `1−(1−δ)/(64σ)` at the actual parent cutoff
 `z+1`, uniformly in both depths and in multipliers `M≥1`, under
 `d>3`, `0≤δ<1`, and `3/d<1−δ`. The child bound is still an explicit
-hypothesis; stopping cases, bounded child levels, complete depth induction,
-and calibration of the leading constant remain open.
+hypothesis. Passage to the full convergent continuous errors now gives the
+same contracted step for the actual total Rosser defects. The stopped lower
+branch is controlled by the proved identity `L(s)=2/s` for `0<s≤2`.
+A common multiplier also controls every bounded child level, uniformly in
+the cutoff and prime set. The initial upper interval still needs to be
+combined with this error scale before completing global induction and
+calibrating the leading constant.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

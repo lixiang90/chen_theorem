@@ -21,6 +21,8 @@ import ChenTheorem.Lemma9.LinearSieve.InflatedPrimeWeight
 import ChenTheorem.Lemma9.LinearSieve.InflatedAuxiliaryChildSum
 import ChenTheorem.Lemma9.LinearSieve.InflatedContractedChildSum
 import ChenTheorem.Lemma9.LinearSieve.RosserInflatedParentStep
+import ChenTheorem.Lemma9.LinearSieve.RosserFullDefectStep
+import ChenTheorem.Lemma9.LinearSieve.RosserBoundedLevel
 import Lean.Util.CollectAxioms
 
 /- Kernel-level audit of the constructed finite Rosser sieve.
@@ -789,7 +791,28 @@ run_cmd do
       ``Chen.LinearSieve.rosserPartialPrefix_parent_inverse_small,
       ``Chen.LinearSieve.rosserPartialPrefix_lower_parent_inverse_small,
       ``Chen.LinearSieve.rosserPartialDefect_inflated_upper_parent_step,
-      ``Chen.LinearSieve.rosserPartialDefect_inflated_lower_parent_step] do
+      ``Chen.LinearSieve.rosserPartialDefect_inflated_lower_parent_step,
+      ``Chen.LinearSieve.tendsto_upperContinuousPartial,
+      ``Chen.LinearSieve.tendsto_lowerContinuousPartial,
+      ``Chen.LinearSieve.antitoneOn_upperContinuousError,
+      ``Chen.LinearSieve.antitoneOn_lowerContinuousError,
+      ``Chen.LinearSieve.weighted_buchstab_lowerContinuousError_auxiliary,
+      ``Chen.LinearSieve.weighted_buchstab_upperContinuousError_auxiliary,
+      ``Chen.LinearSieve.lowerContinuousError_below_two,
+      ``Chen.LinearSieve.one_le_lowerContinuousError_of_le_two,
+      ``Chen.LinearSieve.sieveParameter_le_two_of_stop,
+      ``Chen.LinearSieve.rosserPartialDefect_stopped_le_lowerError,
+      ``Chen.LinearSieve.rosserRelativeDefect_stopped_le_lowerError,
+      ``Chen.LinearSieve.rosserPartialDefect_fullError_upper_step,
+      ``Chen.LinearSieve.rosserPartialDefect_fullError_lower_step,
+      ``Chen.LinearSieve.rosserPartialDefect_fullError_upper_parent_step,
+      ``Chen.LinearSieve.rosserPartialDefect_fullError_lower_parent_step,
+      ``Chen.LinearSieve.rosserRelativeDefect_fullError_upper_step,
+      ``Chen.LinearSieve.rosserRelativeDefect_fullError_lower_step,
+      ``Chen.LinearSieve.rosserRelativeDefect_dimension_one_bound,
+      ``Chen.LinearSieve.inflatedAuxiliaryError_bounded_level_lower,
+      ``Chen.LinearSieve.sieveParameter_bounded_level,
+      ``Chen.LinearSieve.rosserRelativeDefect_bounded_level] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

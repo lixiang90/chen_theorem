@@ -23,6 +23,8 @@ import ChenTheorem.Lemma9.LinearSieve.InflatedPrimeWeight
 import ChenTheorem.Lemma9.LinearSieve.InflatedAuxiliaryChildSum
 import ChenTheorem.Lemma9.LinearSieve.InflatedContractedChildSum
 import ChenTheorem.Lemma9.LinearSieve.RosserInflatedParentStep
+import ChenTheorem.Lemma9.LinearSieve.RosserFullDefectStep
+import ChenTheorem.Lemma9.LinearSieve.RosserBoundedLevel
 
 open Filter Real
 open scoped Classical
