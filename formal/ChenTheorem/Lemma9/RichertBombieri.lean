@@ -27,6 +27,7 @@ import ChenTheorem.Lemma9.LinearSieve.RosserFullDefectStep
 import ChenTheorem.Lemma9.LinearSieve.RosserBoundedLevel
 import ChenTheorem.Lemma9.LinearSieve.RosserAsymptoticError
 import ChenTheorem.Lemma9.LinearSieve.CalibratedRosserBounds
+import ChenTheorem.Lemma9.LinearSieve.ProfileContinuity
 
 open Filter Real
 open scoped Classical

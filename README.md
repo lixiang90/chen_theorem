@@ -187,8 +187,11 @@ on compact parameter intervals gives the actual Rosser polynomial bounds
 `upper ≤ V(F+ε)` and `V(f−ε) ≤ lower`. The initial constant is now identified with `2 exp γ`: the Buchstab transform
 satisfies `W=exp(E₁)−1`, and its scaled limit is computed both by dominated
 convergence and by the Euler–Mascheroni integral. The calibrated initial
-upper and lower polynomial bounds are proved. The final Chen weighted-sieve
-assembly and the Dirichlet L-function zero-free-region input remain open.
+upper and lower polynomial bounds are proved. Explicit second-interval formulas
+now give f(5), and the weighted continuous main terms combine exactly into
+equation (26). Continuity supplies any positive loss with a level exponent
+strictly below 1/2. The discrete prime-sum assembly and the Dirichlet L-function
+zero-free-region input remain open.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

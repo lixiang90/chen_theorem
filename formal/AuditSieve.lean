@@ -1,5 +1,6 @@
 import ChenTheorem.Lemma9.LinearSieve.CountCutoff
 import ChenTheorem.Lemma9.LinearSieve.CalibratedRosserBounds
+import ChenTheorem.Lemma9.LinearSieve.ProfileContinuity
 import ChenTheorem.Lemma9.LinearSieve.ChenSieveNormalization
 import ChenTheorem.Lemma9.LinearSieve.PowerSieveLevel
 import ChenTheorem.Lemma9.LinearSieve.ShiftedCountAsymptoticSieve
@@ -891,7 +892,33 @@ run_cmd do
       ``Chen.LinearSieve.lowerLinearSieveFunction_initial_calibrated,
       ``Chen.LinearSieve.tendsto_buchstabFunction_euler,
       ``Chen.LinearSieve.eventually_rosser_upper_polynomial_calibrated,
-      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_calibrated] do
+      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_calibrated,
+      ``Chen.LinearSieve.continuousOn_sieveSecondKernel,
+      ``Chen.LinearSieve.continuousAt_sieveSecondIntegral,
+      ``Chen.LinearSieve.integral_lowerLinearSieveFunction_shift,
+      ``Chen.LinearSieve.integral_upperLinearSieveFunction_shift,
+      ``Chen.LinearSieve.mul_upperLinearSieveFunction_second,
+      ``Chen.LinearSieve.upperLinearSieveFunction_second,
+      ``Chen.LinearSieve.integral_upperLinearSieveFunction_second,
+      ``Chen.LinearSieve.mul_lowerLinearSieveFunction_second,
+      ``Chen.LinearSieve.lowerLinearSieveFunction_second_calibrated,
+      ``Chen.LinearSieve.lowerLinearSieveFunction_five,
+      ``Chen.LinearSieve.upperLinearSieveFunction_second_calibrated,
+      ``Chen.LinearSieve.continuousOn_weightedSieveBase,
+      ``Chen.LinearSieve.integral_weightedSieveBase,
+      ``Chen.LinearSieve.continuousOn_weightedUpperSieve,
+      ``Chen.LinearSieve.continuousOn_weightedSieveCorrection,
+      ``Chen.LinearSieve.integral_weightedUpperSieve,
+      ``Chen.LinearSieve.exp_neg_euler_mul_initialConstant,
+      ``Chen.LinearSieve.equation27Integral_eq_sieveSecondIntegral,
+      ``Chen.LinearSieve.chen_continuous_sieve_profile_identity,
+      ``Chen.LinearSieve.upperLinearSieveFunction_le_five,
+      ``Chen.LinearSieve.continuousAt_weightedSieveIntegral_half,
+      ``Chen.LinearSieve.continuousAt_chenContinuousSieveProfile_half,
+      ``Chen.LinearSieve.chenContinuousSieveProfile_half,
+      ``Chen.LinearSieve.exists_chenContinuousSieveProfile_near_half,
+      ``Chen.LinearSieve.chen_equation26_bracket_pos,
+      ``Chen.LinearSieve.exists_chenContinuousSieveProfile_relative_loss] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then
