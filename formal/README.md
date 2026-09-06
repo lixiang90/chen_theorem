@@ -45,7 +45,12 @@ lake env lean Audit.lean          # completion gate; currently fails on the zero
 | `ChenTheorem/Lemma6/{PairBlockEstimate,LargePairBlock}.lean` | The full dyadic-block analysis of equations (13)–(20): block-summed A/B contour bounds, the remainder majorant scale bounds, and the pointwise regime estimates closing each occupied `(l,k)` block by `O(x/(log x)^20)` |
 | `ChenTheorem/Analysis/{AnalyticLogBranch,ZeroFreeLogDerivative}.lean` | Holomorphic normalized logarithms and the bound `224 M/R` for logarithmic derivatives on a three-quarter subdisk of a zero-free disk |
 | `ChenTheorem/Lemma6/{LFunctionEulerBounds,LFunctionDiskLogDerivative}.lean` | Two-sided Euler/Möbius series bounds to the right of one and an explicit primitive L-function logarithmic-derivative bound conditional only on a zero-free disk |
-| `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The classical zero-free region for primitive `L(s,χ)` with the companion `L'/L` bound, recorded as the honest unproved interface `PrimitiveZeroFreeRegion` (the single intentional `sorry` of Lemma 6) |
+| `ChenTheorem/Lemma6/{ZeroFreeRegionData,ZeroFreeWidthGeometry,ZeroFreeRegionDisks,ZeroFreeWidthScale,ZeroFreeLogScale,ZeroFreeLogDerivativeBound,ZeroFreeRegionAssembly}.lean` | The original region interface and a complete derivation of its half-width `L'/L` estimate from mixed-region nonvanishing, with explicit disk geometry and conductor-height bounds |
+| `ChenTheorem/Analysis/CompactZeroFreeStrip.lean` | Compactness gives local zero-free strips for fixed nontrivial characters and common strips for finite continuous families |
+| `ChenTheorem/Lemma6/CompactDirichletFamily.lean` | A common strip for all nonprincipal characters with bounded conductor and height, and extension of a mixed region across a bounded conductor-height box |
+| `ChenTheorem/Lemma6/{DirichletPhase,DirichletLogDerivativePositivity}.lean` | The classical three-four-one logarithmic-derivative inequality, proved from nonnegative von Mangoldt series terms |
+| `ChenTheorem/Lemma6/LFunctionZeroCount.lean` | An unconditional Jensen bound for zeros with multiplicity in disks centered at `5/4+it` and reaching to the left of one |
+| `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The single remaining `sorry`: uniform mixed-region nonvanishing at every fixed Siegel exponent; the companion derivative bound is supplied by the proved assembly theorem |
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
@@ -270,8 +275,9 @@ Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
 The project contains exactly one documented `sorry`, in
 `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`), and no explicit
 non-foundational axioms. The remaining input supplies the height-dependent
-Dirichlet zero-free region, the arbitrary fixed Siegel exponent, and the
-companion `L'/L` bound required by Lemma 6 and Bombieri--Vinogradov.
+Dirichlet zero-free region and the arbitrary fixed Siegel exponent. The
+companion `L'/L` bound required by Lemma 6 and Bombieri--Vinogradov is now
+derived from mixed-region nonvanishing by `primitiveZeroFreeRegion_of_nonvanishing`.
 
 `richert_bombieri_equation26` is now a theorem with its original statement.
 The actual totient-weighted prime-sum limit, the uniform rounded child-level
@@ -285,9 +291,11 @@ still inherit the single zero-free-region `sorryAx`.
 The remaining analytic work now has a proved disk estimate: a normalized
 holomorphic logarithm and Borel--Carathéodory give `224 M/R` on a three-quarter
 subdisk. Euler/Möbius series bounds and primitive L-function growth supply
-an explicit arithmetic specialization. Its zero-free-disk hypothesis still
-needs to be supplied by the height-dependent region and Siegel estimates;
-it does not discharge `primitive_zero_free_region` by itself.
+an explicit arithmetic specialization. Disk containment and scale estimates
+now extend it to the entire requested half-width region. The remaining
+goal is precisely nonvanishing in the full mixed region. Additional proved
+tools include compact local strips and the three-four-one inequality;
+the uniform height-dependent region and Siegel estimates remain open.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

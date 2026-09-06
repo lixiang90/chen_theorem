@@ -53,8 +53,9 @@ proved in Lean using locally included Apache-2.0 analytic proofs, and the numeri
 and (27) and inequality (28) are machine-checked without `sorryAx`.
 
 One unproved analytic input remains: `primitive_zero_free_region` supplies the
-height-dependent Dirichlet zero-free region, Siegel bounds, and the companion
-logarithmic-derivative estimate. Lemma 6 and the standalone level-`1/2`
+height-dependent Dirichlet zero-free region and Siegel bounds. The companion
+logarithmic-derivative estimate is now proved from nonvanishing in that mixed
+region. Lemma 6 and the standalone level-`1/2`
 Bombieri--Vinogradov theorem both depend on this documented `sorry`.
 
 The extra `richert_bombieri_equation26` axiom has been replaced by a theorem
@@ -70,9 +71,11 @@ establishes equation (26) for both original and fixed-shift families.
 The new sieve and parameter-assembly proofs introduce no mathematical axioms.
 The main theorems still inherit `sorryAx` from the single zero-free-region
 gap, so this project is not yet a completed unconditional formalization. The remaining
-analysis now includes a proved logarithmic-derivative estimate on zero-free
-disks and two-sided Euler/Möbius bounds for L-functions to the right of one.
-The height-dependent zero-free region and Siegel estimates remain unproved.
+analysis now derives the full half-width logarithmic-derivative estimate
+from mixed-region nonvanishing, using disk geometry, Euler/Möbius bounds,
+and explicit conductor-height estimates. Compact local zero-free strips and
+the classical three-four-one logarithmic-derivative inequality are also proved.
+The uniform height-dependent zero-free region and Siegel estimates remain unproved.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

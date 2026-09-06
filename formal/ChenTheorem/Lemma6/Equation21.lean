@@ -71,33 +71,6 @@ well above the smoothing scale `(log x)^1.1`, while its logarithm is only
 noncomputable def lemma6Equation21Height (x : ℕ) : ℝ :=
   Real.log (x : ℝ) ^ 10
 
-theorem primitiveZeroFreeHeightLog_pos
-    {q : ℕ} (hq : 2 ≤ q) (t : ℝ) :
-    0 < Real.log ((q : ℝ) * (|t| + 2)) := by
-  apply Real.log_pos
-  have hqcast : (2 : ℝ) ≤ q := by exact_mod_cast hq
-  have ht : (2 : ℝ) ≤ |t| + 2 := by linarith [abs_nonneg t]
-  nlinarith
-
-theorem primitiveZeroFreeWidth_pos
-    {cHeight cSiegel : ℝ} (hcHeight : 0 < cHeight)
-    (hcSiegel : 0 < cSiegel) {q : ℕ} (hq : 2 ≤ q) (t : ℝ) :
-    0 < primitiveZeroFreeWidth cHeight cSiegel q t := by
-  unfold primitiveZeroFreeWidth
-  apply lt_min
-  · exact div_pos hcHeight (primitiveZeroFreeHeightLog_pos hq t)
-  · exact mul_pos hcSiegel (Real.rpow_pos_of_pos (by positivity) _)
-
-/-- Positivity of the mixed width for an arbitrary fixed Siegel exponent. -/
-theorem primitiveZeroFreeWidthAt_pos
-    {N : ℕ} {cHeight cSiegel : ℝ} (hcHeight : 0 < cHeight)
-    (hcSiegel : 0 < cSiegel) {q : ℕ} (hq : 2 ≤ q) (t : ℝ) :
-    0 < primitiveZeroFreeWidthAt N cHeight cSiegel q t := by
-  unfold primitiveZeroFreeWidthAt
-  apply lt_min
-  · exact div_pos hcHeight (primitiveZeroFreeHeightLog_pos hq t)
-  · exact mul_pos hcSiegel (Real.rpow_pos_of_pos (by positivity) _)
-
 /-- A point in the closed half-width region lies strictly inside the
 nonvanishing region. -/
 theorem one_sub_width_lt_of_half_width_le

@@ -17,3 +17,8 @@ import ChenTheorem.Lemma9.BombieriVinogradov.FinalEstimate
 import ChenTheorem.MainEstimates
 import ChenTheorem.Main
 import ChenTheorem.Lemma6.LFunctionDiskLogDerivative
+import ChenTheorem.Lemma6.ZeroFreeRegionDisks
+import ChenTheorem.Analysis.CompactZeroFreeStrip
+import ChenTheorem.Lemma6.DirichletLogDerivativePositivity
+import ChenTheorem.Lemma6.CompactDirichletFamily
+import ChenTheorem.Lemma6.LFunctionZeroCount

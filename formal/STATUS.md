@@ -1403,26 +1403,95 @@ s = s(D,z+1) > 2  ⇒  lower total defect ≤ L(s) + M E_lower(D,s)
   结论适用于中心距离不超过 `3R/4` 的点。
 
 这些定理只依赖标准公理。**无零点圆盘仍是最后一项定理的假设**，并没有以此
-代替零点自由区域的证明。还须证明高度相关区域及 Siegel 界，并验证区域内的
-圆盘包含关系和参数界，才能完成 `PrimitiveZeroFreeRegion` 的全局对数导数条件。
+代替零点自由区域的证明。本阶段之后的圆盘包含关系和全局参数界已由下面的新阶段完成；
+高度相关区域及 Siegel 界仍待证明。
+
+## 已完成：由混合非消失区域推导完整对数导数条件
+
+`ZeroFreeRegionData.lean` 保留原有区域宽度、结构字段和命题陈述，
+将它们与唯一未完成的证明分开；原有宽度正性引理从 `Equation21.lean`
+移入该模块。后续定理不再通过未完成证明导入这些定义。
+
+新增六个区域分析模块，证明十六项定理：
+
+- `ZeroFreeWidthGeometry` 证明高度移动不超过 `1/4` 时，混合宽度至少保留
+  原值的 `3/4`。`ZeroFreeRegionDisks` 因而把中心为 `1+W/4+it`、半径为
+  `W` 的圆盘放入完整区域，并将半宽区域中的近线点放入其四分之三子圆盘。
+- `ZeroFreeWidthScale` 和 `ZeroFreeLogScale` 令
+  `H=q^(1/N)+log(q(|t|+2))+1`、`K=1/cHeight+1/cSiegel`，证明
+  `1/W ≤ K H`，并将圆盘增长对数控制为 `(100+K)H`。
+- `ZeroFreeLogDerivativeBound` 在近线区域应用圆盘估计，在更右侧应用
+  绝对收敛级数界，得到整个半宽区域上的
+  `‖L'/L‖ ≤ (224(100+K)K+4K²)H²`。
+- `ZeroFreeRegionAssembly` 将高度常数缩小到至多 `1/8`，从混合区域的
+  非消失性构造原有 `PrimitiveZeroFreeRegionDataAt N` 的所有字段，
+  同时处理 `N=300` 的原接口。
+
+因此，`primitive_zero_free_region` 中仍保留的唯一 `sorry` 的实际目标，
+现在只要求每个固定 `N≥1` 的混合区域非消失性。对数导数条件已经由定理推出，
+没有增加公理、削弱主定理或把整个未证明结论移作主定理参数。
+
+## 已完成：局部无零点条带与三四一不等式
+
+`Analysis/CompactZeroFreeStrip.lean` 用紧性证明：在闭右半平面非消失的
+连续函数，在每个有界高度范围内都存在稍向左延伸的非消失条带。
+有限函数族可取共同条带；结合 mathlib 的非消失定理，得到每个固定非平凡
+Dirichlet 特征的无条件局部结论。`Lemma6/CompactDirichletFamily.lean` 进一步
+证明 `2≤q≤Q` 的全体非主特征共享正宽度条带，并证明：若混合非消失区域在
+`q>Q` 或 `|t|>T` 时成立，则缩小高度常数后可延伸到所有本原特征与所有高度。
+这里没有断言紧性给出的宽度具有随导数变化的渐近下界。
+
+`DirichletPhase.lean` 分离 von Mangoldt 级数项的实衰减和竖直相位，
+并证明 `‖z‖≤1` 时 `3+4 Re(z)+Re(z²)≥0`。
+`DirichletLogDerivativePositivity.lean` 将逐项非负性严格求和，转换为
+`σ>1` 时的经典不等式：
+
+```text
+Re(3(-ζ'/ζ)(σ) + 4(-Lχ'/Lχ)(σ+it) + (-Lχ²'/Lχ²)(σ+2it)) ≥ 0.
+```
+
+这四个模块的十五项定理仅依赖标准公理，为非例外零点自由区域提供已证工具。
+它们尚未给出所需的统一定量区域；还需要隔离邻近零点的对数导数展开及 Siegel 论证。
+
+## 已完成：本原 L 函数的局部零点计数
+
+`Lemma6/LFunctionZeroCount.lean` 对中心 `c=5/4+it` 应用 Jensen 不等式，
+证明半径 `3/8` 的闭圆盘内、计入重数的零点总数至多为
+
+```text
+log(5(6 sqrt(q) log(2q) (‖c‖+1/2)+1)) / log(4/3).
+```
+
+外圆盘半径为 `1/2`，已有本原 L 函数增长界控制其边界，Euler 下界给出
+`‖L(c,χ)‖≥1/5`。内圆盘确实延伸到 `Re(s)=7/8<1`。
+这项定理不假设零点自由区域，已纳入独立公理审计；尚需进一步构造去零点因子
+并取得对数导数展开误差界。
 
 ## 尚未完成：零点自由区域
 
 位置：`ChenTheorem/Lemma6/ZeroFreeRegion.lean`，
 `primitive_zero_free_region : PrimitiveZeroFreeRegion`。
 
-这里需要证明一个包含三个部分的经典分析包：
+这里尚需证明以下两个经典分析输入：
 
 1. 本原 Dirichlet L 函数的高度相关非例外零点自由区域，宽度为
    `cHeight / log (q * (abs t + 2))`。
 2. 对每个固定正整数 `N`，处理可能例外实零点的 Siegel 界，宽度为
    `cSiegel * q ^ (-1/N)`；常数允许非有效。
-3. 在上述两种宽度的最小值的一半区域内，证明所需 `L'/L` 上界。
+
+原先的第三项——半宽区域内的 `L'/L` 上界——已由上述区域组装定理完成，
+其输入仅为这两个部分共同保证的混合非消失区域。
 
 现有 mathlib 的 `re s ≥ 1` 非消失定理不能直接给出这些随导数与高度变化的定量结论。
 本次迁入的 Riemann zeta 零点估计也不能直接用于任意 Dirichlet 特征。
-后续应从非例外区域、例外零点的 Siegel 界及对数导数估计分别建立证明，
-再组装现有 `PrimitiveZeroFreeRegionDataAt N` 接口。
+后续须证明非例外区域及例外零点的 Siegel 界，然后应用已经证明的
+`primitiveZeroFreeRegion_of_nonvanishing` 完成原接口。
+
+下一步的具体分析桥接是：用零点因子分解和已证局部零点计数，控制去掉邻近
+零点后的全纯因子的对数导数，再与已证三四一不等式组合。
+当前 mathlib 已有 `MeromorphicOn.extract_zeros_poles`、
+`AnalyticOnNhd.sum_divisor_le` 和 `logDeriv_prod`，但将这些工具应用到
+Dirichlet L 函数并取得展开误差的统一常数，仍需补写证明。Siegel 部分仍需独立完成。
 
 ## 已完成：实际素数和、取整参数及 Richert 公理消除
 
@@ -1466,11 +1535,13 @@ lake env lean Audit.lean
 
 `AuditAnalysis.lean` 验证 PNT、Mertens 第二及第三定理、Perron 公式及自然数
 截断 Euler 素数乘积归一化的实际内核公理闭包，允许且仅允许
-`propext`、`Classical.choice`、`Quot.sound`。原有八项加上本阶段十项圆盘/级数定理，共十八项通过审计。
+`propext`、`Classical.choice`、`Quot.sound`。原有十八项加上十六项区域定理、
+六项局部条带及有限范围补接定理和九项相位/对数导数不等式定理，
+再加一项本原 L 函数的局部零点计数，共五十项通过审计。
 
 `Audit.lean` 是整个项目的完成门槛：主定理或定量形式只要仍含额外公理就会报错。
-最新完整构建通过（4099 个构建任务），依赖检查通过（339 个源码文件），
-`AuditAnalysis.lean` 的 18 项与 `AuditSieve.lean` 的 930 项均通过。最新 `Audit.lean` 的六个
+最新完整构建通过（4133 个构建任务），依赖检查通过（351 个源码文件），
+`AuditAnalysis.lean` 的 50 项与 `AuditSieve.lean` 的 930 项均通过。最新 `Audit.lean` 的六个
 有限筛检查通过；方程 (26) 及五个最终定理检查均仅因 `sorryAx` 失败（共六项，退出码 1）。
 这是当前最终定理的实际内核结果：
 
