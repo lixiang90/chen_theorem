@@ -1,6 +1,6 @@
 import ChenTheorem.Lemma9.BombieriVinogradov.SmallConductorLogDeriv
 import ChenTheorem.Lemma9.BombieriVinogradov.MeanValue
-import PrimeNumberTheoremAnd.MediumPNT
+import ChenTheorem.Analysis.PNT.MediumPNT
 
 open Filter Real
 open scoped Classical Interval

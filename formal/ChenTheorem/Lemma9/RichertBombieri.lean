@@ -1,5 +1,28 @@
 import ChenTheorem.Lemma8.PrimeReciprocal
 import ChenTheorem.Main.ShiftedDefs
+import ChenTheorem.Lemma9.LinearSieve.CountCutoff
+import ChenTheorem.Lemma9.LinearSieve.ChenSieveNormalization
+import ChenTheorem.Lemma9.LinearSieve.PowerSieveLevel
+import ChenTheorem.Lemma9.LinearSieve.ShiftedCountAsymptoticSieve
+import ChenTheorem.Lemma9.LinearSieve.RosserDepthRecursion
+import ChenTheorem.Lemma9.LinearSieve.RosserGrowingTail
+import ChenTheorem.Lemma9.LinearSieve.RosserPartialComparison
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryStrictContraction
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryExponentialLowerBound
+import ChenTheorem.Lemma9.LinearSieve.InflatedAuxiliaryLowerBound
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryInflationDerivative
+import ChenTheorem.Lemma9.LinearSieve.RosserAuxiliaryComparison
+import ChenTheorem.Lemma9.LinearSieve.RosserGrowingParameter
+import ChenTheorem.Lemma9.LinearSieve.RosserGrowingPrefix
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryExponentialDecay
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryShiftComparison
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryLogarithmicLower
+import ChenTheorem.Lemma9.LinearSieve.AuxiliaryUniformShift
+import ChenTheorem.Lemma9.LinearSieve.RosserParentPrefix
+import ChenTheorem.Lemma9.LinearSieve.InflatedPrimeWeight
+import ChenTheorem.Lemma9.LinearSieve.InflatedAuxiliaryChildSum
+import ChenTheorem.Lemma9.LinearSieve.InflatedContractedChildSum
+import ChenTheorem.Lemma9.LinearSieve.RosserInflatedParentStep
 
 open Filter Real
 open scoped Classical

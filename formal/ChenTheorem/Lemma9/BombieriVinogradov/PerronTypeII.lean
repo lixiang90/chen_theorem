@@ -1,5 +1,5 @@
 import ChenTheorem.Lemma9.BombieriVinogradov.DyadicTypeII
-import PrimeNumberTheoremAnd.PerronFormula
+import ChenTheorem.Analysis.PNT.PerronFormula
 
 open scoped Classical
 

@@ -1,6 +1,6 @@
 import ChenTheorem.Lemma7.PrimeNumberTheorem
 import ChenTheorem.Main.NumericalBounds
-import PrimeNumberTheoremAnd.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
+import ChenTheorem.Analysis.PNT.IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 
 open Filter Real
@@ -17,7 +17,7 @@ prime reciprocals, uniformly on fixed power intervals.  Mathlib 4.32.2 does
 not yet provide this theorem, so the precise multiplicative-error statement
 used by the paper is isolated below as a named trust-boundary input.
 
-The PNT-based Mertens theorem is imported from `PrimeNumberTheoremAnd` and
+The PNT-based Mertens theorem comes from the locally included analytic proofs and
 repackaged below in the fixed-power-interval form used by both partial
 summations.  The complete numerical estimate (24) is proved independently in
 Lean.

@@ -39,12 +39,17 @@ Each may need to be run twice to resolve cross-references.
 
 ## The Lean formalization
 
+The only direct Lake dependency is Mathlib. Necessary PNT/Mertens/Perron
+proofs are included as project sources with their original license and provenance.
+See [the current audit](formal/STATUS.md); the main theorem still has two
+unproved mathematical inputs.
+
 `formal/` is a Lake project targeting Lean `v4.32.2` / Mathlib `v4.32.2`. It
 states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
 4, 5, and 7 are fully proved; the corrected height-logarithmic form of Lemma 3
 is also proved and is sufficient for the later argument.  The Mertens theorem
 and both prime-reciprocal partial-summation steps used in Lemma 8 have now been
-proved in Lean from `PrimeNumberTheoremAnd`, and the numerical integrals (24)
+proved in Lean using locally included Apache-2.0 analytic proofs, and the numerical integrals (24)
 and (27) and inequality (28) are machine-checked without `sorryAx`.
 
 Two explicit analytic trust-boundary declarations remain. Lemma 6 and its shifted
@@ -59,8 +64,122 @@ finite-contour Siegel--Walfisz estimate, and final asymptotic parameter
 assembly.  The theorem is conditional only on the same documented classical
 zero-free-region package already used by Lemma 6; no additional axiom or
 `sorry` was introduced.
-Everything
-else in the fixed-shift chain is now explicit: the parallel Lemmas 1--9, the
+
+The finite Rosser coefficients are now constructed. The original-variable
+prime difference sequence and its middle-prime subsequences have exact
+progression-error formulas, and the combined logarithmically weighted sieve
+has BV remainder control without an extra divisor multiplicity. Ordinary-count
+conversion now gives a finite bound for the exact counts in equation (26),
+with explicit small-prime and non-reduced-class losses. The sieve product
+also has the required singular-series normalization, using a locally included
+proof of Mertens' third theorem and uniform divisor-tail control. All original
+count-conversion and BV errors are now absorbed at arbitrary precision, with
+explicit power sieve levels and valid middle-prime sublevels. The fixed-shift
+construction, exact count conversion, singular-series normalization, and
+error absorption are also proved. The quantitative dimension-one density
+condition, nonnegative Rosser error recursions, and exact cumulative
+Buchstab masses are now proved as well. Real-cutoff density bounds and weighted
+Buchstab partial summation, with explicit error `2K f(z)/log w` under the stated
+smoothness and logarithmic growth assumptions, are also proved. The logarithmic
+parameter substitution and a Rosser recursion step now connect to the continuous
+integral, retaining an explicit small-prime remainder that vanishes at each fixed
+cutoff once the level is large enough. The continuous beta-two terms and their
+finite odd/even delay system are now constructed, with positivity, continuity,
+support and weighted monotonicity proved. Exact integral-mass identities now prove
+convergence of both parity series, uniform convergence on the stated half-lines,
+and the limiting delay equations. Both weighted errors now provably tend to zero,
+and a conserved integral pairing proves the sharp lower endpoint value. The
+constructed sieve functions have limits equal to one and the initial formulas
+`F=A/s` and `f=A log(s-1)/s` on their stated intervals. The normalization
+`A=2 exp γ` remains to be established. The actual error functions now give
+concrete Rosser recursion steps, including the derivative joining point and
+explicit density errors; the child-state induction hypotheses are retained.
+The small-parameter upper case is now uniformly reduced to a local estimate at
+a strict integer cube-root cutoff, whose parameter approaches three from above.
+The actual defect now also has an exact decomposition by stopping depth, with
+factorial tail control and an unconditional large-parameter bound. Comparison
+now has a proved base case: the first depth term is uniformly bounded by its
+continuous counterpart plus an arbitrarily small error. The parity structure
+and the normalized depth recursion are also proved. The recursive continuous
+terms now satisfy the Buchstab comparison across their derivative junctions,
+using one-sided derivatives and retaining an explicit density error.
+This now includes the first term. Additive errors in the discrete recursion
+are controlled by the exact Buchstab tail mass, and a second-depth estimate
+has been proved without child-state assumptions under explicit level conditions.
+Choosing a growing split now yields the uniform second-depth bound by its
+continuous counterpart plus an arbitrarily small error, for every terminal cutoff at least two.
+For each higher upper depth, exact transport beyond the cube cutoff now
+reduces its full parameter domain to the comparison above parameter three.
+The general induction now proves comparison for every fixed positive depth
+and every fixed finite sum of depths. A growing depth cutoff of order
+`log log z` now leaves a uniformly vanishing remainder. Thresholds in the
+fixed-depth comparison may depend on depth, so quantitative control of the
+growing initial sum and sharp Rosser polynomial bounds in terms
+of the linear-sieve functions and their final main-term combination are
+still needed to remove the Lemma 9 axiom.
+Auxiliary errors are now constructed from the continuous error derivatives,
+with their initial formulas, continuity, weighted delay equations and
+monotonicity proved. Their weighted tails vanish, yielding exact integral
+identities and bounds. Weighted auxiliary integrals now control the exact
+logarithmic error rescaling at child level `D/p`, with the weighted monotonicity
+needed by Buchstab summation. One-sided derivatives through the auxiliary
+junctions now yield discrete child-level error bounds with explicit terminal
+density errors. Continuous partial sums now have uniform auxiliary majorants,
+and cumulative discrete depth steps combine the main and auxiliary bounds with
+constants independent of the cutoffs. The child induction hypotheses, small-prime
+prefix and density errors remain explicit; completing the uniform induction is still open.
+The actual continuous terms, errors and auxiliary functions are strictly positive
+on their analytic domains. For each fixed parameter, weighted auxiliary integration
+has a positive gap uniform in all sufficiently large upper endpoints. Quantitative
+control of that gap as the parameter grows remains to be established.
+Short-interval delay integrals now also give an explicit common lower bound
+`c exp(-s log s - s log log s - 6s)` for both auxiliary functions at large
+parameters, with `c>0` proved from their initial values. The quantitative
+shift ratios and the remaining uniform discrete estimates are still open.
+The additional factor `(1+s^d/log D)^s` now has a proved child-level
+comparison and shifted derivative bound. Combining it with the auxiliary
+lower bound gives an explicit lower bound for the full error scale; its
+comparison with the discrete large-parameter remainder now has an explicit
+exponential factor. The actual depth `floor(s)-2` gives an upper bound retaining
+the term `-s log s`; comparing it with the full auxiliary lower bound gives
+`defect ≤ exp(R) · auxiliary error`. A decreasing envelope now proves
+`R≤-s` uniformly for `s≥σ(log D)` at sufficiently large levels, where
+`σ(L)=L^(1/d) log L` and `d>2`. The rounded recursive prefix is now
+controlled by `C(σ/s) exp(-σ) E(D,t)` with `t∈[σ,2σ]`, uniformly in
+depth and the prime set. Transferring the error from `t` to the parent
+parameter and completing the middle-parameter comparison remain open.
+The auxiliary sum now has a proved vanishing integral pairing with the
+polynomial `s²−2s+1/2`. Elementary shift bounds, fed back into this pairing,
+prove `upper/lower auxiliary error ≤ C exp(-s)` for `s≥16`.
+A second vanishing pairing and a maximum principle now prove uniform
+comparison between the two auxiliary functions. Their cross-shift ratios
+are reduced, with uniform constants, to the scalar ratio `Q(s−1)/(sQ(s))`.
+An explicit exponential comparison and a first-stationary-point argument
+now prove that the scalar ratio is eventually at least `(1/4) log s`;
+both cross-shift ratios inherit uniform logarithmic lower bounds.
+The matching logarithmic upper bound is now proved by the opposite
+comparison function. Compactness extends both bounds uniformly to every
+`s≥3`, including both cross-shift estimates. Uniform logarithmic control of
+the inflation factor now proves that both inflated weighted errors decrease
+on `[3,2σ(log D)]`, for every shift in `[0,1]`. This transfers the rounded
+small-prime prefix to the parent parameter with bound `C exp(-σ) E(D,s)`,
+uniform in cumulative depth and the prime set. The lower branch now extends
+to its endpoint two. Initial formulas also complete the weighted child
+monotonicity on both required domains (`t≥3` for the lower child, `t>2` for
+the upper child), and give the ordinary monotonicity and logarithmic growth
+conditions in the prime-size variable. Integrable one-sided product
+derivatives now give the actual child-level error sums a bound by an
+explicit inflated integral plus terminal density loss. The integral now has
+a proved quantitative strict contraction: the parent error is multiplied by
+`1−(1−δ)/(4B)`, uniformly through the growing interval. Both terminal density
+losses and the small-prime prefix are now absorbed. The resulting active
+step retains the strict factor `1−(1−δ)/(64σ)` at the actual parent cutoff
+`z+1`, uniformly in both depths and in multipliers `M≥1`, under
+`d>3`, `0≤δ<1`, and `3/d<1−δ`. The child bound is still an explicit
+hypothesis; stopping cases, bounded child levels, complete depth induction,
+and calibration of the leading constant remain open.
+
+The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
 passage from even auxiliary scales to every sufficiently large scale are all
 machine-checked.  In particular the former aggregate `sorry` in

@@ -1,5 +1,5 @@
 import ChenTheorem.Lemma7.Normalization
-import PrimeNumberTheoremAnd.Consequences
+import ChenTheorem.Analysis.PrimeNumberTheorem
 
 open Filter Real
 open scoped Classical
@@ -14,8 +14,9 @@ von Mangoldt sum by its main term.  This is a uniform form of the prime
 number theorem: the quotient `x / (p₁ p₂)` is at least `x^(1/3)` throughout
 `chenPairs x`, so the ordinary `o(y)` remainder is uniform over all pairs.
 
-Mathlib 4.32.2 does not yet contain the prime number theorem.  We import
-`WeakPNT''` from `PrimeNumberTheoremAnd`, which states `ψ(y) ∼ y`, and derive
+Mathlib 4.32.2 does not yet contain the prime number theorem.  The local theorem
+`chebyshevPsi_isEquivalent` derives `ψ(y) ∼ y` from the included quantitative
+PNT proof. We derive
 the required uniform estimate here.  The uniformity is not an additional
 analytic input: it follows from the lower bound
 `x^(1/3) < x/(p₁p₂)` throughout `chenPairs x`.
@@ -30,7 +31,7 @@ theorem eventually_chebyshevPsi_le_mul (η : ℝ) (hη : 0 < η) :
   have hratio :
       Tendsto (fun y : ℝ => Chebyshev.psi y / y) atTop (nhds 1) := by
     change Tendsto (Chebyshev.psi / fun y : ℝ => y) atTop (nhds 1)
-    exact (Asymptotics.isEquivalent_iff_tendsto_one hyne).mp WeakPNT''
+    exact (Asymptotics.isEquivalent_iff_tendsto_one hyne).mp chebyshevPsi_isEquivalent
   have hup : ∀ᶠ y : ℝ in atTop, Chebyshev.psi y / y < 1 + η :=
     (tendsto_order.mp hratio).2 (1 + η) (by linarith)
   filter_upwards [hup, eventually_gt_atTop 0] with y hy hy0

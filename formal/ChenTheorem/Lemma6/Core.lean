@@ -20,7 +20,6 @@ import ChenTheorem.Lemma3.FourthMoment
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
-set_option warn.sorry false
 
 open Filter Real MeasureTheory ENNReal
 open scoped ArithmeticFunction.Moebius Classical

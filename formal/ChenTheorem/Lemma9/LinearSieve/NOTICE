@@ -1,0 +1,9 @@
+The finite sum-interchange argument in Basic.lean is adapted from
+Mathlib/NumberTheory/SelbergSieve.lean (Mathlib v4.32.2).
+
+Copyright (c) 2024 Arend Mellendijk. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Arend Mellendijk
+
+Local modifications add the lower Moebius sieve, its lower remainder bound,
+and the finite-level bound for the absolute remainder sum.

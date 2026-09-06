@@ -12,8 +12,11 @@ directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 
 - **Lean**: `leanprover/lean4:v4.32.2`
 - **Mathlib**: release tag `v4.32.2`
-- **Prime number theorem**: `PrimeNumberTheoremAnd` at commit
-  `c6c73610b406689c4b58325cbe1342ecca25d755` (Apache-2.0), fetched by Lake
+- **Only direct package dependency**: Mathlib (including its normal transitive packages).
+- **Locally included analytic proofs**: selected Apache-2.0 sources from
+  `PrimeNumberTheoremAnd` commit `c6c73610b406689c4b58325cbe1342ecca25d755`,
+  under `ChenTheorem/Analysis/PNT/`; no external PNT package is fetched or imported.
+  See `Analysis/PNT/SOURCES.json` (under `ChenTheorem/`) for provenance.
 
 ## Build
 
@@ -21,6 +24,9 @@ directory: `../latex/main.tex`, `../latex/main_en.tex`.)
 cd formal
 lake exe cache get   # download prebuilt Mathlib binaries
 lake build
+lake env lean AuditAnalysis.lean  # local PNT / Mertens / Perron trust check
+lake env lean AuditSieve.lean     # Rosser sieve and prime-weight distribution trust check
+lake env lean Audit.lean          # completion gate; currently fails on the two remaining inputs
 ```
 
 ## Structure
@@ -42,9 +48,58 @@ lake build
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
-| `ChenTheorem/Lemma8/PrimeReciprocal.lean` | The prime-reciprocal Mertens theorem imported from `PrimeNumberTheoremAnd`, exact Abel-summation formulas, both partial-summation steps between (23) and (24), and uniform error control |
+| `ChenTheorem/Lemma8/PrimeReciprocal.lean` | The prime-reciprocal Mertens theorem from the locally included analytic proofs, exact Abel-summation formulas, both partial-summation steps between (23) and (24), and uniform error control |
 | `ChenTheorem/Lemma9/BombieriVinogradov/` | The completed standalone level-`1/2` Bombieri--Vinogradov proof: exact character and primitive-conductor reductions, Vaughan decomposition, Type-I and Type-II large-sieve estimates, sharp boundary and imprimitive-character errors, finite-contour Siegel--Walfisz estimates for arbitrary fixed polylogarithmic conductor ranges, and the final theorem `bombieriVinogradov : Statement`, conditional only on `primitive_zero_free_region` |
 | `ChenTheorem/Lemma9/RichertBombieri.lean` | The single parameterized trust-boundary interface for equations (25)–(26), with the original and fixed-shift forms derived as theorem wrappers |
+| `ChenTheorem/Lemma9/LinearSieve/{Basic,Rosser,RosserWeights,RosserSieve}.lean` | Constructed finite Rosser lower/upper coefficients, strict level support, unit coefficient bound, unique prime-string expansion, and exact main-term/remainder bounds; sharp asymptotic evaluation remains pending |
+| `ChenTheorem/Lemma9/BombieriVinogradov/PrimeWeights.lean` | Conversion from the existing von-Mangoldt BV statement to prime logarithmic weights, including uniform prime-power error control and arbitrary reduced residues |
+| `ChenTheorem/Lemma9/LinearSieve/{PrimeSequence,PrimeSubsequence,MiddlePrimeErrors,WeightedPrimeSieve}.lean` | Actual `x-p` prime sequences, density `1/φ(d)`, exact progression remainders, multiplicity-one middle-prime modulus sums, and separate/combined logarithmically weighted Rosser bounds with BV remainder control |
+| `ChenTheorem/Lemma9/LinearSieve/{LogWeights,SmallPrimeLoss,ReducedPrimeCounts,ChenPrimeCounts,CountCutoff}.lean` | Ordinary-count conversion with aggregate small-prime loss `5 ceil T`, non-reduced-class loss at most `3/2` times the number of prime factors of `x`, exact identification with the original Chen counts, a finite Rosser bound for those counts, and logarithmic cutoff control; sharp polynomial asymptotics and final parameter assembly remain pending |
+| `ChenTheorem/Analysis/MertensProduct.lean` and `Analysis/PNT/IEANTN/Mertens.lean` | Locally included, kernel-audited proof of Mertens' third theorem and natural-cutoff Euler product normalization |
+| `ChenTheorem/Lemma9/LinearSieve/{SieveProduct,DivisorProductTail,SieveProductAsymptotics,PowerSieveCutoff,ChenSieveNormalization}.lean` | Exact density-product factorization, uniform prime-divisor tail bounds and equation-(25) normalization: the actual sieve product times `log x / C_x` tends to `20 exp(-γ)`; this establishes vanishing relative error, not the paper's stronger printed error rate |
+| `ChenTheorem/Lemma9/LinearSieve/{CountLossAsymptotics,CountAsymptoticSieve,PowerSieveLevel}.lean` | All original count-conversion and BV losses absorbed into arbitrary `δ xC_x/log² x`; explicit valid levels `Q=floor(x^a)` and `floor(Q/k)` for `1/3<a<1/2`, leaving the sharp Rosser main terms to be estimated |
+| `ChenTheorem/Lemma9/LinearSieve/{ShiftedPrimeSequence,ShiftedPrimeSubsequence,ShiftedWeightedPrimeSieve}.lean` | Actual translated prime sequence `p+h`, exact remainders in `-h mod d`, and separate finite/BV logarithmic bounds without added modulus multiplicity |
+| `ChenTheorem/Lemma9/LinearSieve/{ShiftedLogWeights,ShiftedReducedPrimeCounts,ShiftedChenPrimeCounts}.lean` | Exact connection to existing shifted counts, with small-prime loss `5 ceil T` and non-reduced-class loss `3ω(h)/2` |
+| `ChenTheorem/Lemma9/LinearSieve/{ShiftedSieveNormalization,ShiftedCountLossAsymptotics,ShiftedCountAsymptoticSieve}.lean` | Fixed-shift singular-series normalization, arbitrary-precision error absorption, and an explicit power-level count bound; sharp Rosser main-term estimates remain pending |
+| `ChenTheorem/Lemma9/LinearSieve/{DensityInterval,DensityRatio,DensityQuantitative}.lean` | Positive exact product ratios and the quantitative dimension-one bound `(1+K/log w) log z/log w`, uniform over all finite odd-prime subsets and natural endpoints `2≤w≤z` |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserDefect,BuchstabMeasure}.lean` | Nonnegative Rosser error recursions, normalized main-term reconstruction, and exact cumulative Buchstab masses; comparison with the continuous delay equations remains pending |
+| `ChenTheorem/Lemma9/LinearSieve/{AbelTail,DensityReal,WeightedBuchstab,BuchstabIntegral,BuchstabError}.lean` | Real-cutoff dimension-one bounds, exact weighted Abel identities, and continuous Buchstab comparison with explicit error `2K f(z)/log w` for differentiable nonnegative increasing weights satisfying the logarithmic growth bound; application to the delay-equation weights remains pending |
+| `ChenTheorem/Lemma9/LinearSieve/{SieveParameter,BuchstabParameter,RosserIntegralStep,RosserExactLevel}.lean` | Exact logarithmic substitution, parameter-integral comparison for admissible smooth envelopes, an actual Rosser recursion step with an explicit small-prime remainder, and eventual exact vanishing of that remainder at a fixed cutoff; full iteration and discrete comparison remain to be proved |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousTail,ContinuousTerms,ContinuousTailDerivative,ContinuousTermDerivative,ContinuousPartials}.lean` | Actual beta-two continuous terms, positivity, continuity, support and weighted monotonicity; derivative formulas on the stated open intervals and the finite odd/even delay system |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousTailMass,ContinuousMass,ContinuousConvergence,ContinuousErrors,ContinuousErrorDerivative}.lean` | Exact mass telescoping proves convergence of both parity series; half-line uniform convergence, continuity, bounds and rigorously differentiated limiting delay equations |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousErrorDecay,ContinuousInitial,ContinuousPairing,ContinuousEndpoint,ContinuousFunctions}.lean` | Weighted errors tend to zero; a conserved integral pairing proves the sharp lower endpoint value; the constructed functions satisfy `F=A/s` on `1<s≤3`, `f=A log(s-1)/s` on `2≤s≤4`, both delay equations and limits equal to one; `A=2 exp γ` and the discrete sieve comparison remain unproved |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousErrorRegularity,ContinuousUpperSmooth,ContinuousErrorIntegrals,ContinuousBuchstab,RosserContinuousStep}.lean` | The actual error functions satisfy the Buchstab comparison hypotheses, including the upper derivative at the joining point; concrete Rosser steps hold for upper `s>3` and active lower `s>2`, with explicit density errors and a scalable child-state induction hypothesis; full iteration remains unproved |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserUpperTransport,RosserUpperComparison,RosserCubeCutoff,RosserUpperInitial}.lean` | Exact upper-polynomial transport beyond the cube-root cutoff and a uniform reduction of `1<s≤3` to a local error bound at parameter `s_m>3`, with `s_m→3`; the local error bound and full iteration remain to be proved |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserStoppingMass,RosserChainBound,RosserDepthTail,RosserMassLogBound,RosserLargeParameter}.lean` | Exact decomposition of the actual defect by stopping depth, factorial bounds for decreasing chains and the depth remainder, and a uniform large-parameter bound with no child-state assumptions |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserStoppingParity,RosserFirstMass,RosserFirstComparison,RosserDepthRecursion}.lean` | Depth parity, the exact first stopping contribution and its uniform continuous comparison for `s>1`, plus normalized depth recursion and explicit power levels eliminating each fixed-depth prefix |
+| `ChenTheorem/Lemma9/LinearSieve/{AbelRight,BuchstabRight,ContinuousTermJunction,BuchstabTerm}.lean` | Abel and Buchstab estimates for integrable right derivatives, left derivatives of the recursive continuous terms at their junctions, and a Buchstab bound by the next continuous term with explicit density error |
+| `ChenTheorem/Lemma9/LinearSieve/{BuchstabFirstTerm,RosserDepthComparison,RosserSecondComparison}.lean` | The first-term junction, a common Buchstab constant for every positive depth, exact propagation of additive child errors by the tail mass, and a second-depth estimate with all child assumptions discharged by a minimum-level condition |
+| `ChenTheorem/Lemma9/LinearSieve/RosserSecondUniform.lean` | Choosing `w=D^(1/8)` proves a uniform second-depth bound by `f₂+ε` for every terminal cutoff at least two, including stopped and small-cutoff cases, and the prime-cutoff version needed by the next depth |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserDepthTransport,RosserDepthInitial}.lean` | Exact cube-cutoff transport for every upper depth at least two and transfer of a fixed-depth comparison from `s>3` to all `s>1`; RosserFixedDepth discharges the large-parameter induction hypothesis |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserDepthSplit,RosserDepthStep,RosserFixedDepth}.lean` | A general power split and induction prove the uniform continuous comparison for every fixed positive depth and every fixed finite sum of depths; thresholds may depend on depth, so quantitative control of a growing initial sum is still required |
+| `ChenTheorem/Lemma9/LinearSieve/RosserGrowingTail.lean` | The actual relative defect after depth `ceil(6 log B(z)/log 2)` has nonnegative remainder at most `1/B(z)^2`, tending to zero uniformly in the level and prime set; `B(z)` is a fixed positive multiple of `log z` |
+| `ChenTheorem/Lemma9/LinearSieve/ContinuousAuxiliary.lean` | Nonnegative auxiliary errors constructed from the actual error derivatives, their initial formulas, continuity across the lower endpoint, delay equations with weight `s²`, and weighted monotonicity; the initial constant is not assumed to equal `2 exp(γ)` |
+| `ChenTheorem/Lemma9/LinearSieve/ContinuousAuxiliaryIntegrals.lean` | The weighted auxiliary errors tend to zero; exact finite-interval integrals retain the terminal term, include the joining endpoints, and imply improper-integral limits and finite integral upper bounds |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousAuxiliaryWeights,AuxiliaryLevelError}.lean` | Weighted auxiliary integral bounds, weighted monotonicity, and the exact logarithmic error rescaling at child level `D/p`; the basic scale tends to zero for fixed parameters, but discrete density errors and the extra uniformity factors still need control |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryJunction,AuxiliaryWeightDerivative,BuchstabAuxiliary,AuxiliaryChildSum}.lean` | Left derivatives through the auxiliary junctions give nonnegative integrable right derivatives after parameter reversal; actual discrete child-level error sums are bounded by the parent error scale plus an explicit terminal density error, which still needs absorption |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryMajorant,BuchstabPartials,RosserPartialDefect,RosserPartialComparison}.lean` | Uniform auxiliary majorants for continuous partial sums and an exact cumulative discrete recurrence give upper/lower conditional depth steps with constants independent of the cutoffs; child hypotheses, the active-branch condition, the small-prime prefix and both density errors remain explicit |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousPositivity,AuxiliaryStrictContraction}.lean` | Strict positivity of the actual continuous terms, errors and auxiliary functions; for each fixed parameter and logarithmic exponent below one, the weighted auxiliary integral has a positive gap uniform in every upper endpoint at least one unit away; quantitative control as the parameter grows is still required |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryLowerStep,AuxiliaryLowerBound,AuxiliaryExponentialLowerBound}.lean` | Short-interval delay integrals give a simultaneous quantitative induction with a free step length; both auxiliary functions are bounded below by `c exp(-s log s - s log log s - 6s)` for `s≥3`, `log s≥2`, with one proved positive constant; shift ratios and the remaining uniform sieve estimates are still open |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryInflation,InflatedAuxiliaryError,AuxiliaryInflationDerivative,InflatedAuxiliaryLowerBound}.lean` | The additional factor `(1+s^d/log D)^s`, its actual child-level comparison, fixed-parameter limits, shifted derivative bound and explicit lower bound for the full auxiliary error; the weighted decreasing product is proved in the later modules, while uniform depth induction remains open |
+| `ChenTheorem/Lemma9/LinearSieve/{FactorialExponentialTail,RosserParameterExponential,RosserAuxiliaryComparison}.lean` | Exponential-series control of factorial tails, the actual depth `floor(s)-2` and an explicit exponential comparison of the full discrete defect with both inflated auxiliary errors; the growing-parameter estimate is completed in the following modules |
+| `ChenTheorem/Lemma9/LinearSieve/{ComparisonEnvelope,GrowingSieveParameter,DepthMassLevelBound,GrowingEnvelopeLimit,RosserGrowingParameter}.lean` | A decreasing envelope and the split `σ=L^(1/d) log L` prove `defect ≤ exp(-s) · inflated auxiliary error` uniformly for all `s≥σ(log D)`, cutoffs, odd prime sets and sieve signs at sufficiently large levels, for fixed `d>2` and real `δ` |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserPrefixNormalization,GrowingPrefixCutoff,GrowingPrefixRatio,RosserGrowingPrefix}.lean` | The actual rounded prefix at `m=floor(exp(log D/(2σ)))` has parameter `t∈[σ,2σ]` and stays active; exact product normalization and the density condition give a bound `C(σ/s) exp(-σ) E(D,t)` uniform in depth and the prime set; the later transport theorem transfers this to the parent parameter |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliarySumPairing,AuxiliarySumDecay,AuxiliaryExponentialDecay}.lean` | The actual auxiliary sum satisfies the scalar delay equation and a vanishing pairing with `q(s)=s²−2s+1/2`; elementary shift bounds and a second use of the pairing prove `upper/lower auxiliary error ≤ C exp(-s)` for `s≥16`; the stronger logarithmic shift ratios are supplied by the later modules |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryDifferencePairing,AuxiliaryComparability,AuxiliaryShiftComparison}.lean` | A second vanishing pairing and a maximum principle prove uniform comparability of both auxiliary errors to their sum on `[2,∞)`; both cross-shift ratios are uniformly comparable to `Q(s−1)/(sQ(s))`; the scalar logarithmic estimates are supplied below |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryBarrierPhase,AuxiliaryBarrierKernel,AuxiliaryBarrierIntegral,AuxiliaryBarrierCritical,ContinuousFirstZero,AuxiliaryLogarithmicLower}.lean` | Explicit unit-interval kernel estimates and exclusion of a first stationary point prove `Q(s−1)/(sQ(s)) ≥ (1/4) log s` eventually; both cross-shift ratios therefore have uniform logarithmic lower bounds |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryBarrierKernelLower,AuxiliaryBarrierIntegralLower,AuxiliaryBarrierUpperCritical,AuxiliaryLogarithmicUpper,AuxiliaryUniformShift}.lean` | The opposite comparison proves the scalar upper bound `r(s) ≤ 9 log s` eventually; compactness extends both scalar and cross-shift bounds uniformly to all `s≥3`, with fixed positive constants |
+| `ChenTheorem/Lemma9/LinearSieve/{InflationLogBounds,InflationSlopeLimit,InflatedAuxiliaryMonotonicity,InflatedAuxiliaryTransport,RosserParentPrefix}.lean` | Uniformly small logarithmic slopes prove shifted inflated weighted errors antitone on `[3,2σ]`; transport by `s/t` gives the actual prefix bound `C exp(-σ) E(D,s)` and absorption into any fixed positive fraction of the parent error, uniformly in depth and prime sets; middle-range absorption and complete depth induction remain open |
+| `ChenTheorem/Lemma9/LinearSieve/{AuxiliaryLowerInitialShift,InflationInitialSlope,InflatedLowerMonotonicity,InflatedChildWeight,InflatedChildInitialWeight,InflatedPrimeWeight}.lean` | Initial formulas extend lower cross-shift bounds to `s>2` and lower inflated monotonicity to `[2,2σ]`; factorization and the upper initial formula prove weighted child monotonicity on both full required domains, hence ordinary monotonicity and logarithmic growth in the prime-size variable |
+| `ChenTheorem/Lemma9/LinearSieve/{BuchstabMonotoneRight,ChildInflationDerivative,InflatedWeightRegularity,BuchstabInflatedParameter,BuchstabInflated,InflatedAuxiliaryChildSum}.lean` | Monotonicity supplies the interior derivative sign; the integrable one-sided product derivative proves Buchstab bounds for both actual inflated child-level error sums, with explicit integral and terminal loss; no regularity or shape assumptions remain in the specializations |
+| `ChenTheorem/Lemma9/LinearSieve/{InflationContractionGap,InflationSlopeGap,InflatedAuxiliaryDissipation,InflatedAuxiliaryIntegral,InflatedAuxiliaryContraction,InflatedContractedChildSum}.lean` | The combined loss from the child denominator and error exponent dominates twice the inflation slope; integrating the parent derivative yields quantitative contraction, hence both true child-error sums are bounded by `(1−(1−δ)/(4B))` times the parent error plus explicit terminal density loss |
+| `ChenTheorem/Lemma9/LinearSieve/{GrowingDensityBudget,InflatedTerminalLoss,InflatedTerminalAbsorption,InflatedAbsorbedChildSum}.lean` | The terminal density loss is absorbed uniformly; the actual child-error sums retain factor `1−(1−δ)/(16σ)` for `d>3` and `0≤δ<1` |
+| `ChenTheorem/Lemma9/LinearSieve/{ContinuousTerminalLoss,ContinuousTerminalAbsorption,RosserInflatedStep}.lean` | Under `3/d<1−δ`, the continuous main-term density error is also absorbed in the actual active depth step, uniformly in both depths, with the small-prime prefix retained |
+| `ChenTheorem/Lemma9/LinearSieve/{RosserPrefixAbsorption,RosserInflatedParentStep}.lean` | The prefix is smaller than any prescribed multiple of `E/σ`, including the lower endpoint two; absorption and monotonicity align the step with the actual parent cutoff `z+1`, retaining factor `1−(1−δ)/(64σ)`; the child hypothesis, stopping cases, bounded levels and full depth induction remain to be discharged |
 | `ChenTheorem/MainEstimates.lean` | Lemmas 5–9: the sieve decomposition, `M₁ ≤ …`, `Ω ≤ 3.9404 xC_x/(log x)²`, the Richert-sieve lower bound `≥ 2.6408 xC_x/(log x)²` |
 | `ChenTheorem/Main/KeyInequality.lean` | Complete proof of inequality (28): finite partition, two-witness injection, repeated-prime encoding of nonsquarefree exceptions, and the `O(x^0.9)` reciprocal-square tail |
 | `ChenTheorem/Main/ShiftedDefs.lean` | Fixed-shift versions of the roughness predicate, sieve weights, divisor and character expansions, error terms, and sifted counting functions; the shift `h` is kept separate from the scale `x` |
@@ -80,9 +135,9 @@ lake build
 | Lemma 5 | `sieveOmega_le_mOne_add_mTwo` (**proved**) |
 | Lemma 6 | `mTwo_le` (final deduction **proved** from the stronger `mTwo_le_log12`); equations (12)–(21) are all proved, and the corrected Lemma-3 height logarithm is carried through the Cauchy/Hölder/kernel estimates. The only remaining analytic input is the classical zero-free region `primitive_zero_free_region` |
 | Lemmas 5–6 combined | `sieveOmega_le_mOne` (deduction **proved**; depends on the pending Lemma 6 input) |
-| Lemma 7 | `mOne_le` (**proved**); `eventually_smoothed_pair_mass_le` is derived from `PrimeNumberTheoremAnd.WeakPNT''` and the uniform lower bound `x^(1/3) < x/(p₁p₂)`, while the Selberg normalization, positivity, summation, and constants are all machine-checked |
+| Lemma 7 | `mOne_le` (**proved**); `eventually_smoothed_pair_mass_le` is derived from `Chen.chebyshevPsi_isEquivalent` and the uniform lower bound `x^(1/3) < x/(p₁p₂)`, while the Selberg normalization, positivity, summation, and constants are all machine-checked |
 | Equation (24) | `equation24_integral_bound` (**proved**, no `sorryAx`) |
-| Lemma 8 | `sieveOmega_le` (**proved**); `primeReciprocal_mertens` is obtained from `PrimeNumberTheoremAnd`, and the two Abel-summation steps, uniform Mertens-error control, `eventually_chenPairs_kernel_le_integral_add`, error conversion, and the numerical integral are all machine-checked. The theorem inherits only the pending Lemma 6 zero-free-region input through `sieveOmega_le_mOne` |
+| Lemma 8 | `sieveOmega_le` (**proved**); `primeReciprocal_mertens` is obtained from the locally included analytic proofs, and the two Abel-summation steps, uniform Mertens-error control, `eventually_chenPairs_kernel_le_integral_add`, error conversion, and the numerical integral are all machine-checked. The theorem inherits only the pending Lemma 6 zero-free-region input through `sieveOmega_le_mOne` |
 | `P_x(x, x^{1/10})`, `P_x(x, p', x^{1/10})` | `Chen.sievedPrimeCount`, `Chen.sievedPrimeCountAt` |
 | Equation (27) | `equation27_integral_bound` (**proved**, no `sorryAx`) |
 | Lemma 9 | `sieved_lower_bound` (**proved** from the explicitly isolated external Richert–Bombieri specialization `eventually_richert_bombieri_equation26`; equation (27), loss management, and the final numerical deduction are machine-checked) |
@@ -195,6 +250,10 @@ lake build
 
 ## Status
 
+See [STATUS.md](STATUS.md) for the current kernel audit, exact remaining proof
+obligations, and the dependency migration. The main theorems are **not yet
+unconditional**. Build success must not be confused with passing `Audit.lean`.
+
 Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
 The project itself contains exactly one documented `sorry` declaration and
 one explicit non-foundational axiom:
@@ -248,13 +307,13 @@ the equation-(21) contour shift, and the final deduction
 `mTwo_le_log12 ⇒ mTwo_le`.
 
 The prime-number-theorem input behind Lemma 7 is discharged from
-`PrimeNumberTheoremAnd.WeakPNT''`.  The prime-reciprocal Mertens theorem used
-in Lemma 8 is likewise imported as a proved theorem from
-`PrimeNumberTheoremAnd`, and both Abel-summation steps and their uniform error
+`Chen.chebyshevPsi_isEquivalent`.  The prime-reciprocal Mertens theorem used
+in Lemma 8 is likewise a proved theorem in the locally included
+`ChenTheorem/Analysis/PNT/` sources, and both Abel-summation steps and their uniform error
 estimates are proved locally; there is no longer a Lemma 8-specific axiom.
 Lemma 8 still transitively depends on the Lemma 6 zero-free-region input.
 Lemma 9 is machine-checked conditional on the single explicit
-`eventually_richert_bombieri_equation26` axiom.
+`richert_bombieri_equation26` axiom (the eventual theorem is a proved wrapper).
 
 The paper-internal numerical integrals (24) and (27), inequality (28), the
 final numerical deduction and extraction of an actual representation for
