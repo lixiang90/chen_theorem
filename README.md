@@ -91,7 +91,7 @@ and the limiting delay equations. Both weighted errors now provably tend to zero
 and a conserved integral pairing proves the sharp lower endpoint value. The
 constructed sieve functions have limits equal to one and the initial formulas
 `F=A/s` and `f=A log(s-1)/s` on their stated intervals. The normalization
-`A=2 exp γ` remains to be established. The actual error functions now give
+`A=2 exp γ` is now proved through the Buchstab Laplace transform and the Gamma derivative at one. The actual error functions now give
 concrete Rosser recursion steps, including the derivative joining point and
 explicit density errors; the child-state induction hypotheses are retained.
 The small-parameter upper case is now uniformly reduced to a local estimate at
@@ -184,9 +184,11 @@ the cutoff and prime set. The initial upper interval is now absorbed into
 the same error scale. Strong induction on the actual cutoff proves a uniform
 total-defect bound with no child assumptions. Uniform vanishing of the error
 on compact parameter intervals gives the actual Rosser polynomial bounds
-`upper ≤ V(F+ε)` and `V(f−ε) ≤ lower`. The initial constant of these constructed
-functions still needs to be identified with `2 exp γ` before the final
-Chen weighted-sieve assembly can be completed.
+`upper ≤ V(F+ε)` and `V(f−ε) ≤ lower`. The initial constant is now identified with `2 exp γ`: the Buchstab transform
+satisfies `W=exp(E₁)−1`, and its scaled limit is computed both by dominated
+convergence and by the Euler–Mascheroni integral. The calibrated initial
+upper and lower polynomial bounds are proved. The final Chen weighted-sieve
+assembly and the Dirichlet L-function zero-free-region input remain open.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the

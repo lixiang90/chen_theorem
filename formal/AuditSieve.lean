@@ -1,4 +1,5 @@
 import ChenTheorem.Lemma9.LinearSieve.CountCutoff
+import ChenTheorem.Lemma9.LinearSieve.CalibratedRosserBounds
 import ChenTheorem.Lemma9.LinearSieve.ChenSieveNormalization
 import ChenTheorem.Lemma9.LinearSieve.PowerSieveLevel
 import ChenTheorem.Lemma9.LinearSieve.ShiftedCountAsymptoticSieve
@@ -844,7 +845,53 @@ run_cmd do
       ``Chen.LinearSieve.eventually_rosser_upper_error_compact,
       ``Chen.LinearSieve.eventually_rosser_lower_error_compact,
       ``Chen.LinearSieve.eventually_rosser_upper_polynomial_compact,
-      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_compact] do
+      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_compact,
+      ``Chen.LinearSieve.linearSieveInitialConstant_pos,
+      ``Chen.LinearSieve.buchstabFunction_initial,
+      ``Chen.LinearSieve.buchstabFunction_eq_sieve,
+      ``Chen.LinearSieve.continuousOn_buchstabFunction,
+      ``Chen.LinearSieve.buchstabFunction_bounds,
+      ``Chen.LinearSieve.tendsto_buchstabFunction,
+      ``Chen.LinearSieve.hasDerivAt_mul_upperLinearSieveFunction_all,
+      ``Chen.LinearSieve.hasDerivAt_mul_buchstabFunction,
+      ``Chen.LinearSieve.buchstabFunction_integral_equation,
+      ``Chen.LinearSieve.integrableOn_log_mul_exp_neg,
+      ``Chen.LinearSieve.integral_log_mul_exp_neg_eq_deriv_Gamma,
+      ``Chen.LinearSieve.integral_log_mul_exp_neg_eq_neg_eulerMascheroni,
+      ``Chen.LinearSieve.integrableOn_mul_exp_neg,
+      ``Chen.LinearSieve.integrableOn_buchstabLaplace,
+      ``Chen.LinearSieve.integrableOn_buchstabLaplace_moment,
+      ``Chen.LinearSieve.hasDerivAt_buchstabLaplace,
+      ``Chen.LinearSieve.buchstabLaplace_bounds,
+      ``Chen.LinearSieve.integrableOn_exponentialIntegral,
+      ``Chen.LinearSieve.exponentialIntegral_log_identity,
+      ``Chen.LinearSieve.tendsto_one_sub_exp_neg_mul_log_zero,
+      ``Chen.LinearSieve.tendsto_exponentialIntegral_add_log,
+      ``Chen.LinearSieve.integrableOn_buchstabLaplace_shift,
+      ``Chen.LinearSieve.integral_buchstabLaplace_shift,
+      ``Chen.LinearSieve.tendsto_weighted_buchstab_exp_zero,
+      ``Chen.LinearSieve.buchstabLaplace_tail_moment,
+      ``Chen.LinearSieve.buchstabLaplace_initial_moment,
+      ``Chen.LinearSieve.buchstabLaplace_moment_equation,
+      ``Chen.LinearSieve.hasDerivAt_buchstabLaplace_equation,
+      ``Chen.LinearSieve.tendsto_buchstabLaplace_zero,
+      ``Chen.LinearSieve.hasDerivAt_log_buchstabLaplace,
+      ``Chen.LinearSieve.log_buchstabLaplace_eq_exponentialIntegral,
+      ``Chen.LinearSieve.buchstabLaplace_eq_exp_exponentialIntegral,
+      ``Chen.LinearSieve.tendsto_mul_buchstabLaplace_euler,
+      ``Chen.LinearSieve.buchstabExtended_eq,
+      ``Chen.LinearSieve.measurable_buchstabExtended,
+      ``Chen.LinearSieve.buchstabExtended_bounds,
+      ``Chen.LinearSieve.tendsto_buchstabExtended,
+      ``Chen.LinearSieve.integral_buchstabExtended,
+      ``Chen.LinearSieve.mul_buchstabLaplace_eq_dilated,
+      ``Chen.LinearSieve.tendsto_mul_buchstabLaplace_initialConstant,
+      ``Chen.LinearSieve.linearSieveInitialConstant_eq_two_exp_eulerMascheroni,
+      ``Chen.LinearSieve.upperLinearSieveFunction_initial_calibrated,
+      ``Chen.LinearSieve.lowerLinearSieveFunction_initial_calibrated,
+      ``Chen.LinearSieve.tendsto_buchstabFunction_euler,
+      ``Chen.LinearSieve.eventually_rosser_upper_polynomial_calibrated,
+      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_calibrated] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then
