@@ -23,6 +23,7 @@ import ChenTheorem.Lemma9.LinearSieve.InflatedContractedChildSum
 import ChenTheorem.Lemma9.LinearSieve.RosserInflatedParentStep
 import ChenTheorem.Lemma9.LinearSieve.RosserFullDefectStep
 import ChenTheorem.Lemma9.LinearSieve.RosserBoundedLevel
+import ChenTheorem.Lemma9.LinearSieve.RosserAsymptoticError
 import Lean.Util.CollectAxioms
 
 /- Kernel-level audit of the constructed finite Rosser sieve.
@@ -812,7 +813,38 @@ run_cmd do
       ``Chen.LinearSieve.rosserRelativeDefect_dimension_one_bound,
       ``Chen.LinearSieve.inflatedAuxiliaryError_bounded_level_lower,
       ``Chen.LinearSieve.sieveParameter_bounded_level,
-      ``Chen.LinearSieve.rosserRelativeDefect_bounded_level] do
+      ``Chen.LinearSieve.rosserRelativeDefect_bounded_level,
+      ``Chen.LinearSieve.log_add_one_sub_log_le,
+      ``Chen.LinearSieve.sieveParameter_rosserCubeCutoff_gap,
+      ``Chen.LinearSieve.weighted_upperFunction_le_initial_add,
+      ``Chen.LinearSieve.tendsto_log_rpow_mul_cubeCutoff_gap,
+      ``Chen.LinearSieve.auxiliaryInflation_initial_bound,
+      ``Chen.LinearSieve.eventually_auxiliaryInflation_initial_small,
+      ``Chen.LinearSieve.inflatedUpperError_weighted_transfer,
+      ``Chen.LinearSieve.eventually_inflatedUpperError_initial_transfer,
+      ``Chen.LinearSieve.sieveParameter_adjacent_bound,
+      ``Chen.LinearSieve.rosserPartialPrefix_unrounded_upper_bound,
+      ``Chen.LinearSieve.rosserPartialPrefix_unrounded_upper_inverse_small,
+      ``Chen.LinearSieve.rosserRelativeDefect_unrounded_upper_step,
+      ``Chen.LinearSieve.eventually_growingPrefix_before_cube,
+      ``Chen.LinearSieve.rosserRelativeDefect_cube_upper_step,
+      ``Chen.LinearSieve.tendsto_growing_log_rpow_div,
+      ``Chen.LinearSieve.tendsto_growing_log_rpow_cube_gap,
+      ``Chen.LinearSieve.tendsto_cube_initial_density_budget,
+      ``Chen.LinearSieve.eventually_cube_initial_density_budget,
+      ``Chen.LinearSieve.initial_density_loss_le_error,
+      ``Chen.LinearSieve.initial_transfer_absorption,
+      ``Chen.LinearSieve.eventually_rosser_initial_error_transfer,
+      ``Chen.LinearSieve.rosserRelativeDefect_initial_upper_step,
+      ``Chen.LinearSieve.strictAntiOn_sieveParameter,
+      ``Chen.LinearSieve.child_level_gt_one,
+      ``Chen.LinearSieve.rosserCubeCutoff_le_of_actual_parameter,
+      ``Chen.LinearSieve.rosserRelativeDefect_uniform_error,
+      ``Chen.LinearSieve.eventually_inflatedError_compact_small,
+      ``Chen.LinearSieve.eventually_rosser_upper_error_compact,
+      ``Chen.LinearSieve.eventually_rosser_lower_error_compact,
+      ``Chen.LinearSieve.eventually_rosser_upper_polynomial_compact,
+      ``Chen.LinearSieve.eventually_rosser_lower_polynomial_compact] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

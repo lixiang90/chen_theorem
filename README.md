@@ -146,8 +146,8 @@ the term `-s log s`; comparing it with the full auxiliary lower bound gives
 `R≤-s` uniformly for `s≥σ(log D)` at sufficiently large levels, where
 `σ(L)=L^(1/d) log L` and `d>2`. The rounded recursive prefix is now
 controlled by `C(σ/s) exp(-σ) E(D,t)` with `t∈[σ,2σ]`, uniformly in
-depth and the prime set. Transferring the error from `t` to the parent
-parameter and completing the middle-parameter comparison remain open.
+depth and the prime set. Later modules transfer the error from `t` to the
+parent parameter and complete the middle-parameter comparison.
 The auxiliary sum now has a proved vanishing integral pairing with the
 polynomial `s²−2s+1/2`. Elementary shift bounds, fed back into this pairing,
 prove `upper/lower auxiliary error ≤ C exp(-s)` for `s≥16`.
@@ -180,9 +180,13 @@ hypothesis. Passage to the full convergent continuous errors now gives the
 same contracted step for the actual total Rosser defects. The stopped lower
 branch is controlled by the proved identity `L(s)=2/s` for `0<s≤2`.
 A common multiplier also controls every bounded child level, uniformly in
-the cutoff and prime set. The initial upper interval still needs to be
-combined with this error scale before completing global induction and
-calibrating the leading constant.
+the cutoff and prime set. The initial upper interval is now absorbed into
+the same error scale. Strong induction on the actual cutoff proves a uniform
+total-defect bound with no child assumptions. Uniform vanishing of the error
+on compact parameter intervals gives the actual Rosser polynomial bounds
+`upper ≤ V(F+ε)` and `V(f−ε) ≤ lower`. The initial constant of these constructed
+functions still needs to be identified with `2 exp γ` before the final
+Chen weighted-sieve assembly can be completed.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
