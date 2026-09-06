@@ -295,11 +295,18 @@ holomorphic logarithm and Borel--Carathéodory give `224 M/R` on a three-quarter
 subdisk. Euler/Möbius series bounds and primitive L-function growth supply
 an explicit arithmetic specialization. Disk containment and scale estimates
 now extend it to the entire requested half-width region. The remaining
-goal is precisely nonvanishing in the full mixed region. Additional proved
+goal is mixed-region nonvanishing for primitive real characters. Additional proved
 tools include compact local strips and the three-four-one inequality.
 Finite Blaschke factorization and Jensen now give a local zero-pole expansion
 with an absolute `60000 log(q(abs(t)+2))` remainder for primitive L-functions.
-The uniform height-dependent region and Siegel estimates remain open.
+The uniform logarithmic zero-free region is now proved for primitive characters
+with nonprincipal square, using zero-pole positivity, exact change-of-level
+logarithmic derivatives, the zeta pole bound, and the three-four-one inequality.
+`RealZeroFreeReduction` reduces the original remaining goal to primitive real
+characters. Their nonexceptional region and Siegel estimates remain open.
+For primitive real characters, conjugate-zero pairing now proves that any
+zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
+the possible exceptional real zero is not excluded by this result.
 
 The former `chenCountShift_lower_estimate` `sorry` has been eliminated.  Its
 proof now runs through the complete shifted Lemmas 1--9, shifted inequality

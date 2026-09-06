@@ -1,3 +1,8 @@
+import ChenTheorem.Lemma6.RealZeroBox
+import ChenTheorem.Analysis.ZeroPoleSubsetRealPart
+import ChenTheorem.Lemma6.RealCharacterConjugation
+import ChenTheorem.Lemma6.PrincipalLogDerivativeBound
+import ChenTheorem.Lemma6.RealZeroFreeReduction
 import ChenTheorem.Lemma6.ZeroFreeRegionAssembly
 import ChenTheorem.Analysis.CompactZeroFreeStrip
 import ChenTheorem.Lemma6.DirichletLogDerivativePositivity
@@ -99,7 +104,57 @@ run_cmd do
       ``Chen.norm_LFunction_zero_disk_center_ge,
       ``Chen.norm_LFunction_logDeriv_sub_local_zero_poles_le,
       ``Chen.dirichletZeroDisk_log_bound_le,
-      ``Chen.norm_LFunction_logDeriv_sub_local_zero_poles_le_log] do
+      ``Chen.norm_LFunction_logDeriv_sub_local_zero_poles_le_log,
+      ``Chen.zero_of_mem_disk_divisor_support,
+      ``Chen.one_le_disk_divisor_of_zero,
+      ``Chen.re_int_zero_pole_nonneg,
+      ``Chen.diskZeroPoleSum_re_nonneg,
+      ``Chen.one_div_re_gap_le_re_zero_pole,
+      ``Chen.one_div_re_gap_le_diskZeroPoleSum_re,
+      ``Chen.line_point_sub_dirichletZeroDiskCenter,
+      ``Chen.norm_line_point_sub_dirichletZeroDiskCenter_le,
+      ``Chen.primitive_centered_LFunction_analytic,
+      ``Chen.centered_LFunction_ne_zero_of_re_gt_neg_quarter,
+      ``Chen.primitive_LFunction_local_zero_poles_re_nonneg,
+      ``Chen.primitive_LFunction_logDeriv_re_ge,
+      ``Chen.primitive_LFunction_local_zero_poles_re_ge_single,
+      ``Chen.primitive_LFunction_logDeriv_re_ge_single_zero,
+      ``Chen.norm_dirichletEulerTerm_le_inv,
+      ``Chen.norm_dirichletEulerTerm_le_half,
+      ``Chen.dirichletEulerFactor_ne_zero,
+      ``Chen.hasDerivAt_dirichletEulerFactor,
+      ``Chen.norm_deriv_dirichletEulerFactor,
+      ``Chen.norm_logDeriv_dirichletEulerFactor_le,
+      ``Chen.sum_log_primeFactors_le_log,
+      ``Chen.norm_logDeriv_dirichletEulerProduct_le,
+      ``Chen.logDeriv_LFunction_changeLevel,
+      ``Chen.norm_logDeriv_LFunction_changeLevel_sub_le,
+      ``Chen.nonprincipal_LFunction_logDeriv_re_ge,
+      ``Chen.exists_zeta_real_logDeriv_pole_bound,
+      ``Chen.conductor_height_log_double_le,
+      ``Chen.primitive_nonreal_zero_inequality,
+      ``Chen.four_div_gap_contradiction,
+      ``Chen.exists_primitive_nonreal_zero_free_region,
+      ``Chen.primitiveZeroFreeRegion_of_real_nonvanishing,
+      ``Chen.norm_principal_logDeriv_sub_zeta_le,
+      ``Chen.exists_zeta_complex_logDeriv_pole_bound,
+      ``Chen.exists_principal_complex_logDeriv_pole_bound,
+      ``Chen.conj_character_apply_of_square_eq_one,
+      ``Chen.conj_LSeries_term_of_real_character,
+      ``Chen.conj_LFunction_of_real_character_re_gt_one,
+      ``Chen.conj_LFunction_of_nonprincipal_real_character,
+      ``Chen.real_character_conjugate_zero,
+      ``Chen.re_one_zero_pole_le_int_zero_pole,
+      ``Chen.sum_re_zero_poles_le_diskZeroPoleSum_re,
+      ``Chen.pair_re_zero_poles_le_diskZeroPoleSum_re,
+      ``Chen.real_conjugate_pole_pair_re,
+      ``Chen.norm_near_real_zero_shift_lt,
+      ``Chen.primitive_real_LFunction_logDeriv_re_ge_zero_pair,
+      ``Chen.principal_logDeriv_re_ge_of_pole_bound,
+      ``Chen.primitive_real_zero_inequality,
+      ``Chen.real_character_logDeriv_real_axis_le,
+      ``Chen.conjugate_pair_gap_contradiction,
+      ``Chen.exists_primitive_real_zero_box_im_eq_zero] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

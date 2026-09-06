@@ -23,3 +23,8 @@ import ChenTheorem.Lemma6.DirichletLogDerivativePositivity
 import ChenTheorem.Lemma6.CompactDirichletFamily
 import ChenTheorem.Lemma6.LFunctionZeroCount
 import ChenTheorem.Lemma6.LFunctionLocalZeroScale
+import ChenTheorem.Lemma6.RealZeroFreeReduction
+import ChenTheorem.Lemma6.PrincipalLogDerivativeBound
+import ChenTheorem.Lemma6.RealCharacterConjugation
+import ChenTheorem.Analysis.ZeroPoleSubsetRealPart
+import ChenTheorem.Lemma6.RealZeroBox

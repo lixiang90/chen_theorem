@@ -77,7 +77,14 @@ and explicit conductor-height estimates. Compact local zero-free strips and
 the classical three-four-one logarithmic-derivative inequality are also proved.
 Finite zero factorization now yields a primitive L-function local zero-pole
 expansion with an absolute conductor-height logarithmic error bound.
-The uniform height-dependent zero-free region and Siegel estimates remain unproved.
+The uniform logarithmic zero-free region is now proved for primitive characters
+with nonprincipal square. Exact change-of-level derivative formulas control
+imprimitive Euler factors, and the original remaining goal is reduced to
+primitive real characters. Their nonexceptional region and Siegel estimates
+remain unproved.
+For primitive real characters, conjugate-zero pairing now proves that any
+zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
+the possible exceptional real zero is not excluded by this result.
 
 The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
 shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
