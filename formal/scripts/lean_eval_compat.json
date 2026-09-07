@@ -38,5 +38,11 @@
       "old": "  have hmem (y : ℕ) (p : Nat.Primes) : p ∈ I y ↔ (p : ℕ) ≤ y := by\n    dsimp only [I]\n    rw [Finset.mem_image]\n    constructor\n    · rintro ⟨q, _, rfl⟩\n      exact (Nat.mem_primesLE.mp q.property).1\n    · intro hp\n      exact ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩\n",
       "new": "  have hmem (y : ℕ) (p : Nat.Primes) : p ∈ I y ↔ (p : ℕ) ≤ y := by\n    constructor\n    · intro hp\n      obtain ⟨q, _, rfl⟩ := Finset.mem_image.mp hp\n      exact (Nat.mem_primesLE.mp q.property).1\n    · intro hp\n      exact Finset.mem_image.mpr\n        ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩\n"
     }
+  ],
+  "ChenTheorem/Lemma9/LinearSieve/BuchstabLaplace.lean": [
+    {
+      "old": "    (s := 1) (p := 1) (by norm_num) le_rfl ht",
+      "new": "    (s := 1) (p := 1) (by norm_num) (by norm_num) ht"
+    }
   ]
 }

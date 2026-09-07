@@ -2,9 +2,9 @@
 
 提交日期：2026-09-07。
 
-- 官方提交：[lean-eval-submissions #1695](https://github.com/leanprover/lean-eval-submissions/issues/1695)
-- 自动验证：[run 34127446780](https://github.com/leanprover/lean-eval-submissions/actions/runs/34127446780)
-- 评测源码：[固定提交 a8d8292](https://github.com/lixiang90/chen_theorem/tree/a8d8292ba85931a416c44bc2a9be295b65966fda)
+- 当前提交：[lean-eval-submissions #1696](https://github.com/leanprover/lean-eval-submissions/issues/1696)
+- 自动验证：[run 34135760424](https://github.com/leanprover/lean-eval-submissions/actions/runs/34135760424)
+- 评测源码：[固定提交 947f799](https://github.com/lixiang90/chen_theorem/tree/947f7990ef9b9a0f1bd021f5ed489020d42e0d5b)
 - 原形式化证明：[提交 3264ad6](https://github.com/lixiang90/chen_theorem/tree/3264ad6acafa64ada18a309f48350d9acfd261ef)
 - 声明的系统：**OpenAI Codex (GPT-6 + GPT-5.6 Sol)**，在人类指导下完成。
 
@@ -58,31 +58,44 @@ lake build Solution
 lake test
 ```
 
-## 已验证与待返回的结果
+## 已验证与官方待验收结果
 
-- 原项目全部 9,571 个声明的公理审计通过；完整记录见 [STATUS.md](STATUS.md)。
-- 使用官方精确定义的题目桥接已在原工具链中通过类型检查，仅依赖三个标准公理。
-- 官方源码识别脚本恰好识别一个 `chen_theorem` 提交。
-- 可信文件与固定 benchmark Git blobs 的 SHA-256 一致。
-- 用固定 Git revisions 重新打包的 428 个文件经比对，证明、题目和许可证文本一致，来源元数据及所有 SHA-256 一致。
-- Linux 大小写敏感的本地导入检查通过；提交只依赖固定 Mathlib 及其正常传递依赖。
-- 提交归档为 1,022,756 字节，低于 10 MiB。
-- 官方提交格式检查、源码归档已成功；首次提交未通过编译，尚未进入 nanoda 重放。
-  官方日志报告 Fourier、Mertens 和 ShiftedLemma5 的固定版本兼容问题，已在本地修复并单独编译通过。
-- 本地 Lean 4.33.0 缓存已补齐。首次构建发现版本兼容问题，正在验证修复版，
-  尚未将完整版本迁移检查记为通过。修复版尚未发布为新的官方提交。
+- **固定 Lean 4.33.0 / Mathlib 环境下，完整 `lake build Solution` 通过（9,120 个 Lake 构建任务）。**
+- 提交桥接和官方最终定理的传递公理审计均通过：
 
-首次迁移发现的调整包括：显式使用 `Circle.norm_coe`，删除新版 `simp` 后
-已无目标可处理的两处 `rfl`，以及直接用 `Finset.mem_filter` 提取平移筛法的
-成员条件。后续还修复了 `setOf Nat.Prime` 的旧集合写法，以及 `Nat.Primes`
-类型别名展开后 `rw [Finset.mem_image]` 不匹配的问题；六个涉及修改的模块均已
-通过单独编译，完整下游构建继续进行。原版定理陈述及数学假设均未改变。
-Windows 默认并发曾导致内存分配
-失败，后续本地构建设置进程环境变量 `LEAN_NUM_THREADS=4`；此前受影响的模块
-在降低并发后已通过。
+```text
+'Submission.chen_theorem' depends on axioms: [propext, Classical.choice, Quot.sound]
+'chen_theorem' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
 
-只有官方结果返回成功，才能将本提交标为 LeanEval 接受。
-提交表单原文保存在 [lean-eval-submission.md](lean-eval-submission.md)。
+- 原项目 Lean 4.32.2 下全部 9,571 个声明的审计仍有效；记录见 [STATUS.md](STATUS.md)。
+- 429 个生成文件的复现比对通过，包含七处兼容性修改；可信文件与固定 Git blobs 的 SHA-256 一致。
+- 官方识别脚本恰好识别一个 `chen_theorem` 提交，可信文件与补丁哈希检查通过。
+- 大小写敏感导入检查通过；提交只依赖固定 Mathlib 及其正常传递依赖。
+- 最终提交归档为 **1,024,230 字节**，低于 10 MiB。
+- 修复版已提交为 #1696。**官方 comparator / nanoda 验收结果待返回**，以自动验证链接为准；本地构建通过不等于已获官方接受。
+
+官方 `Challenge.lean` 保留题目模板自带的占位证明，它不是提交证明的依赖。
+上述公理审计检查的是 `Submission.chen_theorem` 和官方 `Solution` 的实际证明。
+
+## 迁移记录
+
+首次提交 [#1695](https://github.com/leanprover/lean-eval-submissions/issues/1695)
+通过格式检查和归档，但未通过固定版本编译，未进入 nanoda 重放。
+官方日志报告 Fourier、Mertens、ShiftedLemma5 的兼容问题。
+
+本地完整迁移共调整七个模块，均保留定理陈述及数学假设：显式使用
+`Circle.norm_coe`；删除新版 `simp` 后多余的两处 `rfl`；直接通过
+`Finset.mem_filter` 和 `Finset.mem_image` 提取成员条件；更新旧的
+`setOf Nat.Prime` 写法；为新版指数积分引理显式证明指数 `1` 为正。
+全部修改记录在 `scripts/lean_eval_compat.json`，并随评测源码以
+`COMPATIBILITY.json` 发布。
+
+Windows 默认并发曾导致内存分配失败，最终成功构建使用进程环境变量
+`LEAN_NUM_THREADS=4`。原项目证明文件未作迁移修改。
+
+修复版表单原文保存在 [lean-eval-resubmission.md](lean-eval-resubmission.md)，
+首次表单保存在 [lean-eval-submission.md](lean-eval-submission.md)。
 
 来源：[提交入口](https://lean-lang.org/eval/submit/)、
 [API 与结果规则](https://github.com/leanprover/lean-eval-submissions)、
