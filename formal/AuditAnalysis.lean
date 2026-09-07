@@ -1,3 +1,4 @@
+import ChenTheorem.Lemma6.BiquadraticTaylorLower
 import ChenTheorem.Lemma6.BiquadraticLSeries
 import ChenTheorem.Analysis.SiegelTaylorInequality
 import ChenTheorem.Lemma6.RealSiegelReduction
@@ -217,7 +218,37 @@ run_cmd do
       ``Chen.siegelTaylor_lower_bound,
       ``Chen.norm_backwardTaylorCoeff_le,
       ``Chen.hasSum_backwardTaylorCoeff,
-      ``Chen.backwardTaylorCoeff_nonneg_of_alternating] do
+      ``Chen.backwardTaylorCoeff_nonneg_of_alternating,
+      ``Chen.backwardTaylorCoeff_inv_sub_one,
+      ``Chen.backwardTaylorCoeff_const_mul,
+      ``Chen.backwardTaylorCoeff_pole,
+      ``Chen.backwardTaylorCoeff_sub,
+      ``Chen.backwardTaylorCoeff_regularizedZetaMul,
+      ``Chen.hasSum_regularizedZetaMul_backwardTaylor,
+      ``Chen.zetaPoleFactor_one,
+      ``Chen.zetaPoleFactor_eq,
+      ``Chen.differentiable_zetaPoleFactor,
+      ``Chen.differentiable_regularizedZetaMul,
+      ``Chen.regularizedZetaMul_eq,
+      ``Chen.differentiable_biquadraticHolomorphicFactor,
+      ``Chen.differentiable_biquadraticRegularPart,
+      ``Chen.biquadraticRegularPart_eq,
+      ``Chen.biquadraticRegularPart_at_zero,
+      ``Chen.zeta_mul_biquadraticHolomorphicFactor,
+      ``Chen.backwardTaylorCoeff_biquadraticRegularPart,
+      ``Chen.hasSum_biquadraticRegularPart_backwardTaylor,
+      ``Chen.norm_biquadraticRegularPart_circle_le,
+      ``Chen.norm_biquadraticTaylor_sub_residue_le,
+      ``Chen.norm_biquadraticHolomorphicFactor_compact_le,
+      ``Chen.norm_biquadraticResidue_le,
+      ``Chen.norm_biquadraticTaylor_sub_residue_le_level,
+      ``Chen.biquadraticResidue_eq_re,
+      ``Chen.biquadraticLFunction_taylor_lower_bound,
+      ``Chen.norm_dirichletEulerFactor_le_prime,
+      ``Chen.norm_dirichletEulerProduct_le_level,
+      ``Chen.norm_nonprincipal_LFunction_compact_le,
+      ``Chen.siegel_circle_geometry,
+      ``Chen.norm_riemannZeta_siegel_circle_le] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

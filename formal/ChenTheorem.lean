@@ -32,3 +32,4 @@ import ChenTheorem.Lemma6.RealZeroSimplicity
 import ChenTheorem.Lemma6.RealSiegelReduction
 import ChenTheorem.Lemma6.BiquadraticLSeries
 import ChenTheorem.Analysis.SiegelTaylorInequality
+import ChenTheorem.Lemma6.BiquadraticTaylorLower
