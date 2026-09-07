@@ -20,10 +20,16 @@ also typechecked and axiom-audited against that original proof. The submitted
 workspace targets the benchmark's Lean 4.33.0 and fixed Mathlib revision;
 LeanEval's comparator and independent nanoda replay determine acceptance.
 
+The exact submitted `lake build Solution` passes under that fixed Lean 4.33.0
+environment (9,120 Lake jobs). Both `Submission.chen_theorem` and the trusted
+`Solution` theorem `chen_theorem` were then audited with `#print axioms`; each
+depends only on `propext`, `Classical.choice`, and `Quot.sound`.
+
 `COMPATIBILITY.json` records the exact proof-step changes needed for the pinned
 Mathlib revision. Its newline-normalized SHA-256 is recorded in `PROVENANCE.json`.
-These changes make simplification and filtered membership reasoning explicit;
-they do not alter theorem statements or introduce additional assumptions.
+These changes make simplification, membership reasoning, and library side
+conditions explicit; they do not alter theorem statements or introduce
+additional assumptions.
 
 The development follows Chen's 1973 argument and includes locally copied
 PNT/Mertens/Perron proofs from PrimeNumberTheoremAnd, commit

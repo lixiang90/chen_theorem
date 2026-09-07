@@ -15,7 +15,7 @@ noncomputable def buchstabLaplace (t : ℝ) : ℝ :=
 theorem integrableOn_mul_exp_neg (t : ℝ) (ht : 0 < t) :
     IntegrableOn (fun s : ℝ => s * Real.exp (-t * s)) (Ioi 1) := by
   have h := integrableOn_rpow_mul_exp_neg_mul_rpow
-    (s := 1) (p := 1) (by norm_num) le_rfl ht
+    (s := 1) (p := 1) (by norm_num) (by norm_num) ht
   simp only [Real.rpow_one] at h
   exact h.mono_set (Ioi_subset_Ioi (by norm_num))
 

@@ -4,7 +4,7 @@
   "benchmark_commit": "6b4b87b672f5301f24983a12fda65dac608453ce",
   "problem_id": "chen_theorem",
   "declared_system": "OpenAI Codex (GPT-6 + GPT-5.6 Sol)",
-  "compatibility_patch_sha256": "89748ebbcdedf1481451ccc79bdb2c778fb8068a57c24afa7bf0455236df14b8",
+  "compatibility_patch_sha256": "a2a4be9265c6c7725677b42426cb263af418c283c78cb00e30249e3f93f74565",
   "source_sha256": {
     "ChenTheorem.lean": "580e3a281562a167602b0deee4b5f3b4dd6d9546deb87dcb5ab6498dabb19f49",
     "ChenTheorem/Analysis/AnalyticLogBranch.lean": "e5a3976069606b1c432fa9dbba647f55540f1ce5f4669eb762646cf48e75c4c8",
