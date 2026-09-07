@@ -45,7 +45,7 @@ summation, and the Bombieri--Vinogradov progression estimate. Both the
 original Goldbach family and the fixed-shift family are covered below.
 
 The sieve specialization introduces no axiom. The unconditional BV theorem
-still inherits the explicitly recorded primitive zero-free-region gap.
+uses the locally proved primitive zero-free region, including Siegel's bound.
 -/
 
 /-- The two sieve families to which Chen applies the same Richert--Bombieri

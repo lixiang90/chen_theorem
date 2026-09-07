@@ -246,7 +246,7 @@ theorem statement_of_primitiveZeroFreeRegion
 
 /-- **Bombieri--Vinogradov.**  All algebraic, large-sieve, Vaughan,
 imprimitive-character, smoothing, and contour steps are proved in the
-preceding files; the sole remaining analytic trust boundary is
+preceding files, using the proved analytic package
 `Chen.primitive_zero_free_region`. -/
 theorem bombieriVinogradov : Statement :=
   statement_of_primitiveZeroFreeRegion Chen.primitive_zero_free_region

@@ -8,8 +8,8 @@ The deduction of Theorem 1 is:
 and `2.6408 - 1.9702 = 0.6706 > 0.67`, the term `x^{0.91}` being negligible
 against `x C_x/(log x)²` (using `C_x ≥ twinConst > 0`).
 
-The remaining analytic inputs are isolated in their supporting modules; this
-file proves the final deductions from those named interfaces.
+The analytic inputs are proved in their supporting modules; this file
+proves the final deductions from those named interfaces.
 -/
 import ChenTheorem.Main.KeyInequality
 import ChenTheorem.Main.ShiftedEstimate

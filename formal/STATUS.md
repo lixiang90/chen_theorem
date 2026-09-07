@@ -1,27 +1,30 @@
-# 形式化审计与待完成证明
+# 形式化审计与完成记录
 
 审计日期：2026-09-07。Lean / Mathlib：`v4.32.2`。
 
-**项目尚未完成无条件形式化。** 主定理仍依赖 `primitive_zero_free_region` 中的一个 `sorry`；项目已无额外 `axiom` 声明。
-此项是实质数学输入，不能用构建成功、隐藏警告、改名或将其移为参数来宣称完成。
+**陈定理主结论及其定量形式的无条件形式化已完成，全部验证通过。**
+最后一个 `sorry` 已由实轴 Siegel 界的完整证明替换；项目没有额外 `axiom`
+声明。415 个本地模块中的全部 9,571 个声明均已通过内核公理审计，
+只依赖 `propext`、`Classical.choice`、`Quot.sound`。
 
-## 已核实的进度
+## 当前证明状态
 
-原有 `ChenTheorem/` 数学部分有 96 个模块、约 74,000 行源码（不含本次迁入内容）。
-以下区分证明本身与上游尚未证明的输入；源码行数不表示数学完成百分比。
-各阶段记录中的“仍待完成”描述该阶段；当前状态以本表、最后的已完成阶段和零点区域缺口清单为准；早期阶段记录保留当时状态。
+原有 `ChenTheorem/` 数学部分有 96 个模块、约 74,000 行源码（不含迁入内容）。
+完成过程新增了分析与筛法支持模块，当前共有 415 个源码文件（包括根导入文件）。
+源码行数不表示数学完成百分比。下文各阶段记录中的“仍待完成”描述当时状态；
+当前状态以本表、Siegel 完成阶段及文末验证结果为准。
 
-| 部分 | 状态与依赖 |
+| 部分 | 当前状态 |
 | --- | --- |
-| 引理 1、2、4、5 | 已有证明，包括平滑核、大筛、本原特征求和、筛分解 |
-| 引理 3 | 已证明后续实际使用的、带高度对数项的四阶矩版本；论文印出的更强版本没有被冒充为已证定理 |
-| 引理 6、方程 (12)–(21) | 代数、大导数范围和有限矩形轮廓步骤已有证明；小导数范围仍依赖零点自由区域输入 |
-| 引理 7 | 已有证明；PNT 输入现在来自项目内的完整证明 |
-| 引理 8 | Mertens、两次 Abel 求和与积分估计已有证明；通过引理 6 继承零点区域缺口 |
-| 独立 Bombieri–Vinogradov 证明 | `statement_of_primitiveZeroFreeRegion` 是有明确假设的已证推论；无条件包装 `bombieriVinogradov` 仍含 `sorryAx` |
-| 引理 9 | 有限 Rosser 筛、BV 余项控制、计数转换、筛乘积归一化、误差吸收及总缺陷的全局归纳均已证明；已有 `F/f` 统一多项式渐近界、`2e^γ` 校准、连续主项、实际素数和与取整参数的完整组装；方程 (26) 已由定理证明，继承 BV 的零点区域缺口 |
-| 积分 (24)、(27)、组合不等式 (28) | 已有证明 |
-| 定理 1、定理 2及其定量形式 | 推导已有证明，但都继承下面的零点区域未证明输入 |
+| 引理 1、2、4、5 | 已证明，包括平滑核、大筛、本原特征求和和筛分解 |
+| 引理 3 | 后续实际使用的带高度对数项的四阶矩版本已证明；没有断言论文印出的更强版本 |
+| 引理 6、方程 (12)–(21) | 已证明，包括完整混合零点自由区域、Siegel 界及有限矩形轮廓估计 |
+| 引理 7 | 已证明；PNT 使用项目内完整证明 |
+| 引理 8 | 已证明，包括 Mertens、两次 Abel 求和与积分估计 |
+| 独立 Bombieri–Vinogradov 证明 | 无条件定理 `bombieriVinogradov : Statement` 的全部输入已证明 |
+| 引理 9 | 有限 Rosser 筛、统一渐近界、`2e^γ` 校准、实际素数和、取整参数、BV 余项及计数转换均已证明；方程 (26) 不再是公理 |
+| 积分 (24)、(27)、组合不等式 (28) | 已证明 |
+| 定理 1、定理 2及其定量形式 | 原陈述不变，所有上游输入已有证明，最终内核检查通过 |
 
 ## 本次完成的依赖迁移
 
@@ -1630,19 +1633,36 @@ log(5(6 sqrt(q) log(2q) (‖c‖+1/2)+1)) / log(4/3).
 `L(1,χ)` 及邻近导数的适当对数界，处理不同本原特征的共同升模，并完成
 固定例外特征与非有效常数的选择；本阶段尚未证明实轴 Siegel 界。
 
-## 尚未完成：Siegel 界
+## 已完成：Siegel 实轴零点界与最后一个占位证明消除
 
-位置：`ChenTheorem/Lemma6/ZeroFreeRegion.lean`，
-`primitive_zero_free_region : PrimitiveZeroFreeRegion` 中唯一的 `sorry`。
+本阶段新增 10 个模块、21 项支持定理，并补完原来的
+`primitive_zero_free_region : PrimitiveZeroFreeRegion`。未改变该接口、最终
+主定理陈述或计数定义，没有把原证明义务替换成参数或新的公理。
 
-现在只需证明：对每个固定正整数 `N`，存在 `cS>0`，使所有模数 `q≥2`
-的本原实特征 `χ` 在实轴区间 `β>1−cS*q^(−1/N)` 上不消失。
-常数可以非有效。已经证明的非例外区域排除了非实零点和非实特征的零点，
-但不能代替这一关于可能例外实零点距离 1 的下界。
+1. `Analysis/GeometricTruncation` 与 `Lemma6/BiquadraticTruncation` 明确选择
+   截断阶数，把 Taylor 尾项压至 `1/2`，并得到实际四重 L 乘积的留数下界。
+   若 `L(β₁,χ)=0`、`7/8<β₁<1`，留数至少为
+   `(1−β₁)/(2 C q^(36(1−β₁)))`，其中 `C>0` 是明确的绝对常数。
+2. `Analysis/{ThreeCircleBound,TwoDiskInterpolation,SmallPowerDiskGeometry}`
+   从 mathlib 的三线定理推出三圆界，并选择适合任意正指数的圆盘。
+   `Lemma6/NonprincipalSmallPower` 将右半平面 Euler 界和粗多项式增长界
+   插值为 1 的共同邻域上的 `K q^ε` 界，适用于所有非主特征。
+3. `NonprincipalSmallPowerDerivative` 用 Cauchy 估计控制导数，再沿实线段
+   积分，证明近旁零点 `β₂` 给出 `|L(1,ψ)|≤D q^ε(1−β₂)`。
+   `RealZeroRepulsion` 与留数下界合并，证明不同实特征零点间的定量排斥。
+4. `RealCharacterChangeLevelZeros` 证明 `Re(s)>0` 时升模 Euler 因子非零，
+   因而零点可双向传递；同时证明实特征性质保持、主乘积时特征相等，以及
+   固定非主特征在 1 邻域内不消失。
+5. `RealCharacterSiegel` 按是否存在一个足够靠近 1 的实例外零点分类。
+   不存在时直接得到统一界；存在时固定其特征，将任意另一特征升至共同模数。
+   两者不同时用零点排斥，相同时用固定特征在 1 附近的非消失性。
+   由此对每个 `ε>0` 证明存在 `c>0`，所有模数 `q≥2` 的非主实特征均满足
+   `β>1−c q^(−ε) ⇒ L(β,χ)≠0`。常数的选择是非有效的，符合 Siegel 定理。
+6. 取 `ε=1/N` 并应用已有 `primitiveZeroFreeRegion_of_real_siegel`，完成
+   原混合区域及其半宽对数导数估计，删除整个项目最后一个 `sorry`。
 
-`primitiveZeroFreeRegion_of_real_siegel` 已证明该输入足以完成原混合区域，
-随后半宽区域对数导数界、引理 6、BV、Richert 方程 (26) 和主定理均由
-现有证明链推出。该输入尚未证明，因此项目仍不是无条件完成的形式化。
+上述 21 项支持定理与完整区域定理均已通过内核公理审计，只使用
+`propext`、`Classical.choice`、`Quot.sound`。
 
 ## 已完成：实际素数和、取整参数及 Richert 公理消除
 
@@ -1669,8 +1689,8 @@ log(5(6 sqrt(q) log(2q) (‖c‖+1/2)+1)) / log(4/3).
 
 前述 43 项支持定理的公理审计仅允许标准公理；涉及 BV 的支持定理显式取
 `BombieriVinogradov.Statement` 为参数。最终 `richert_bombieri_equation26`
-使用项目中的 BV 定理，因此只继承零点区域的 `sorryAx`。筛法本身的额外公理
-已消除，整个陈定理仍不能标为无条件完成。
+使用项目中的 BV 定理。本阶段当时只剩上游零点区域缺口，该缺口已由本轮
+Siegel 证明消除。筛法本身不含额外公理。
 
 ## 可重复验证
 
@@ -1682,32 +1702,41 @@ lake build
 lake env lean AuditAnalysis.lean
 lake env lean AuditSieve.lean
 lake env lean Audit.lean
+lake env lean AuditAll.lean
 ```
 
-`AuditAnalysis.lean` 验证 PNT、Mertens 第二及第三定理、Perron 公式及自然数
-截断 Euler 素数乘积归一化的实际内核公理闭包，允许且仅允许
-`propext`、`Classical.choice`、`Quot.sound`。原有十八项加上十六项区域定理、
-六项局部条带及有限范围补接定理和九项相位/对数导数不等式定理，
-再加一项本原 L 函数的局部零点计数，以及本阶段 38 项零点分解与局部展开定理，
-再加本阶段 50 项零点实部、升模、非实区域、主特征极点及实特征局部零点定理，
-再加 10 项实零点唯一性、单重性及其支持定理、27 项完整非例外区域定理，
-以及 22 项四重乘积正性和 Taylor 工具、30 项实际去极点展开与增长界，
-共 227 项通过审计。
+四组审计通过 `Lean.collectAxioms` 检查实际证明项的传递公理闭包，
+仅允许 `propext`、`Classical.choice`、`Quot.sound`。`sorryAx` 或任何
+额外公理都会触发错误，构建成功不能代替公理审计。
+`AuditAll.lean` 遍历入口文件导入的全部项目声明；依赖检查同时要求全部本地
+模块都能从入口到达，避免未使用的支持模块逃过审计。
 
-`Audit.lean` 是整个项目的完成门槛：主定理或定量形式只要仍含额外公理就会报错。
-最新完整构建通过（4189 个构建任务），依赖检查通过（405 个源码文件），
-`AuditAnalysis.lean` 的 227 项通过；未修改的筛法部分保持前轮 `AuditSieve.lean`
-的 930 项通过结果。最新 `Audit.lean` 的六个
-有限筛检查通过；方程 (26) 及五个最终定理检查均仅因 `sorryAx` 失败（共六项，退出码 1）。
-这是当前最终定理的实际内核结果：
+本轮最终结果（所有命令退出码均为 0）：
 
-| 定理 | 标准公理以外的依赖 |
+| 检查 | 结果 |
 | --- | --- |
-| `Chen.richert_bombieri_equation26` | `sorryAx` |
-| `Chen.chen_theorem` | `sorryAx` |
-| `Chen.chen_twin` | `sorryAx` |
-| `Chen.chenCount_lower` | `sorryAx` |
-| `Chen.chenCountShift_lower` | `sorryAx` |
-| `Chen.BombieriVinogradov.bombieriVinogradov` | `sorryAx` |
+| 完整 `lake build` | 4,202 个构建任务，通过 |
+| `AuditAnalysis.lean` | 249 项，通过，包含 Siegel 界与完整零点区域 |
+| `AuditSieve.lean` | 930 项，通过 |
+| `Audit.lean` | 12 项，通过，包含全部六项最终数学结果 |
+| `AuditAll.lean` | 415 个模块的全部 9,571 个声明，通过 |
+| 依赖与入口覆盖检查 | 415 个源码文件全部覆盖；mathlib 唯一直接依赖，8 个正常传递依赖 |
+| 源码检查 | 无 `sorry` / `admit` 占位证明，无额外公理声明 |
 
-只有这些额外依赖全部消失且完整构建通过，才满足本项目的最终完成目标。
+最终定理的实际内核结果：
+
+| 定理 | 公理依赖 |
+| --- | --- |
+| `Chen.richert_bombieri_equation26` | 仅三个标准公理 |
+| `Chen.chen_theorem` | 仅三个标准公理 |
+| `Chen.chen_twin` | 仅三个标准公理 |
+| `Chen.chenCount_lower` | 仅三个标准公理 |
+| `Chen.chenCountShift_lower` | 仅三个标准公理 |
+| `Chen.BombieriVinogradov.bombieriVinogradov` | 仅三个标准公理 |
+
+最后的 Siegel 界消除了此前所有最终定理共同继承的 `sorryAx`。
+这些结论没有增加数学假设，PNT/Mertens/Perron 的本地迁移没有恢复外部依赖。
+
+完成的是陈定理、固定偶数平移版及其定量结论所需的证明链。引理 3 使用已记录的
+高度对数修正版，式 (25) 使用足够的渐近相对误差结论；没有宣称论文印出的
+更强中间估计也已得到证明。

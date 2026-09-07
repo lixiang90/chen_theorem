@@ -112,5 +112,6 @@ The current status is:
 * `lemma6_deriv_fourth_moment_of_lFunction_fourth_moment_with_height_log`
   transfers the proved form to the derivative moment;
 * `Lemma6/Core.lean` instantiates that transfer and the full Lemma 6 build
-  succeeds.  The separate classical zero-free-region input remains the only
-  `sorry` in the Lemma 6 analytic chain.
+  succeeds. The separate classical zero-free-region input is now also proved,
+  including the ineffective real Siegel bound; the Lemma 6 analytic chain
+  has no remaining proof placeholders.

@@ -1,3 +1,4 @@
+import ChenTheorem.Lemma6.ZeroFreeRegion
 import ChenTheorem.Lemma6.BiquadraticTaylorLower
 import ChenTheorem.Lemma6.BiquadraticLSeries
 import ChenTheorem.Analysis.SiegelTaylorInequality
@@ -248,7 +249,29 @@ run_cmd do
       ``Chen.norm_dirichletEulerProduct_le_level,
       ``Chen.norm_nonprincipal_LFunction_compact_le,
       ``Chen.siegel_circle_geometry,
-      ``Chen.norm_riemannZeta_siegel_circle_le] do
+      ``Chen.norm_riemannZeta_siegel_circle_le,
+      ``Chen.geometric_pow_le_exp_quarter,
+      ``Chen.exists_geometric_truncation,
+      ``Chen.one_add_pow_le_exp_of_nat_le,
+      ``Chen.siegelTruncationConstant_pos,
+      ``Chen.exists_biquadratic_truncation,
+      ``Chen.biquadraticResidue_lower_of_nonpos,
+      ``Chen.biquadraticResidue_lower_of_real_zero,
+      ``Chen.norm_le_three_circle,
+      ``Chen.norm_le_small_power_of_two_disks,
+      ``Chen.exists_small_power_disk_radius,
+      ``Chen.exists_nonprincipal_small_power_disk,
+      ``Chen.exists_nonprincipal_LFunction_one_small_power,
+      ``Chen.exists_nonprincipal_deriv_small_power_disk,
+      ``Chen.exists_nonprincipal_one_bound_of_real_zero,
+      ``Chen.exists_real_zero_repulsion_bound,
+      ``Chen.dirichletEulerFactor_ne_zero_of_re_pos,
+      ``Chen.LFunction_changeLevel_zero_iff,
+      ``Chen.real_character_changeLevel,
+      ``Chen.real_character_eq_of_mul_eq_one,
+      ``Chen.exists_nonprincipal_one_nonvanishing_ball,
+      ``Chen.exists_real_character_siegel_region,
+      ``Chen.primitive_zero_free_region] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then

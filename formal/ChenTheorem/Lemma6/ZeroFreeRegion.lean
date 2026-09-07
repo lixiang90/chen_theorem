@@ -18,26 +18,26 @@ in the region with half that width, leaving quantitative distance from all
 zeros.  Its deliberately generous bound includes the possible
 `q^(1/300)` cost of a nearby exceptional zero.
 
-Mathlib currently proves only nonvanishing in `re s >= 1`.  The definition
-`PrimitiveZeroFreeRegion` below records the missing classical package as a
-proposition, and `primitive_zero_free_region` is the single `sorry` in the
-equation-(21) pipeline.  The contour argument consuming it must use a finite
-height; no claim of height-uniform fixed-width nonvanishing is made here.
+The classical package is proved locally from mathlib: the logarithmic
+nonexceptional region, the ineffective real Siegel bound, and the companion
+logarithmic-derivative estimate. The contour argument consuming it uses a
+finite height; no height-uniform fixed-width nonvanishing is asserted.
 -/
 import ChenTheorem.Lemma6.RealSiegelReduction
+import ChenTheorem.Lemma6.RealCharacterSiegel
 
 namespace Chen
 
-/-- **The single unresolved analytic input of the equation-(21) pipeline.**
-
-The full logarithmic region, including the possible exceptional zero being
-real and simple, is proved in `PrimitiveExceptionalRegion`. The remaining
-goal is only the ineffective Siegel bound on the real axis at every fixed
-positive exponent. `primitiveZeroFreeRegion_of_real_siegel` supplies the
-nonexceptional region and the companion logarithmic-derivative estimate. -/
+/-- The mixed Dirichlet zero-free region and its half-width logarithmic
+derivative bound, including Siegel's ineffective exceptional-zero estimate. -/
 theorem primitive_zero_free_region : PrimitiveZeroFreeRegion := by
   apply primitiveZeroFreeRegion_of_real_siegel
   intro N hN
-  sorry
+  have hNpos : (0 : ℝ) < N := by exact_mod_cast (by omega : 0 < N)
+  obtain ⟨c, hc, hsiegel⟩ := exists_real_character_siegel_region (by positivity : 0 < 1 / (N : ℝ))
+  refine ⟨c, hc, ?_⟩
+  intro q inst χ hq hχ hsq β hβ
+  apply hsiegel q χ hq (primitiveCharacter_ne_one hq hχ) hsq β
+  simpa only [neg_div] using hβ
 
 end Chen

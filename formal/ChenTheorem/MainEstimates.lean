@@ -61,7 +61,7 @@ theorem sieveMSmallTail_le
     simpa [mul_div_assoc] using
       (mul_le_mul_of_nonneg_left hpower hC.le))
 
-/-- The sole remaining two-dimensional upper-sieve input in formula (5).
+/-- The two-dimensional upper-sieve estimate used in formula (5).
 Here the base prime of `n` is larger than `x^(1/100)`, so both `n` and
 `x-p₁p₂n` avoid all primes up to `x^(1/100)`. -/
 theorem smoothingBoundaryLargeBaseMass_le :

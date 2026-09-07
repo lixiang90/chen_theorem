@@ -1,7 +1,7 @@
 # Chen's Theorem (1 + 2)
 
 A LaTeX transcription (Chinese original + English translation) and an
-in-progress Lean 4 / Mathlib formalization of Chen Jingrun's landmark 1973
+Lean 4 / Mathlib formalization of Chen Jingrun's landmark 1973
 paper:
 
 > 陈景润, 《大偶数表为一个素数及一个不超过二个素数的乘积之和》, 中国科学 **16** (1973), 111–128.
@@ -39,69 +39,45 @@ Each may need to be run twice to resolve cross-references.
 
 ## The Lean formalization
 
-The only direct Lake dependency is Mathlib. Necessary PNT/Mertens/Perron
-proofs are included as project sources with their original license and provenance.
-See [the current audit](formal/STATUS.md); the main theorem still has one
-unproved mathematical input, the primitive Dirichlet zero-free-region package.
+`formal/` targets Lean `v4.32.2` / Mathlib `v4.32.2`. It proves Chen's theorem,
+its fixed even-shift analogue, and both quantitative counting bounds. The
+original main theorem statements are unchanged. See the [formalization audit](formal/STATUS.md)
+for the proof history and kernel checks.
 
-`formal/` is a Lake project targeting Lean `v4.32.2` / Mathlib `v4.32.2`. It
-states every definition, lemma, and theorem of the paper in Lean. Lemmas 1, 2,
-4, 5, and 7 are fully proved; the corrected height-logarithmic form of Lemma 3
-is also proved and is sufficient for the later argument.  The Mertens theorem
-and both prime-reciprocal partial-summation steps used in Lemma 8 have now been
-proved in Lean using locally included Apache-2.0 analytic proofs, and the numerical integrals (24)
-and (27) and inequality (28) are machine-checked without `sorryAx`.
+Mathlib is the only direct Lake dependency. The necessary PNT, Mertens and
+Perron proofs are included locally, with their Apache-2.0 license and pinned
+source provenance. Building does not use a linked `PrimeNumberTheoremAnd` checkout.
 
-One unproved analytic input remains: `primitive_zero_free_region` supplies the
-mixed Dirichlet zero-free region. Its remaining proof obligation is now only
-the real-axis Siegel bound; the full nonexceptional region is proved. The companion
-logarithmic-derivative estimate is now proved from nonvanishing in that mixed
-region. Lemma 6 and the standalone level-`1/2`
-Bombieri--Vinogradov theorem both depend on this documented `sorry`.
+The final analytic input, Siegel's ineffective real zero-free region, is now
+proved using the positive four-L-function product, its regularized Taylor
+series, small-power bounds near one, and two-character zero repulsion.
+Together with the logarithmic nonexceptional region this completes the
+zero-free-region package used by Lemma 6 and Bombieri–Vinogradov.
 
-The extra `richert_bombieri_equation26` axiom has been replaced by a theorem
-with the same statement. Its proof constructs finite Rosser weights, proves
-uniform discrete-to-continuous error bounds, calibrates the linear-sieve
-constant as `2 exp γ`, and computes the continuous profile in equation (26).
-Mertens/Abel summation now evaluates the actual `1/φ(p)`-weighted middle-prime
-sum. Uniform control of rounded parent and child levels transfers the
-continuous bounds to the actual polynomials. Combining these with the sieve
-product normalization and the proved BV remainder/count-conversion bounds
-establishes equation (26) for both original and fixed-shift families.
+The Richert–Bombieri sieve axiom has also been replaced by a proof with the
+same statement: finite Rosser weights, uniform discrete-to-continuous bounds,
+the `2 exp(γ)` calibration, actual weighted prime sums, and rounded sieve levels.
+There are no remaining proof placeholders or added mathematical axioms.
 
-The new sieve and parameter-assembly proofs introduce no mathematical axioms.
-The main theorems still inherit `sorryAx` from the single zero-free-region
-gap, so this project is not yet a completed unconditional formalization. The remaining
-analysis now derives the full half-width logarithmic-derivative estimate
-from mixed-region nonvanishing, using disk geometry, Euler/Möbius bounds,
-and explicit conductor-height estimates. Compact local zero-free strips and
-the classical three-four-one logarithmic-derivative inequality are also proved.
-Finite zero factorization now yields a primitive L-function local zero-pole
-expansion with an absolute conductor-height logarithmic error bound.
-The uniform logarithmic zero-free region is now proved for primitive characters
-with nonprincipal square. Exact change-of-level derivative formulas control
-imprimitive Euler factors, and the original remaining goal is reduced to
-primitive real characters. The full nonexceptional region is now proved for
-all primitive characters. The remaining goal is only the real-axis Siegel bound.
-For primitive real characters, conjugate-zero pairing now proves that any
-zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
-any such zero is now also proved unique and simple in a uniform smaller box.
-The possible exceptional real zero is not excluded, and its Siegel distance
-bound remains unproved.
+The formalization uses a corrected height-logarithmic version of the paper's
+Lemma 3 and the asymptotic strength of equation (25) needed for the conclusion;
+it does not claim the stronger printed intermediate estimates. See
+[the correspondence and design notes](formal/README.md).
 
-The remaining deductions in the fixed-shift chain are explicit: the parallel Lemmas 1--9, the
-shifted combinatorial inequality (28), the numerical `0.67` deduction, and the
-passage from even auxiliary scales to every sufficiently large scale are all
-machine-checked.  In particular the former aggregate `sorry` in
-`chenCountShift_lower_estimate` has been removed.  The final numerical
-deduction and representation extraction for Theorem 1, and the infinitude
-deduction for Theorem 2, are proved from the
-named upstream estimates in `Main.lean`. See
-[`formal/README.md`](formal/README.md) for the build instructions, the full
-correspondence table, and design notes.
-
-```
+```text
 cd formal
 lake exe cache get
+python scripts/check_dependencies.py
 lake build
+lake env lean AuditAnalysis.lean
+lake env lean AuditSieve.lean
+lake env lean Audit.lean
+lake env lean AuditAll.lean
 ```
+
+The audits accept only `propext`, `Classical.choice`, and `Quot.sound`.
+The final audit checks the actual main theorem proof terms transitively.
+
+Validation: the full build passes; all 9,571 declarations in the 415 local
+modules pass the axiom audit. The focused analysis, sieve and main-theorem
+audits pass 249, 930 and 12 checks respectively.

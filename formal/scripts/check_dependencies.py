@@ -17,8 +17,11 @@ actual = {p['name'] for p in manifest['packages']}
 assert actual == allowed, f'Unexpected package set: {actual ^ allowed}'
 
 files = [Path('ChenTheorem.lean'), *Path('ChenTheorem').rglob('*.lean')]
+local_imports = {}
 for file in files:
     source = file.read_text(encoding='utf-8-sig')
+    module = '.'.join(file.with_suffix('').parts)
+    local_imports[module] = []
     for imported in re.findall(r'^(?:public )?import\s+(\S+)', source, re.M):
         assert imported.split('.')[0] in {
             'ChenTheorem', 'Mathlib', 'Lean', 'Batteries', 'Aesop', 'Qq',
@@ -26,5 +29,20 @@ for file in files:
         if imported.startswith('ChenTheorem.'):
             local = Path(*imported.split('.')).with_suffix('.lean')
             assert local.is_file(), f'{file}: missing local module {imported}'
+            local_imports[module].append(imported)
+
+# AuditAll imports the public entry point. Require it to cover every local
+# source, so an unused support module cannot silently escape the kernel audit.
+reachable = set()
+pending = ['ChenTheorem']
+while pending:
+    module = pending.pop()
+    if module not in reachable:
+        reachable.add(module)
+        pending.extend(local_imports[module])
+assert reachable == local_imports.keys(), (
+    f'Modules missing from the public entry point: {sorted(local_imports.keys() - reachable)}'
+)
 print(f'PASS: {len(files)} source files; mathlib is the sole direct dependency; '
-      f'{len(actual) - 1} standard mathlib transitive packages.')
+      f'{len(actual) - 1} standard mathlib transitive packages; '
+      'all local modules are covered by the public entry point.')

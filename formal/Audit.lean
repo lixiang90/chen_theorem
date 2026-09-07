@@ -3,7 +3,7 @@ import Lean.Util.CollectAxioms
 
 /- Completion gate. A successful build alone does not establish completion.
 Run: lake env lean Audit.lean
-This command must fail until all remaining mathematical inputs are proved. -/
+This command fails if any audited result acquires an unproved input. -/
 run_cmd do
   let allowed := [``propext, ``Classical.choice, ``Quot.sound]
   for name in [``Chen.LinearSieve.sum_divisors_multSum,
