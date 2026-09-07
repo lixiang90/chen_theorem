@@ -1690,14 +1690,13 @@ theorem shiftedSmoothedRoughM_le_squareSieveExpansion
               (Nat.dist h (q.1 * q.2 * n))) ^ 2 := by
       apply Finset.sum_congr rfl
       intro n hn
-      have hn' := hn
-      simp only [shiftedSieveMIndices, Finset.mem_filter,
-        Finset.mem_range, shiftedRough] at hn'
+      have hn' : shiftedRough h x (q.1 * q.2 * n) :=
+        (Finset.mem_filter.mp hn).2.2
       have hdist :
           Nat.dist h (q.1 * q.2 * n) = q.1 * q.2 * n - h :=
-        Nat.dist_eq_sub_of_le hn'.2.2.1.le
+        Nat.dist_eq_sub_of_le hn'.1.le
       rw [hdist, shiftedSieveDivisorSum_eq_one_of_rough
-        (show 1 ≤ x by omega) hε0 hn'.2.2.2]
+        (show 1 ≤ x by omega) hε0 hn'.2]
       ring
     _ ≤ ∑ n ∈ smoothedMIndices x q,
           smoothedMKernel x q n *

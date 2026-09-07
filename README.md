@@ -20,6 +20,11 @@ also typechecked and axiom-audited against that original proof. The submitted
 workspace targets the benchmark's Lean 4.33.0 and fixed Mathlib revision;
 LeanEval's comparator and independent nanoda replay determine acceptance.
 
+`COMPATIBILITY.json` records the exact proof-step changes needed for the pinned
+Mathlib revision. Its newline-normalized SHA-256 is recorded in `PROVENANCE.json`.
+These changes make simplification and filtered membership reasoning explicit;
+they do not alter theorem statements or introduce additional assumptions.
+
 The development follows Chen's 1973 argument and includes locally copied
 PNT/Mertens/Perron proofs from PrimeNumberTheoremAnd, commit
 `c6c73610b406689c4b58325cbe1342ecca25d755`, with Apache-2.0 notices and provenance

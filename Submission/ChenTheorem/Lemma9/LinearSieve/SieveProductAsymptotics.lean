@@ -10,13 +10,13 @@ theorem twinPartialProduct_tendsto : Tendsto twinPartialProduct atTop (nhds twin
   let I : ℕ → Finset Nat.Primes := fun y => y.primesLE.attach.image
     (fun p => (⟨p.val, (Nat.mem_primesLE.mp p.property).2⟩ : Nat.Primes))
   have hmem (y : ℕ) (p : Nat.Primes) : p ∈ I y ↔ (p : ℕ) ≤ y := by
-    dsimp only [I]
-    rw [Finset.mem_image]
     constructor
-    · rintro ⟨q, _, rfl⟩
+    · intro hp
+      obtain ⟨q, _, rfl⟩ := Finset.mem_image.mp hp
       exact (Nat.mem_primesLE.mp q.property).1
     · intro hp
-      exact ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩
+      exact Finset.mem_image.mpr
+        ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩
   have hI : Tendsto I atTop atTop := by
     apply Filter.tendsto_atTop_finset_of_monotone
     · intro y z hyz p hp
