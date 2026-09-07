@@ -31,3 +31,6 @@ Thumbs.db
 .agents/
 .claude/
 .codex/
+
+# Disposable LeanEval checkouts and submission builds
+.submission-work/
