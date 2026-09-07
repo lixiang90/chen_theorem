@@ -1,0 +1,120 @@
+{
+  "repository": "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd",
+  "commit": "c6c73610b406689c4b58325cbe1342ecca25d755",
+  "files": [
+    {
+      "module": "Auxiliary",
+      "source_sha256": "6a57cc112e9a6dbe780c019cb22fa1469733afc78976f3aeeaaa80949acf0cfc",
+      "source_lines": 75,
+      "local_lines": 81
+    },
+    {
+      "module": "MellinCalculus",
+      "source_sha256": "2a3d42e3fd811faff72cba349943144d063571f23ce5b13f82d897fe8bb9789b",
+      "source_lines": 1535,
+      "local_lines": 1149
+    },
+    {
+      "module": "Sobolev",
+      "source_sha256": "fe06e13fad5b47dbd324307ba246110515c4cb50f4c41d6cb15764fd53b1b8ef",
+      "source_lines": 359,
+      "local_lines": 365
+    },
+    {
+      "module": "Fourier",
+      "source_sha256": "e9db3c235cabf356d2b4aed528d0ceca6ad3e23c7a150d7049fd9ac796315823",
+      "source_lines": 186,
+      "local_lines": 192
+    },
+    {
+      "module": "Mathlib.Analysis.SpecialFunctions.Log.Basic",
+      "source_sha256": "7e3e2b8f84e6c170051a6474272455bed2432e6fddac5660072318b9b4eda7ec",
+      "source_lines": 17,
+      "local_lines": 23
+    },
+    {
+      "module": "Rectangle",
+      "source_sha256": "ab1c0c7c16ad9f3765e439fe42a739d4d25f09aa991df6c4c303f77380a89885",
+      "source_lines": 281,
+      "local_lines": 284
+    },
+    {
+      "module": "Tactic.AdditiveCombination",
+      "source_sha256": "ea898bb0a4889d82fe4b94b7052daa73083d1f3aa3cddb5336f0513580a17040",
+      "source_lines": 185,
+      "local_lines": 188
+    },
+    {
+      "module": "ResidueCalcOnRectangles",
+      "source_sha256": "6a8ab0005546490f91b615f6bfbe8818ba21f3afe008a893174ab1a0e3e45cb8",
+      "source_lines": 1258,
+      "local_lines": 1166
+    },
+    {
+      "module": "EulerMaclaurin",
+      "source_sha256": "a1def4a9f8f0b36864c5d480db137c1d86be3db1a47b67ae151e587a99167146",
+      "source_lines": 79,
+      "local_lines": 85
+    },
+    {
+      "module": "ZetaBounds",
+      "source_sha256": "aab01d422c0190b95dade7873261943997c554d55fcc9fff94a39005e5b5ad5a",
+      "source_lines": 3668,
+      "local_lines": 3142
+    },
+    {
+      "module": "ZetaConj",
+      "source_sha256": "08a9153c6500464c574f466a5569e82adbd5fb152a96a914fbb77c3208d0a71c",
+      "source_lines": 69,
+      "local_lines": 45
+    },
+    {
+      "module": "Mathlib.Algebra.Notation.Support",
+      "source_sha256": "e688bf925c2130b291c536d3b93b72c20e41ae95d530c90915921d75a6f52504",
+      "source_lines": 13,
+      "local_lines": 19
+    },
+    {
+      "module": "SmoothExistence",
+      "source_sha256": "e689045a2d7f92c71c68fda6aa69a89d4a8692187475ba432ed010f453110ea0",
+      "source_lines": 107,
+      "local_lines": 103
+    },
+    {
+      "module": "MediumPNT",
+      "source_sha256": "7044c41ae6df6798c743434ea82a682cc784b1dbf4a4817662eb7a0579ad747f",
+      "source_lines": 4282,
+      "local_lines": 3811
+    },
+    {
+      "module": "Mathlib.Analysis.Asymptotics.Asymptotics",
+      "source_sha256": "c1cdb6bb509c6178bf17868c57e5b53721b87fb2774ef8562bc5945ffe5b11ae",
+      "source_lines": 41,
+      "local_lines": 47
+    },
+    {
+      "module": "Mathlib.Analysis.Asymptotics.Uniformly",
+      "source_sha256": "72cbe87eae6ad7beec7edf214f7ba37fff8d1f8a4c61fae3e7fbfabeb2373f0f",
+      "source_lines": 164,
+      "local_lines": 170
+    },
+    {
+      "module": "PerronFormula",
+      "source_sha256": "2854ed06a27c28d41f2546f9e756bd83afeb8399421e2e4e68112d23e407db9b",
+      "source_lines": 1175,
+      "local_lines": 901
+    },
+    {
+      "module": "IEANTN.RosserSchoenfeld.RosserSchoenfeldPrime",
+      "source_sha256": "e71767910e96ac444dbb99ecb87f6ab002cbebfe47a48c607e297920cd0b2e1b",
+      "source_lines": 1017,
+      "local_lines": 782
+    },
+    {
+      "module": "IEANTN.Mertens",
+      "source_sha256": "30387cba9cbd61b129d02993c6cb503820dd453237c899bea373a108adf7f793",
+      "source_lines": 2455,
+      "local_lines": 2102
+    }
+  ]
+}

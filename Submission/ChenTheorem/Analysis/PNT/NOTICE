@@ -1,0 +1,9 @@
+This directory contains adapted portions of PrimeNumberTheoremAnd.
+Upstream: https://github.com/AlexKontorovich/PrimeNumberTheoremAnd
+Commit: c6c73610b406689c4b58325cbe1342ecca25d755
+License: Apache-2.0 (LICENSE).
+Original authorship and copyright notices in source files are retained.
+Modifications: removed blueprint annotations and Architect imports;
+localized imports; excluded unused Wiener and numerical-table imports;
+retained RosserSchoenfeldPrime only through Mertens second theorem.
+Further local proof/import changes are tracked in the project history.
