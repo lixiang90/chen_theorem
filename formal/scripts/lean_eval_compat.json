@@ -1,0 +1,42 @@
+{
+  "ChenTheorem/Analysis/PNT/Fourier.lean": [
+    {
+      "old": "theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)",
+      "new": "theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 :=\n  NNReal.coe_eq_one.mp (Circle.norm_coe z)"
+    },
+    {
+      "old": "(dist_le_norm_add_norm _ _).trans (by simp [one_add_one_eq_two])",
+      "new": "(dist_le_norm_add_norm _ _).trans (by norm_num [Circle.norm_coe])"
+    }
+  ],
+  "ChenTheorem/Analysis/PNT/MediumPNT.lean": [
+    {
+      "old": "        intro x hx\n        simp\n        rfl\n      rw [change_int_power, integral]",
+      "new": "        intro x hx\n        simp\n      rw [change_int_power, integral]"
+    }
+  ],
+  "ChenTheorem/Analysis/PNT/IEANTN/Mertens.lean": [
+    {
+      "old": "  · convert! integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2\n    simp\n    rfl",
+      "new": "  · convert! integrableOn_add_rpow_Ioi_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : -N < 0) using 2\n    simp"
+    }
+  ],
+  "ChenTheorem/Main/ShiftedLemma5.lean": [
+    {
+      "old": "      have hn' := hn\n      simp only [shiftedSieveMIndices, Finset.mem_filter,\n        Finset.mem_range, shiftedRough] at hn'\n      have hdist :\n          Nat.dist h (q.1 * q.2 * n) = q.1 * q.2 * n - h :=\n        Nat.dist_eq_sub_of_le hn'.2.2.1.le\n      rw [hdist, shiftedSieveDivisorSum_eq_one_of_rough\n        (show 1 ≤ x by omega) hε0 hn'.2.2.2]",
+      "new": "      have hn' : shiftedRough h x (q.1 * q.2 * n) :=\n        (Finset.mem_filter.mp hn).2.2\n      have hdist :\n          Nat.dist h (q.1 * q.2 * n) = q.1 * q.2 * n - h :=\n        Nat.dist_eq_sub_of_le hn'.1.le\n      rw [hdist, shiftedSieveDivisorSum_eq_one_of_rough\n        (show 1 ≤ x by omega) hε0 hn'.2]"
+    }
+  ],
+  "ChenTheorem/Analysis/PNT/IEANTN/RosserSchoenfeld/RosserSchoenfeldPrime.lean": [
+    {
+      "old": "  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n ↦ log n)",
+      "new": "  let a : ℕ → ℝ := Set.indicator {n : ℕ | Nat.Prime n} (fun n ↦ log n)"
+    }
+  ],
+  "ChenTheorem/Lemma9/LinearSieve/SieveProductAsymptotics.lean": [
+    {
+      "old": "  have hmem (y : ℕ) (p : Nat.Primes) : p ∈ I y ↔ (p : ℕ) ≤ y := by\n    dsimp only [I]\n    rw [Finset.mem_image]\n    constructor\n    · rintro ⟨q, _, rfl⟩\n      exact (Nat.mem_primesLE.mp q.property).1\n    · intro hp\n      exact ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩\n",
+      "new": "  have hmem (y : ℕ) (p : Nat.Primes) : p ∈ I y ↔ (p : ℕ) ≤ y := by\n    constructor\n    · intro hp\n      obtain ⟨q, _, rfl⟩ := Finset.mem_image.mp hp\n      exact (Nat.mem_primesLE.mp q.property).1\n    · intro hp\n      exact Finset.mem_image.mpr\n        ⟨⟨p.val, Nat.mem_primesLE.mpr ⟨hp, p.property⟩⟩, mem_attach _ _, rfl⟩\n"
+    }
+  ]
+}

@@ -18,6 +18,8 @@ parser.add_argument('--source-rev', default='HEAD', help='Committed original pro
 parser.add_argument('--benchmark-rev', default='HEAD', help='Committed benchmark revision')
 args = parser.parse_args()
 formal = Path(__file__).resolve().parents[1]
+compatibility_bytes = Path(__file__).with_name('lean_eval_compat.json').read_text(encoding='utf-8').encode('utf-8')
+compatibility = json.loads(compatibility_bytes)
 benchmark = args.benchmark_dir.resolve()
 output = args.output_dir.resolve()
 output.mkdir(parents=True, exist_ok=True)
@@ -55,6 +57,11 @@ for source in sources:
     target.parent.mkdir(parents=True, exist_ok=True)
     blob = source_blobs[prefix + relative.as_posix()]
     text = blob.decode('utf-8-sig')
+    for replacement in compatibility.get(relative.as_posix(), []):
+        old, new = replacement['old'], replacement['new']
+        if text.count(old) != 1:
+            raise ValueError(f'Compatibility patch no longer matches {relative}: {old!r}')
+        text = text.replace(old, new, 1)
     # The benchmark disables autoImplicit globally; preserve the original
     # modules' elaboration setting explicitly in the solver-owned sources.
     text = re.sub(r'^((?:public )?import\s+)(ChenTheorem(?:\.[\w.]+)?)\s*$',
@@ -85,12 +92,14 @@ end Submission
 for name in notices:
     (output / 'Submission' / name).write_bytes(source_blobs[prefix + name])
 (output / '.gitignore').write_text('.lake/\n*.log\n*.olean\n*.ilean\n', encoding='utf-8')
+(output / 'COMPATIBILITY.json').write_bytes(compatibility_bytes)
 metadata = {
     'source_repository': 'https://github.com/lixiang90/chen_theorem',
     'source_commit': subprocess.check_output(['git', '-C', str(formal), 'rev-parse', args.source_rev], text=True).strip(),
     'benchmark_commit': subprocess.check_output(['git', '-C', str(benchmark), 'rev-parse', args.benchmark_rev], text=True).strip(),
     'problem_id': 'chen_theorem',
     'declared_system': 'OpenAI Codex (GPT-6 + GPT-5.6 Sol)',
+    'compatibility_patch_sha256': hashlib.sha256(compatibility_bytes).hexdigest(),
     'source_sha256': hashes,
     'trusted_sha256': {name: hashlib.sha256(trusted_blobs[f'generated/chen_theorem/{name}']).hexdigest() for name in trusted},
 }

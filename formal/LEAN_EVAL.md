@@ -39,6 +39,8 @@ Comparator 在 landrun 沙箱中独立构建题目和解答，检查精确陈述
 
 打包脚本从原项目的已提交 Git blobs 读取证明，保留来源哈希，把本地模块
 重定位到 `Submission/`，显式保持原源码的 `autoImplicit` 设置，并加入题目桥接。
+`scripts/lean_eval_compat.json` 记录固定 Mathlib 版本的逐项兼容性修改；
+脚本要求每段原文恰好匹配一次，并在来源元数据中记录补丁文件的 LF 规范化哈希。
 原项目的 Lean 4.32.2 证明文件保持不变。PNT/Mertens/Perron 的 Apache-2.0
 许可证、NOTICE 和来源信息保留在对应目录下。
 
@@ -65,8 +67,19 @@ lake test
 - 用固定 Git revisions 重新打包的 428 个文件经比对，证明、题目和许可证文本一致，来源元数据及所有 SHA-256 一致。
 - Linux 大小写敏感的本地导入检查通过；提交只依赖固定 Mathlib 及其正常传递依赖。
 - 提交归档为 1,022,756 字节，低于 10 MiB。
-- 官方提交格式检查、源码归档已成功；comparator/nanoda 验收正在运行。
-- 本地 Lean 4.33.0 依赖缓存仍在下载，尚未将完整版本迁移检查记为通过。
+- 官方提交格式检查、源码归档已成功；首次提交未通过编译，尚未进入 nanoda 重放。
+  官方日志报告 Fourier、Mertens 和 ShiftedLemma5 的固定版本兼容问题，已在本地修复并单独编译通过。
+- 本地 Lean 4.33.0 缓存已补齐。首次构建发现版本兼容问题，正在验证修复版，
+  尚未将完整版本迁移检查记为通过。修复版尚未发布为新的官方提交。
+
+首次迁移发现的调整包括：显式使用 `Circle.norm_coe`，删除新版 `simp` 后
+已无目标可处理的两处 `rfl`，以及直接用 `Finset.mem_filter` 提取平移筛法的
+成员条件。后续还修复了 `setOf Nat.Prime` 的旧集合写法，以及 `Nat.Primes`
+类型别名展开后 `rw [Finset.mem_image]` 不匹配的问题；六个涉及修改的模块均已
+通过单独编译，完整下游构建继续进行。原版定理陈述及数学假设均未改变。
+Windows 默认并发曾导致内存分配
+失败，后续本地构建设置进程环境变量 `LEAN_NUM_THREADS=4`；此前受影响的模块
+在降低并发后已通过。
 
 只有官方结果返回成功，才能将本提交标为 LeanEval 接受。
 提交表单原文保存在 [lean-eval-submission.md](lean-eval-submission.md)。
