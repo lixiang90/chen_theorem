@@ -53,7 +53,8 @@ proved in Lean using locally included Apache-2.0 analytic proofs, and the numeri
 and (27) and inequality (28) are machine-checked without `sorryAx`.
 
 One unproved analytic input remains: `primitive_zero_free_region` supplies the
-height-dependent Dirichlet zero-free region and Siegel bounds. The companion
+mixed Dirichlet zero-free region. Its remaining proof obligation is now only
+the real-axis Siegel bound; the full nonexceptional region is proved. The companion
 logarithmic-derivative estimate is now proved from nonvanishing in that mixed
 region. Lemma 6 and the standalone level-`1/2`
 Bombieri--Vinogradov theorem both depend on this documented `sorry`.
@@ -80,8 +81,8 @@ expansion with an absolute conductor-height logarithmic error bound.
 The uniform logarithmic zero-free region is now proved for primitive characters
 with nonprincipal square. Exact change-of-level derivative formulas control
 imprimitive Euler factors, and the original remaining goal is reduced to
-primitive real characters. Their nonexceptional region and Siegel estimates
-remain unproved.
+primitive real characters. The full nonexceptional region is now proved for
+all primitive characters. The remaining goal is only the real-axis Siegel bound.
 For primitive real characters, conjugate-zero pairing now proves that any
 zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
 any such zero is now also proved unique and simple in a uniform smaller box.

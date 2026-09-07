@@ -52,7 +52,7 @@ lake env lean Audit.lean          # completion gate; currently fails on the zero
 | `ChenTheorem/Lemma6/LFunctionZeroCount.lean` | An unconditional Jensen bound for zeros with multiplicity in disks centered at `5/4+it` and reaching to the left of one |
 | `ChenTheorem/Analysis/{BlaschkeFactor,DiskBlaschkeProduct,AnalyticZeroFactorization,ZeroFreeFactorBounds,BlaschkeLogDerivative,DiskZeroLogDerivative,DiskZeroCount,LocalZeroLogDerivative,LocalZeroLogDerivativeBound}.lean` | Exact finite zero factorization, boundary and center norm control, and a local logarithmic-derivative expansion with all zero-count and remainder bounds proved |
 | `ChenTheorem/Lemma6/{LFunctionLocalZeroLogDerivative,LFunctionLocalZeroScale}.lean` | A primitive L-function local zero-pole expansion with error at most `60000 log(q(abs(t)+2))`, without assuming a zero-free disk |
-| `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The single remaining `sorry`: uniform mixed-region nonvanishing at every fixed Siegel exponent; the companion derivative bound is supplied by the proved assembly theorem |
+| `ChenTheorem/Lemma6/ZeroFreeRegion.lean` | The single remaining `sorry`: the real-axis Siegel bound at every fixed exponent; the nonexceptional region and companion derivative bound are proved |
 | `ChenTheorem/Lemma6/Equation21.lean` | The complete equation-(21) pipeline from that interface: the unsplit logarithmic-derivative integrand, holomorphy inside the region, Cauchy–Goursat on `[1-1/√(log x), α]` rectangles, horizontal-edge decay from the kernel's half-power decay, and the final character-level bound `≪ (log x)^90 · Σ (x/p₁p₂)^{1-1/√(log x)}` |
 | `ChenTheorem/Lemma6/Core.lean` | The finite `N_m`, its small/large-conductor split, equations (12)–(21), and the proved final logarithmic deduction for Lemma 6 |
 | `ChenTheorem/Main/NumericalBounds.lean` | Independent, `sorry`-free analytic proofs of the numerical integral bounds (24) and (27), with exact rational remainder estimates |
@@ -276,8 +276,8 @@ unconditional**. Build success must not be confused with passing `Audit.lean`.
 Builds with `lake build` (Lean `v4.32.2`, Mathlib `v4.32.2`) with zero errors.
 The project contains exactly one documented `sorry`, in
 `primitive_zero_free_region` (`Lemma6/ZeroFreeRegion.lean`), and no explicit
-non-foundational axioms. The remaining input supplies the height-dependent
-Dirichlet zero-free region and the arbitrary fixed Siegel exponent. The
+non-foundational axioms. The full nonexceptional logarithmic region is proved;
+the remaining input is the real-axis Siegel bound at every fixed exponent. The
 companion `L'/L` bound required by Lemma 6 and Bombieri--Vinogradov is now
 derived from mixed-region nonvanishing by `primitiveZeroFreeRegion_of_nonvanishing`.
 
@@ -303,7 +303,8 @@ The uniform logarithmic zero-free region is now proved for primitive characters
 with nonprincipal square, using zero-pole positivity, exact change-of-level
 logarithmic derivatives, the zeta pole bound, and the three-four-one inequality.
 `RealZeroFreeReduction` reduces the original remaining goal to primitive real
-characters. Their nonexceptional region and Siegel estimates remain open.
+characters. The full nonexceptional region is now proved for all primitive
+characters; only the real-axis Siegel bound remains open.
 For primitive real characters, conjugate-zero pairing now proves that any
 zero in a uniform box of width and height `c/log(2q)` around 1 must be real;
 any such zero is now also proved unique and simple in a uniform smaller box.

@@ -24,19 +24,19 @@ proposition, and `primitive_zero_free_region` is the single `sorry` in the
 equation-(21) pipeline.  The contour argument consuming it must use a finite
 height; no claim of height-uniform fixed-width nonvanishing is made here.
 -/
-import ChenTheorem.Lemma6.RealZeroFreeReduction
+import ChenTheorem.Lemma6.RealSiegelReduction
 
 namespace Chen
 
 /-- **The single unresolved analytic input of the equation-(21) pipeline.**
 
-The nonreal-character case is proved in `NonrealZeroFreeRegion`.
-Discharging the remaining goal requires the height-dependent zero-free region
-for primitive real characters and the ineffective Siegel bound at every fixed
-positive exponent. The derivative estimate and the nonreal case are supplied
-by `primitiveZeroFreeRegion_of_real_nonvanishing`. -/
+The full logarithmic region, including the possible exceptional zero being
+real and simple, is proved in `PrimitiveExceptionalRegion`. The remaining
+goal is only the ineffective Siegel bound on the real axis at every fixed
+positive exponent. `primitiveZeroFreeRegion_of_real_siegel` supplies the
+nonexceptional region and the companion logarithmic-derivative estimate. -/
 theorem primitive_zero_free_region : PrimitiveZeroFreeRegion := by
-  apply primitiveZeroFreeRegion_of_real_nonvanishing
+  apply primitiveZeroFreeRegion_of_real_siegel
   intro N hN
   sorry
 

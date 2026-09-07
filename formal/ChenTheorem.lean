@@ -29,3 +29,6 @@ import ChenTheorem.Lemma6.RealCharacterConjugation
 import ChenTheorem.Analysis.ZeroPoleSubsetRealPart
 import ChenTheorem.Lemma6.RealZeroBox
 import ChenTheorem.Lemma6.RealZeroSimplicity
+import ChenTheorem.Lemma6.RealSiegelReduction
+import ChenTheorem.Lemma6.BiquadraticLSeries
+import ChenTheorem.Analysis.SiegelTaylorInequality

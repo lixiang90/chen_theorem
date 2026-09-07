@@ -1,3 +1,6 @@
+import ChenTheorem.Lemma6.BiquadraticLSeries
+import ChenTheorem.Analysis.SiegelTaylorInequality
+import ChenTheorem.Lemma6.RealSiegelReduction
 import ChenTheorem.Lemma6.RealZeroSimplicity
 import ChenTheorem.Lemma6.RealZeroBox
 import ChenTheorem.Analysis.ZeroPoleSubsetRealPart
@@ -165,7 +168,56 @@ run_cmd do
       ``Chen.exists_primitive_real_zero_unique,
       ``Chen.exists_primitive_real_zero_box_subsingleton,
       ``Chen.exists_primitive_real_zero_deriv_ne_zero,
-      ``Chen.exists_primitive_real_zero_box_unique_real_simple] do
+      ``Chen.exists_primitive_real_zero_box_unique_real_simple,
+      ``Chen.conductor_height_log_le_twice_zero_height,
+      ``Chen.principal_shifted_pole_re,
+      ``Chen.principal_shifted_pole_mul_le_one_fifth,
+      ``Chen.norm_principal_shifted_point_sub_one_le,
+      ``Chen.exists_primitive_real_low_height_zero_im_eq_zero,
+      ``Chen.exists_primitive_real_low_height_unique_real_simple,
+      ``Chen.riemannZeta_eq_half_add_pole_add_integral,
+      ``Chen.norm_riemannZeta_le_right_strip,
+      ``Chen.norm_riemannZeta_high_centered_disk_le,
+      ``Chen.high_centered_zeta_ne_pole,
+      ``Chen.analyticOnNhd_high_centered_zeta,
+      ``Chen.norm_riemannZeta_zero_disk_center_ge,
+      ``Chen.norm_riemannZeta_logDeriv_sub_local_zero_poles_le,
+      ``Chen.height_log_ge_half,
+      ``Chen.zeta_zero_disk_log_bound_le,
+      ``Chen.norm_riemannZeta_logDeriv_sub_local_zero_poles_le_log,
+      ``Chen.riemannZeta_logDeriv_re_ge_high,
+      ``Chen.exists_zeta_logDeriv_compact_bound,
+      ``Chen.exists_zeta_logDeriv_re_ge_away_pole,
+      ``Chen.exists_principal_logDeriv_re_ge_away_pole,
+      ``Chen.primitive_real_zero_inequality_away_pole,
+      ``Chen.exists_primitive_real_zero_free_away_axis,
+      ``Chen.zero_height_log_le_conductor_height_log,
+      ``Chen.exists_primitive_real_nonreal_zero_free_region,
+      ``Chen.exists_primitive_real_exceptional_zero_region,
+      ``Chen.exists_primitive_exceptional_zero_region,
+      ``Chen.primitiveZeroFreeRegion_of_real_siegel,
+      ``Chen.convolution_prime_power_congr,
+      ``Chen.charArithmetic_prime_power,
+      ``Chen.charArithmetic_prime_power_eq_one,
+      ``Chen.charArithmetic_prime_power_eq_zeta,
+      ``Chen.biquadraticCoefficients_isMultiplicative,
+      ``Chen.convolution_nonneg,
+      ``Chen.biquadraticCoefficients_prime_power_nonneg,
+      ``Chen.biquadraticCoefficients_nonneg,
+      ``Chen.LSeriesSummable_charArithmetic,
+      ``Chen.LSeriesSummable_biquadraticCoefficients,
+      ``Chen.biquadraticLFunction_eq_LSeries,
+      ``Chen.biquadraticLFunction_real_ge_one,
+      ``Chen.biquadraticLSeries_iteratedDeriv_alternating,
+      ``Chen.biquadraticLFunction_iteratedDeriv_alternating,
+      ``Chen.backwardTaylorCoeff_biquadratic_nonneg,
+      ``Chen.norm_tsum_nat_add_le_geometric,
+      ``Chen.powerSeries_tail_norm_le,
+      ``Chen.powerSeries_summable_of_geometric_bound,
+      ``Chen.siegelTaylor_lower_bound,
+      ``Chen.norm_backwardTaylorCoeff_le,
+      ``Chen.hasSum_backwardTaylorCoeff,
+      ``Chen.backwardTaylorCoeff_nonneg_of_alternating] do
     let axioms ← Lean.collectAxioms name
     let extra := axioms.filter fun ax => !allowed.contains ax
     if extra.isEmpty then
